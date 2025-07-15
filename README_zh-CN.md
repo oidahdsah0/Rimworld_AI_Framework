@@ -1,0 +1,152 @@
+# RimAI 框架
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![RimWorld](https://img.shields.io/badge/RimWorld-1.6-brightgreen.svg)](https://rimworldgame.com/)
+[![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.7.2-blue.svg)](https://dotnet.microsoft.com/download/dotnet-framework)
+
+**语言**: [English](README.md) | **简体中文** | [文档](docs/)
+
+> **一个革命性的AI驱动的RimWorld框架，将大语言模型直接集成到您的殖民地管理体验中。**
+
+**作者**: [@oidahdsah0](https://github.com/oidahdsah0)  
+**创建时间**: 2025年7月
+
+---
+
+## 🚀 **愿景：无摩擦的神权**
+
+RimAI框架通过**"无摩擦交互"**引入了殖民地管理的范式转变——无需殖民者聚集到特定地点或中断他们的工作来处理行政任务。权力通过集中化的**"帝国监督者终端"**，采用异步、广播式的命令来行使。
+
+您的决策成为"神圣法令"，在不干扰殖民地生产力的情况下悄然影响世界。后果通过殖民者的想法、对话气泡、社交日志和全局消息呈现，创造出无缝且极其高效的治理体验。
+
+## 📐 **三层架构**
+
+为了创建清晰且可扩展的生态系统，RimAI项目被组织成三个不同的层次：
+
+### 1. **框架层**（本仓库）
+- **目的**：纯粹的技术后端和通信层
+- **职责**：
+  - 所有大语言模型（LLM）网络通信
+  - API密钥管理、请求构建、响应解析和错误处理
+  - 核心数据结构和接口（`ToolDef`、`CaseDef`、`IContextProvider`等）
+  - 可扩展的UI容器（终端、窗口）
+- **目标**：绝对中立、稳定且高效。不包含任何游戏逻辑。
+
+### 2. **核心游戏模块**（未来仓库）
+- **目的**：定义核心游戏体验的官方内容包
+- **职责**：
+  - 具体的游戏系统，如"司法系统"和"殖民地编年史"
+  - 通过XML和C#定义特定的案例类型、AI工具和游戏事件监听器
+  - 为玩家交互界面填充UI
+- **类比**：类似于RimWorld的"Core"内容，具有独立"DLC"模块的潜力
+
+### 3. **AI叙事者**（未来集成）
+- **目的**：游戏节奏和随机性的主宰者
+- **职责**：
+  - 标准的RimWorld `StorytellerDef`实现
+  - 定期对殖民地状态进行AI分析
+  - 基于AI洞察的动态事件生成
+- **目标**：真正不可预测的、逻辑驱动的叙事体验
+
+## 🎯 **核心功能**
+
+### 帝国监督者终端
+- **单一权力点**：一个可建造的核心结构解锁整个RimAI系统
+- **集成UI**：用于不同管理任务的多标签终端界面：
+  - **案件档案**：以档案格式处理刑事案件和民事纠纷
+  - **帝国法典**：发布全球行政法令和永久法律
+  - **内阁**：任命和管理您的顾问官员
+  - **殖民地档案**：访问历史记录和统计数据
+  - **W.I.F.E. 系统**：监护人集成预见引擎——您的AI顾问委员会
+
+### 异步治理
+- **案件登记**：犯罪和纠纷自动创建带有期限的时间戳案件
+- **档案审查**：通过羊皮纸风格的界面随时处理案件
+- **判决下达**：用自然语言发布决定并提供可选理由
+- **法官代理**：未处理的案件由指定官员自动处理
+- **广播后果**：结果通过思想、社交变化和环境反应传播
+
+### 官员系统
+- **法官**：处理逾期案件并通过信件报告
+- **管家**：基于殖民地状态提供行政建议
+- **议长**：基于最近事件提出立法改进
+
+## 🛠️ **技术实现**
+
+### 核心技术
+- **Harmony**：事件驱动架构和运行时代码注入
+- **ThingComp**：对象特定数据和行为的组件系统
+- **GameComponent**：全局数据管理和持久存储
+- **自定义Defs**：新的XML可定义概念（`ToolDef`、`CaseDef`）
+- **ModSettings**：玩家可配置选项和API管理
+
+### 关键类
+- `LLMManager`：AI通信的单例
+- `RimAISettings`：配置管理和持久化
+- `ContextManager`：游戏状态分析和上下文构建
+- `CoreDefs`：框架级定义和数据结构
+
+## 🔧 **安装和设置**
+
+### 前置要求
+- RimWorld 1.6+
+- [Harmony](https://steamcommunity.com/sharedfiles/filedetails/?id=2009463077)
+
+### 安装
+1. 在Steam创意工坊订阅模组（即将推出）
+2. 或从[发布页面](https://github.com/oidahdsah0/Rim_AI_Framework/releases)下载
+3. 在模组选项中配置您的API设置
+
+### 配置
+1. 打开RimWorld > 选项 > 模组设置 > RimAI Framework
+2. 输入您的LLM API凭证：
+   - **API密钥**：您的OpenAI/Claude/本地模型API密钥
+   - **端点URL**：服务端点（默认为OpenAI）
+   - **模型名称**：要使用的特定模型（例如，`gpt-4o`）
+3. 配置可选的嵌入设置以增强上下文
+
+## 🌍 **支持的语言**
+
+框架包含完整的本地化支持：
+- English（英语）
+- **简体中文**
+- 日本語（日语）
+- 한국어（韩语）
+- Français（法语）
+- Deutsch（德语）
+- Русский（俄语）
+
+## 🤝 **贡献**
+
+这是一个开源项目，欢迎贡献！请查看我们的[贡献指南](CONTRIBUTING.md)了解详情。
+
+### 开发设置
+1. 克隆仓库
+2. 安装.NET Framework 4.7.2 SDK
+3. 安装带有C# Dev Kit的VS Code
+4. 使用`dotnet build`构建
+
+### 架构文档
+- [技术设计](docs/TECHNICAL_DESIGN.md)
+- [API参考](docs/API_REFERENCE.md)
+- [实现指南](docs/IMPLEMENTATION_GUIDE.md)
+
+## 📄 **许可证**
+
+此项目采用MIT许可证 - 查看[LICENSE](LICENSE)文件了解详情。
+
+## 🙏 **致谢**
+
+- RimWorld社区的灵感和支持
+- Harmony项目的运行时补丁能力
+- OpenAI使AI民主化
+- 所有贡献者和早期采用者
+
+---
+
+**⚠️ 免责声明**：这是一个框架级模组，需要额外的内容模块才能实现完整功能。核心游戏功能（司法系统、殖民地编年史等）将作为单独的模块发布。
+
+**🔗 链接**：
+- [Steam创意工坊](https://steamcommunity.com/sharedfiles/filedetails/?id=TBD)（即将推出）
+- [Discord服务器](https://discord.gg/TBD)（即将推出）
+- [错误报告](https://github.com/oidahdsah0/Rim_AI_Framework/issues)

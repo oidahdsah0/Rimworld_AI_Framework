@@ -4,8 +4,6 @@
 [![RimWorld](https://img.shields.io/badge/RimWorld-1.6-brightgreen.svg)](https://rimworldgame.com/)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.7.2-blue.svg)](https://dotnet.microsoft.com/download/dotnet-framework)
 
-**Languages**: **English** | [简体中文](README_zh-CN.md) | [Documentation](docs/)
-
 > **A revolutionary AI-powered framework for RimWorld that brings Large Language Models directly into your colony management experience.**
 
 **Author**: [@oidahdsah0](https://github.com/oidahdsah0)  
