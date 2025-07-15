@@ -6,18 +6,18 @@
 [![RimWorld](https://img.shields.io/badge/RimWorld-1.6-brightgreen.svg)](https://rimworldgame.com/)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.7.2-blue.svg)](https://dotnet.microsoft.com/download/dotnet-framework)
 
-> **A revolutionary AI-powered framework for RimWorld that brings Large Language Models directly into your colony management experience.**
+> **A revolutionary AI-powered framework for RimWorld that brings Large Language Models directly into your colony management experience, enabling intelligent, context-aware administrative decisions.**
 
 **Author**: [@oidahdsah0](https://github.com/oidahdsah0)  
 **Created**: July 2025
 
 ---
 
-## 🚀 **Vision: Frictionless Godhood**
+## 🚀 **Vision: Intelligent Colony Management**
 
-RimAI Framework introduces a paradigm shift in colony management through **"frictionless interaction"** - eliminating the need for colonists to gather at specific locations or interrupt their work for administrative tasks. Power is exercised through a centralized **"Imperial Overseer Terminal"** using asynchronous, broadcast-style commands.
+RimAI Framework introduces a paradigm shift in colony management through **"frictionless interaction"** - eliminating the need for colonists to gather at specific locations or interrupt their work for administrative tasks. Management is exercised through a centralized **"AI Administrative Terminal"** using asynchronous, intelligent command processing.
 
-Your decisions become "divine decrees" that silently influence the world without disrupting colony productivity. Consequences manifest through colonist thoughts, dialogue bubbles, social logs, and global messages, creating a seamless and supremely efficient governance experience.
+Your decisions become "smart directives" that seamlessly influence the world without disrupting colony productivity. Consequences manifest through colonist thoughts, dialogue bubbles, social logs, and global messages, creating an intelligent and supremely efficient governance experience powered by advanced AI analysis.
 
 ## 📐 **Three-Tier Architecture**
 
@@ -41,35 +41,35 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
 - **Analogy**: Like RimWorld's "Core" content, with potential for independent "DLC" modules
 
 ### 3. **AI Storyteller** (Future Integration)
-- **Purpose**: Master of game pacing and randomness
+- **Purpose**: Intelligent narrative director powered by advanced AI analysis
 - **Responsibilities**:
-  - Standard RimWorld `StorytellerDef` implementation
-  - Periodic AI analysis of colony state
-  - Dynamic event generation based on AI insights
-- **Goal**: Truly unpredictable, logic-driven narrative experiences
+  - Standard RimWorld `StorytellerDef` implementation with AI enhancements
+  - Continuous AI-driven analysis of colony state and player behavior
+  - Dynamic event generation based on intelligent pattern recognition
+- **Goal**: Truly adaptive, AI-powered narrative experiences that evolve with your colony
 
 ## 🎯 **Core Features**
 
-### Imperial Overseer Terminal
-- **Single Point of Power**: One buildable core structure unlocks the entire RimAI system
+### AI Administrative Terminal
+- **Single Point of Intelligence**: One buildable core structure unlocks the entire RimAI system
 - **Integrated UI**: Multi-tabbed terminal interface for different administrative tasks:
   - **Case Files**: Handle criminal cases and civil disputes in dossier format
-  - **Imperial Codex**: Issue global administrative decrees and permanent laws
-  - **Cabinet**: Appoint and manage your advisory officials
+  - **Administrative Codex**: Issue global administrative decrees and permanent laws
+  - **Advisory Cabinet**: Appoint and manage your AI-powered officials
   - **Colony Archives**: Access historical records and statistics
   - **W.I.F.E. System**: Warden's Integrated Foresight Engine - your AI advisory council
 
-### Asynchronous Governance
-- **Case Logging**: Crimes and disputes automatically create timestamped cases with deadlines
-- **Dossier Review**: Handle cases at your convenience through parchment-style interfaces
-- **Judgment Delivery**: Issue decisions in natural language with optional reasoning
-- **Magistrate Delegation**: Unhandled cases are automatically processed by appointed officials
-- **Broadcast Consequences**: Results propagate through thoughts, social changes, and ambient reactions
+### Intelligent Governance
+- **Case Logging**: Crimes and disputes automatically create timestamped cases with AI-analyzed deadlines
+- **Smart Dossier Review**: Handle cases at your convenience through AI-enhanced interfaces
+- **Intelligent Judgment**: Issue decisions with AI-powered reasoning and context analysis
+- **AI Magistrate Delegation**: Unhandled cases are automatically processed by AI-appointed officials
+- **Intelligent Consequences**: Results propagate through AI-analyzed thoughts, social changes, and ambient reactions
 
-### Officer System
-- **Magistrate**: Handles overdue cases and reports back through letters
-- **Steward**: Provides administrative suggestions based on colony state
-- **Speaker**: Proposes legislative improvements based on recent events
+### AI Officer System
+- **AI Magistrate**: Handles overdue cases with intelligent analysis and reports back through letters
+- **AI Steward**: Provides administrative suggestions based on intelligent colony state analysis
+- **AI Speaker**: Proposes legislative improvements based on AI-driven event analysis
 
 ## 🛠️ **Technical Implementation**
 
@@ -81,10 +81,10 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
 - **ModSettings**: Player-configurable options and API management
 
 ### Key Classes
-- `LLMManager`: Singleton for all AI communication
-- `RimAISettings`: Configuration management and persistence
-- `ContextManager`: Game state analysis and context building
-- `CoreDefs`: Framework-level definitions and data structures
+- `LLMManager`: Singleton for all AI communication and intelligent response processing
+- `RimAISettings`: Configuration management and AI model persistence
+- `ContextManager`: Intelligent game state analysis and context building for AI
+- `CoreDefs`: Framework-level definitions and AI-powered data structures
 
 ## 🔧 **Installation & Setup**
 
