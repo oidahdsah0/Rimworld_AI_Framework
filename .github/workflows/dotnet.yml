@@ -1,0 +1,117 @@
+# .NET Framework build validation and code quality checks
+name: .NET
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+      
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v2.0.0
+      
+    - name: Code Quality Check
+      run: |
+        Write-Host "🔍 Running code quality checks..."
+        
+        # Check for TODO/FIXME comments
+        $todos = Select-String -Path "**/*.cs" -Pattern "TODO|FIXME|HACK" -AllMatches -ErrorAction SilentlyContinue
+        if ($todos) {
+          Write-Host "📝 Found TODO/FIXME/HACK comments:"
+          $todos | ForEach-Object { 
+            Write-Host "  $($_.Filename):$($_.LineNumber) - $($_.Line.Trim())" 
+          }
+        }
+        
+        # Check for hardcoded paths
+        $hardcoded = Select-String -Path "**/*.cs" -Pattern "C:\\\\|D:\\\\|/home/|/usr/" -AllMatches -ErrorAction SilentlyContinue
+        if ($hardcoded) {
+          Write-Host "⚠️ Found potential hardcoded paths:"
+          $hardcoded | ForEach-Object { 
+            Write-Host "  $($_.Filename):$($_.LineNumber) - $($_.Line.Trim())" 
+          }
+        }
+        
+        # Check for debug statements
+        $debug = Select-String -Path "**/*.cs" -Pattern "Console\.WriteLine|System\.Console\.WriteLine" -AllMatches -ErrorAction SilentlyContinue
+        if ($debug) {
+          Write-Host "🐛 Found debug statements:"
+          $debug | ForEach-Object { 
+            Write-Host "  $($_.Filename):$($_.LineNumber) - $($_.Line.Trim())" 
+          }
+        }
+        
+        # Validate XML files
+        Write-Host "🔍 Validating XML files..."
+        $xmlFiles = Get-ChildItem -Path "." -Filter "*.xml" -Recurse
+        $xmlErrors = $false
+        
+        foreach ($file in $xmlFiles) {
+          try {
+            [xml]$xml = Get-Content $file.FullName
+            Write-Host "✅ $($file.Name) - Valid XML"
+          } catch {
+            Write-Host "❌ $($file.Name) - Invalid XML: $($_.Exception.Message)"
+            $xmlErrors = $true
+          }
+        }
+        
+        if ($xmlErrors) {
+          Write-Host "❌ XML validation failed"
+          exit 1
+        }
+        
+        Write-Host "✅ Code quality checks completed"
+      
+    - name: Build All Projects
+      run: |
+        Write-Host "🔨 Starting build process..."
+        $success = $true
+        $slnFiles = Get-ChildItem -Path "." -Filter "*.sln" -Recurse
+        
+        foreach ($sln in $slnFiles) {
+          $projectName = $sln.BaseName
+          $projectPath = $sln.DirectoryName
+          
+          Write-Host "🔨 Building $projectName..."
+          
+          try {
+            # Restore packages
+            nuget restore "$projectPath\$($sln.Name)"
+            
+            # Build project
+            msbuild "$projectPath\$($sln.Name)" /p:Configuration=Debug /p:Platform="Any CPU" /p:TreatWarningsAsErrors=false
+            
+            # Verify DLL was created
+            $dllFiles = Get-ChildItem -Path $projectPath -Filter "*.dll" -Recurse | Where-Object { $_.Directory.Name -eq "Assemblies" }
+            if ($dllFiles.Count -gt 0) {
+              Write-Host "✅ $projectName build successful"
+              foreach ($dll in $dllFiles) {
+                Write-Host "   - Generated: $($dll.Name)"
+              }
+            } else {
+              Write-Host "❌ $projectName build failed - no DLL generated"
+              $success = $false
+            }
+          } catch {
+            Write-Host "❌ $projectName build failed: $($_.Exception.Message)"
+            $success = $false
+          }
+        }
+        
+        if (-not $success) {
+          Write-Host "❌ One or more projects failed to build"
+          exit 1
+        }
+        
+        Write-Host "✅ All projects built successfully"

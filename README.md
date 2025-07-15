@@ -93,8 +93,8 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
 - [Harmony](https://steamcommunity.com/sharedfiles/filedetails/?id=2009463077)
 
 ### Installation
-1. Subscribe to the mod on Steam Workshop (coming soon)
-2. Or download from [Releases](https://github.com/oidahdsah0/Rim_AI_Framework/releases)
+1. **For End Users**: Download from [Releases](https://github.com/oidahdsah0/Rim_AI_Framework/releases)
+2. **For Developers**: Clone and build from source (see Development Setup below)
 3. Configure your API settings in Mod Options
 
 ### Configuration
@@ -121,10 +121,31 @@ The framework includes full localization support for:
 This is an open-source project and contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ### Development Setup
-1. Clone the repository
-2. Install .NET Framework 4.7.2 SDK
-3. Install VS Code with C# Dev Kit
-4. Build using `dotnet build`
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/oidahdsah0/Rim_AI_Framework.git
+   cd Rim_AI_Framework
+   ```
+
+2. **Build the project**
+   ```bash
+   # Navigate to the framework directory
+   cd RimAI.Framework
+   
+   # Build using MSBuild
+   msbuild Rim_AI_Framework.sln /p:Configuration=Debug
+   ```
+
+3. **Development Requirements**
+   - .NET Framework 4.7.2 SDK
+   - Visual Studio 2019+ or VS Code with C# Dev Kit
+   - RimWorld 1.6+ (for testing)
+
+### Repository Structure
+- **Source Code Only**: This repository contains only source code
+- **Build Locally**: Developers should build from source
+- **Clean Git**: No compiled binaries are committed to the repository
+- **Releases**: Pre-compiled mods are available in GitHub Releases
 
 ### Architecture Documentation
 - [Technical Design](docs/TECHNICAL_DESIGN.md)
