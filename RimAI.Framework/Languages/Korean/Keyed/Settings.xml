@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+  <!-- Settings Category -->
+  <RimAI.Framework.Settings.Category>RimAI 프레임워크</RimAI.Framework.Settings.Category>
+
+  <!-- Titles -->
+  <RimAI.Framework.Settings.ChatCompletion.Title>채팅 완료 설정</RimAI.Framework.Settings.ChatCompletion.Title>
+  <RimAI.Framework.Settings.Embeddings.Title>임베딩 설정</RimAI.Framework.Settings.Embeddings.Title>
+
+  <!-- Chat Completion -->
+  <RimAI.Framework.Settings.ChatCompletion.APIKey>API 키:</RimAI.Framework.Settings.ChatCompletion.APIKey>
+  <RimAI.Framework.Settings.ChatCompletion.EndpointURL>엔드포인트 URL:</RimAI.Framework.Settings.ChatCompletion.EndpointURL>
+  <RimAI.Framework.Settings.ChatCompletion.ModelName>모델 이름:</RimAI.Framework.Settings.ChatCompletion.ModelName>
+  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming>스트리밍 활성화</RimAI.Framework.Settings.ChatCompletion.EnableStreaming>
+  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>보다 상호작용적인 느낌을 위해 단어별로 응답을 받도록 활성화합니다.</RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>
+
+  <!-- Embeddings -->
+  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings>임베딩 활성화</RimAI.Framework.Settings.Embeddings.EnableEmbeddings>
+  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>컨텍스트 검색을 위한 임베딩 기능을 사용하려면 활성화합니다.</RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>
+  <RimAI.Framework.Settings.Embeddings.APIKey>임베딩 API 키 (선택사항, 비어있으면 메인 키 사용):</RimAI.Framework.Settings.Embeddings.APIKey>
+  <RimAI.Framework.Settings.Embeddings.EndpointURL>임베딩 엔드포인트 URL:</RimAI.Framework.Settings.Embeddings.EndpointURL>
+  <RimAI.Framework.Settings.Embeddings.ModelName>임베딩 모델 이름:</RimAI.Framework.Settings.Embeddings.ModelName>
+
+  <!-- Buttons -->
+  <RimAI.Framework.Settings.ResetButton>기본값으로 재설정</RimAI.Framework.Settings.ResetButton>
+
+</LanguageData>

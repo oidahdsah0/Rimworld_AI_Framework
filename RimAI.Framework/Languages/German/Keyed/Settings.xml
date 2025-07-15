@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+  <!-- Settings Category -->
+  <RimAI.Framework.Settings.Category>RimAI Framework</RimAI.Framework.Settings.Category>
+
+  <!-- Titles -->
+  <RimAI.Framework.Settings.ChatCompletion.Title>Chat-Vervollständigung Einstellungen</RimAI.Framework.Settings.ChatCompletion.Title>
+  <RimAI.Framework.Settings.Embeddings.Title>Embedding-Einstellungen</RimAI.Framework.Settings.Embeddings.Title>
+
+  <!-- Chat Completion -->
+  <RimAI.Framework.Settings.ChatCompletion.APIKey>API-Schlüssel:</RimAI.Framework.Settings.ChatCompletion.APIKey>
+  <RimAI.Framework.Settings.ChatCompletion.EndpointURL>Endpunkt-URL:</RimAI.Framework.Settings.ChatCompletion.EndpointURL>
+  <RimAI.Framework.Settings.ChatCompletion.ModelName>Modellname:</RimAI.Framework.Settings.ChatCompletion.ModelName>
+  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming>Streaming aktivieren</RimAI.Framework.Settings.ChatCompletion.EnableStreaming>
+  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>Aktivieren, um Antworten Wort für Wort für ein interaktiveres Erlebnis zu erhalten.</RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>
+
+  <!-- Embeddings -->
+  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings>Embeddings aktivieren</RimAI.Framework.Settings.Embeddings.EnableEmbeddings>
+  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>Aktivieren, um Embedding-Funktionen für die Kontextsuche zu verwenden.</RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>
+  <RimAI.Framework.Settings.Embeddings.APIKey>Embedding-API-Schlüssel (optional, verwendet Hauptschlüssel wenn leer):</RimAI.Framework.Settings.Embeddings.APIKey>
+  <RimAI.Framework.Settings.Embeddings.EndpointURL>Embedding-Endpunkt-URL:</RimAI.Framework.Settings.Embeddings.EndpointURL>
+  <RimAI.Framework.Settings.Embeddings.ModelName>Embedding-Modellname:</RimAI.Framework.Settings.Embeddings.ModelName>
+
+  <!-- Buttons -->
+  <RimAI.Framework.Settings.ResetButton>Auf Standard zurücksetzen</RimAI.Framework.Settings.ResetButton>
+
+</LanguageData>

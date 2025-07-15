@@ -1,0 +1,103 @@
+using UnityEngine;
+using Verse;
+
+namespace RimAI.Framework.Core
+{
+    /// <summary>
+    /// The main Mod class for the RimAI Framework.
+    /// This class handles the settings window and is the primary entry point for RimWorld.
+    /// </summary>
+    public class RimAIMod : Mod
+    {
+        /// <summary>
+        /// A reference to our settings instance.
+        /// </summary>
+        public readonly RimAISettings settings;
+
+        /// <summary>
+        /// The constructor for the Mod class. It's called once when the mod is loaded.
+        /// </summary>
+        /// <param name="content">The ModContentPack which contains info about this mod.</param>
+        public RimAIMod(ModContentPack content) : base(content)
+        {
+            // Get a reference to our settings.
+            settings = GetSettings<RimAISettings>();
+        }
+
+        /// <summary>
+        /// The name of the mod in the settings list.
+        /// </summary>
+        /// <returns>The display name for the settings category.</returns>
+        public override string SettingsCategory()
+        {
+            return "RimAI.Framework.Settings.Category".Translate();
+        }
+
+        /// <summary>
+        /// This method is called when the user opens the settings window for this mod.
+        /// We use it to draw our custom settings UI.
+        /// </summary>
+        /// <param name="inRect">The rectangle area to draw the settings within.</param>
+        public override void DoSettingsWindowContents(Rect inRect)
+        {
+            Listing_Standard listingStandard = new Listing_Standard();
+            listingStandard.Begin(inRect);
+
+            // --- Chat Completion Settings ---
+            listingStandard.Label("RimAI.Framework.Settings.ChatCompletion.Title".Translate());
+            listingStandard.GapLine();
+
+            listingStandard.Label("RimAI.Framework.Settings.ChatCompletion.APIKey".Translate());
+            settings.apiKey = listingStandard.TextEntry(settings.apiKey);
+
+            listingStandard.Label("RimAI.Framework.Settings.ChatCompletion.EndpointURL".Translate());
+            settings.apiEndpoint = listingStandard.TextEntry(settings.apiEndpoint);
+
+            listingStandard.Label("RimAI.Framework.Settings.ChatCompletion.ModelName".Translate());
+            settings.modelName = listingStandard.TextEntry(settings.modelName);
+
+            listingStandard.CheckboxLabeled("RimAI.Framework.Settings.ChatCompletion.EnableStreaming".Translate(), ref settings.enableStreaming, "RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip".Translate());
+
+            listingStandard.Gap(24f);
+
+            // --- Embeddings Settings ---
+            listingStandard.Label("RimAI.Framework.Settings.Embeddings.Title".Translate());
+            listingStandard.GapLine();
+
+            listingStandard.CheckboxLabeled("RimAI.Framework.Settings.Embeddings.EnableEmbeddings".Translate(), ref settings.enableEmbeddings, "RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip".Translate());
+
+            if (settings.enableEmbeddings)
+            {
+                listingStandard.Label("RimAI.Framework.Settings.Embeddings.APIKey".Translate());
+                settings.embeddingApiKey = listingStandard.TextEntry(settings.embeddingApiKey);
+
+                listingStandard.Label("RimAI.Framework.Settings.Embeddings.EndpointURL".Translate());
+                settings.embeddingEndpoint = listingStandard.TextEntry(settings.embeddingEndpoint);
+
+                listingStandard.Label("RimAI.Framework.Settings.Embeddings.ModelName".Translate());
+                settings.embeddingModelName = listingStandard.TextEntry(settings.embeddingModelName);
+            }
+
+            listingStandard.Gap(24f);
+
+            // --- Reset Button ---
+            if (listingStandard.ButtonText("RimAI.Framework.Settings.ResetButton".Translate()))
+            {
+                // Reset Chat settings
+                settings.apiKey = "";
+                settings.apiEndpoint = "https://api.openai.com/v1/chat/completions";
+                settings.modelName = "gpt-4o";
+                settings.enableStreaming = true;
+
+                // Reset Embeddings settings
+                settings.enableEmbeddings = false;
+                settings.embeddingApiKey = "";
+                settings.embeddingEndpoint = "https://api.openai.com/v1/embeddings";
+                settings.embeddingModelName = "text-embedding-3-small";
+            }
+
+            listingStandard.End();
+            base.DoSettingsWindowContents(inRect);
+        }
+    }
+}

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+  <!-- Settings Category -->
+  <RimAI.Framework.Settings.Category>RimAI フレームワーク</RimAI.Framework.Settings.Category>
+
+  <!-- Titles -->
+  <RimAI.Framework.Settings.ChatCompletion.Title>チャット完了設定</RimAI.Framework.Settings.ChatCompletion.Title>
+  <RimAI.Framework.Settings.Embeddings.Title>エンベディング設定</RimAI.Framework.Settings.Embeddings.Title>
+
+  <!-- Chat Completion -->
+  <RimAI.Framework.Settings.ChatCompletion.APIKey>API キー：</RimAI.Framework.Settings.ChatCompletion.APIKey>
+  <RimAI.Framework.Settings.ChatCompletion.EndpointURL>エンドポイント URL：</RimAI.Framework.Settings.ChatCompletion.EndpointURL>
+  <RimAI.Framework.Settings.ChatCompletion.ModelName>モデル名：</RimAI.Framework.Settings.ChatCompletion.ModelName>
+  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming>ストリーミングを有効にする</RimAI.Framework.Settings.ChatCompletion.EnableStreaming>
+  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>より対話的な体験のために、単語ごとに応答を受信するように有効にします。</RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>
+
+  <!-- Embeddings -->
+  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings>エンベディングを有効にする</RimAI.Framework.Settings.Embeddings.EnableEmbeddings>
+  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>コンテキスト検索のためのエンベディング機能を使用するために有効にします。</RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>
+  <RimAI.Framework.Settings.Embeddings.APIKey>エンベディング API キー（オプション、空の場合はメインキーを使用）：</RimAI.Framework.Settings.Embeddings.APIKey>
+  <RimAI.Framework.Settings.Embeddings.EndpointURL>エンベディング エンドポイント URL：</RimAI.Framework.Settings.Embeddings.EndpointURL>
+  <RimAI.Framework.Settings.Embeddings.ModelName>エンベディング モデル名：</RimAI.Framework.Settings.Embeddings.ModelName>
+
+  <!-- Buttons -->
+  <RimAI.Framework.Settings.ResetButton>デフォルトにリセット</RimAI.Framework.Settings.ResetButton>
+
+</LanguageData>

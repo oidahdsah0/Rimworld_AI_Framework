@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+  <!-- Settings Category -->
+  <RimAI.Framework.Settings.Category>RimAI 框架</RimAI.Framework.Settings.Category>
+
+  <!-- Titles -->
+  <RimAI.Framework.Settings.ChatCompletion.Title>聊天完成设置</RimAI.Framework.Settings.ChatCompletion.Title>
+  <RimAI.Framework.Settings.Embeddings.Title>嵌入设置</RimAI.Framework.Settings.Embeddings.Title>
+
+  <!-- Chat Completion -->
+  <RimAI.Framework.Settings.ChatCompletion.APIKey>API 密钥：</RimAI.Framework.Settings.ChatCompletion.APIKey>
+  <RimAI.Framework.Settings.ChatCompletion.EndpointURL>端点 URL：</RimAI.Framework.Settings.ChatCompletion.EndpointURL>
+  <RimAI.Framework.Settings.ChatCompletion.ModelName>模型名称：</RimAI.Framework.Settings.ChatCompletion.ModelName>
+  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming>启用流式输出</RimAI.Framework.Settings.ChatCompletion.EnableStreaming>
+  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>启用以逐字接收响应，获得更互动的体验。</RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>
+
+  <!-- Embeddings -->
+  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings>启用嵌入功能</RimAI.Framework.Settings.Embeddings.EnableEmbeddings>
+  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>启用以使用嵌入功能进行上下文检索。</RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>
+  <RimAI.Framework.Settings.Embeddings.APIKey>嵌入 API 密钥（可选，如果为空则使用主密钥）：</RimAI.Framework.Settings.Embeddings.APIKey>
+  <RimAI.Framework.Settings.Embeddings.EndpointURL>嵌入端点 URL：</RimAI.Framework.Settings.Embeddings.EndpointURL>
+  <RimAI.Framework.Settings.Embeddings.ModelName>嵌入模型名称：</RimAI.Framework.Settings.Embeddings.ModelName>
+
+  <!-- Buttons -->
+  <RimAI.Framework.Settings.ResetButton>重置为默认值</RimAI.Framework.Settings.ResetButton>
+
+</LanguageData>

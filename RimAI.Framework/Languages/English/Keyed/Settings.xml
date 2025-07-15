@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+  <!-- Settings Category -->
+  <RimAI.Framework.Settings.Category>RimAI Framework</RimAI.Framework.Settings.Category>
+
+  <!-- Titles -->
+  <RimAI.Framework.Settings.ChatCompletion.Title>Chat Completion Settings</RimAI.Framework.Settings.ChatCompletion.Title>
+  <RimAI.Framework.Settings.Embeddings.Title>Embeddings Settings</RimAI.Framework.Settings.Embeddings.Title>
+
+  <!-- Chat Completion -->
+  <RimAI.Framework.Settings.ChatCompletion.APIKey>API Key:</RimAI.Framework.Settings.ChatCompletion.APIKey>
+  <RimAI.Framework.Settings.ChatCompletion.EndpointURL>Endpoint URL:</RimAI.Framework.Settings.ChatCompletion.EndpointURL>
+  <RimAI.Framework.Settings.ChatCompletion.ModelName>Model Name:</RimAI.Framework.Settings.ChatCompletion.ModelName>
+  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming>Enable Streaming</RimAI.Framework.Settings.ChatCompletion.EnableStreaming>
+  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>Enable to receive responses word-by-word for a more interactive feel.</RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>
+
+  <!-- Embeddings -->
+  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings>Enable Embeddings</RimAI.Framework.Settings.Embeddings.EnableEmbeddings>
+  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>Enable to use embedding features for context retrieval.</RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>
+  <RimAI.Framework.Settings.Embeddings.APIKey>Embedding API Key (optional, uses main key if empty):</RimAI.Framework.Settings.Embeddings.APIKey>
+  <RimAI.Framework.Settings.Embeddings.EndpointURL>Embedding Endpoint URL:</RimAI.Framework.Settings.Embeddings.EndpointURL>
+  <RimAI.Framework.Settings.Embeddings.ModelName>Embedding Model Name:</RimAI.Framework.Settings.Embeddings.ModelName>
+
+  <!-- Buttons -->
+  <RimAI.Framework.Settings.ResetButton>Reset to Defaults</RimAI.Framework.Settings.ResetButton>
+
+</LanguageData>
