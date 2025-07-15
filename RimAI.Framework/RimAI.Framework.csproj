@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>RimAI.Framework</AssemblyName>
+    <RootNamespace>RimAI.Framework</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>Assemblies/</OutputPath>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- This includes all .cs files under the Source directory -->
+    <Compile Include="Source\**\*.cs" Exclude="Source\obj\**\*.cs;Source\bin\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- RimWorld and Harmony references via NuGet packages -->
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4518" />
+    <PackageReference Include="Lib.Harmony" Version="2.3.3" />
+  </ItemGroup>
+
+</Project>
