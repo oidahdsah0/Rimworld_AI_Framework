@@ -9,7 +9,7 @@
 > **A revolutionary AI-powered framework for RimWorld that brings Large Language Models directly into your colony management experience.**
 
 **Author**: [@oidahdsah0](https://github.com/oidahdsah0)  
-**Created**: July 2025
+**Created**: 15 July 2025
 
 ---
 
