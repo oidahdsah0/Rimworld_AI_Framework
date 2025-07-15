@@ -19,4 +19,7 @@ This framework itself does not add gameplay features but is required by all othe
       <downloadUrl>https://github.com/pardeike/Harmony/releases/latest</downloadUrl>
     </li>
   </modDependencies>
+  <loadAfter>
+    <li>brrainz.harmony</li>
+  </loadAfter>
 </ModMetaData>

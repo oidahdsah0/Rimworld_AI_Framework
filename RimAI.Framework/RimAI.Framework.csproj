@@ -12,14 +12,50 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- This includes all .cs files under the Source directory -->
-    <Compile Include="Source\**\*.cs" Exclude="Source\obj\**\*.cs;Source\bin\**\*.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <!-- RimWorld and Harmony references via NuGet packages -->
     <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4518" />
     <PackageReference Include="Lib.Harmony" Version="2.3.3" />
   </ItemGroup>
+
+  <!-- 
+    Post-Build Event: A robust, explicit process to deploy the mod.
+    This method is less "elegant" but far more reliable than smart wildcards.
+  -->
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <PropertyGroup>
+      <!-- IMPORTANT: SET THIS TO YOUR RIMWORLD INSTALLATION DIRECTORY -->
+      <RimWorldDir>C:\Program Files (x86)\Steam\steamapps\common\RimWorld</RimWorldDir>
+      <ModDir>$(RimWorldDir)\Mods\RimAI_Framework</ModDir>
+    </PropertyGroup>
+
+    <!-- Step 1: Clean the destination directory to prevent stale files. -->
+    <Message Text="Step 1: Cleaning destination directory: $(ModDir)" Importance="high" />
+    <RemoveDir Directories="$(ModDir)" />
+
+    <!-- Step 2: Explicitly copy each required folder and file. -->
+    <Message Text="Step 2: Copying static mod assets..." Importance="high" />
+
+    <!-- Copy the About folder -->
+    <ItemGroup>
+      <AboutFiles Include="About\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(AboutFiles)" DestinationFolder="$(ModDir)\About\%(RecursiveDir)" />
+
+    <!-- Copy the Languages folder -->
+    <ItemGroup>
+      <LanguageFiles Include="Languages\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(LanguageFiles)" DestinationFolder="$(ModDir)\Languages\%(RecursiveDir)" />
+
+    <!-- Copy the loadFolders.xml file -->
+    <Copy SourceFiles="loadFolders.xml" DestinationFolder="$(ModDir)" />
+
+    <!-- Step 3: Copy the compiled assembly to the correct versioned folder. -->
+    <Message Text="Step 3: Copying compiled DLL to $(ModDir)\1.6\Assemblies" Importance="high" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModDir)\1.6\Assemblies" />
+    <Copy SourceFiles="$(ProjectDir)$(OutDir)$(AssemblyName).pdb" DestinationFolder="$(ModDir)\1.6\Assemblies" Condition="Exists('$(ProjectDir)$(OutDir)$(AssemblyName).pdb')" />
+
+    <Message Text="RimAI Framework successfully deployed!" Importance="high" />
+  </Target>
 
 </Project>
