@@ -30,4 +30,16 @@
   <RimAI.Framework.Settings.TestingStatus>测试中...</RimAI.Framework.Settings.TestingStatus>
   <RimAI.Framework.Settings.StreamingNotice>(当前版本API仅支持非流式请求)</RimAI.Framework.Settings.StreamingNotice>
 
+  <!-- Test Connection Status Messages -->
+  <RimAI.Framework.Settings.TestConnectionStatus.Initializing>初始化中...</RimAI.Framework.Settings.TestConnectionStatus.Initializing>
+  <RimAI.Framework.Settings.TestConnectionStatus.Validating>验证设置中...</RimAI.Framework.Settings.TestConnectionStatus.Validating>
+  <RimAI.Framework.Settings.TestConnectionStatus.Connecting>连接API中...</RimAI.Framework.Settings.TestConnectionStatus.Connecting>
+
+  <!-- In-Game Messages -->
+  <RimAI.Framework.Messages.TestStarting>RimAI：开始连接测试...</RimAI.Framework.Messages.TestStarting>
+  <RimAI.Framework.Messages.SendingRequest>RimAI：正在向API发送请求...</RimAI.Framework.Messages.SendingRequest>
+  <RimAI.Framework.Messages.TestSuccess>RimAI：连接成功！</RimAI.Framework.Messages.TestSuccess>
+  <RimAI.Framework.Messages.TestFailed>RimAI：连接失败！</RimAI.Framework.Messages.TestFailed>
+  <RimAI.Framework.Messages.TestError>RimAI：连接错误！</RimAI.Framework.Messages.TestError>
+
 </LanguageData>

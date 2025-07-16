@@ -28,6 +28,18 @@
 
   <!-- Status Messages -->
   <RimAI.Framework.Settings.TestingStatus>테스트 중...</RimAI.Framework.Settings.TestingStatus>
-  <RimAI.Framework.Settings.StreamingNotice>(현재 버전 API는 비스트리밍 요청만 지원합니다)</RimAI.Framework.Settings.StreamingNotice>
+  <RimAI.Framework.Settings.StreamingNotice>(현재 버전 API는 비스트리밍 요청만 지원)</RimAI.Framework.Settings.StreamingNotice>
+
+  <!-- Test Connection Status Messages -->
+  <RimAI.Framework.Settings.TestConnectionStatus.Initializing>초기화 중...</RimAI.Framework.Settings.TestConnectionStatus.Initializing>
+  <RimAI.Framework.Settings.TestConnectionStatus.Validating>설정 검증 중...</RimAI.Framework.Settings.TestConnectionStatus.Validating>
+  <RimAI.Framework.Settings.TestConnectionStatus.Connecting>API 연결 중...</RimAI.Framework.Settings.TestConnectionStatus.Connecting>
+
+  <!-- In-Game Messages -->
+  <RimAI.Framework.Messages.TestStarting>RimAI: 연결 테스트 시작...</RimAI.Framework.Messages.TestStarting>
+  <RimAI.Framework.Messages.SendingRequest>RimAI: API에 요청 전송 중...</RimAI.Framework.Messages.SendingRequest>
+  <RimAI.Framework.Messages.TestSuccess>RimAI: 연결 성공!</RimAI.Framework.Messages.TestSuccess>
+  <RimAI.Framework.Messages.TestFailed>RimAI: 연결 실패!</RimAI.Framework.Messages.TestFailed>
+  <RimAI.Framework.Messages.TestError>RimAI: 연결 오류!</RimAI.Framework.Messages.TestError>
 
 </LanguageData>

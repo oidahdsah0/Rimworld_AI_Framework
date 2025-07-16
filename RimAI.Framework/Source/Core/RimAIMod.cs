@@ -94,7 +94,7 @@ namespace RimAI.Framework.Core
                     Log.Message("[RimAI] RimAIMod: Test Connection button clicked");
                     isTesting = true;
                     testResult = "";
-                    testingStatus = "Initializing...";
+                    testingStatus = "RimAI.Framework.Settings.TestConnectionStatus.Initializing".Translate();
                     _ = TestConnection();
                 }
             }
@@ -133,10 +133,10 @@ namespace RimAI.Framework.Core
             {
                 // Reset Chat settings
                 settings.apiKey = "";
-                // settings.apiEndpoint = "https://api.openai.com/v1/chat/completions";
-                // settings.modelName = "gpt-4o";
-                settings.apiEndpoint = "https://api.deepseek.com/v1/chat/completions";
-                settings.modelName = "deepseek-chat";
+                settings.apiEndpoint = "https://api.openai.com/v1/chat/completions";
+                settings.modelName = "gpt-4o";
+                // settings.apiEndpoint = "https://api.deepseek.com/v1/chat/completions";
+                // settings.modelName = "deepseek-chat";
                 settings.enableStreaming = false;
 
                 // Reset Embeddings settings
@@ -153,12 +153,12 @@ namespace RimAI.Framework.Core
         private async Task TestConnection()
         {
             Log.Message("[RimAI] RimAIMod: TestConnection started");
-            Messages.Message("RimAI: Starting connection test...", MessageTypeDefOf.NeutralEvent);
-            testingStatus = "Validating settings...";
+            Messages.Message("RimAI.Framework.Messages.TestStarting".Translate(), MessageTypeDefOf.NeutralEvent);
+            testingStatus = "RimAI.Framework.Settings.TestConnectionStatus.Validating".Translate();
             
             try
             {
-                testingStatus = "Connecting to API...";
+                testingStatus = "RimAI.Framework.Settings.TestConnectionStatus.Connecting".Translate();
                 var (success, message) = await LLMManager.Instance.TestConnectionAsync();
                 
                 Log.Message($"[RimAI] RimAIMod: TestConnection completed. Success: {success}, Message: {message}");
@@ -167,13 +167,13 @@ namespace RimAI.Framework.Core
                 {
                     testResultColor = Color.green;
                     testResult = $"Success: {message}";
-                    Messages.Message($"RimAI: Connection successful! {message}", MessageTypeDefOf.PositiveEvent);
+                    Messages.Message($"{"RimAI.Framework.Messages.TestSuccess".Translate()} {message}", MessageTypeDefOf.PositiveEvent);
                 }
                 else
                 {
                     testResultColor = Color.red;
                     testResult = $"Failure: {message}";
-                    Messages.Message($"RimAI: Connection failed! {message}", MessageTypeDefOf.NegativeEvent);
+                    Messages.Message($"{"RimAI.Framework.Messages.TestFailed".Translate()} {message}", MessageTypeDefOf.NegativeEvent);
                 }
             }
             catch (Exception ex)
@@ -181,7 +181,7 @@ namespace RimAI.Framework.Core
                 Log.Error($"[RimAI] RimAIMod: TestConnection exception: {ex.ToString()}");
                 testResultColor = Color.red;
                 testResult = $"Exception: {ex.Message}";
-                Messages.Message($"RimAI: Connection error! {ex.Message}", MessageTypeDefOf.RejectInput);
+                Messages.Message($"{"RimAI.Framework.Messages.TestError".Translate()} {ex.Message}", MessageTypeDefOf.RejectInput);
             }
             finally
             {

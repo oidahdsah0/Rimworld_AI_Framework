@@ -177,7 +177,7 @@ namespace RimAI.Framework.LLM
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _settings.apiKey);
 
                 Log.Message("[RimAI] LLMManager: Sending POST request...");
-                Messages.Message("RimAI: Sending request to API...", MessageTypeDefOf.NeutralEvent);
+                Messages.Message("RimAI.Framework.Messages.SendingRequest".Translate(), MessageTypeDefOf.NeutralEvent);
                 var response = await _httpClient.PostAsync(_settings.apiEndpoint, content);
                 Log.Message($"[RimAI] LLMManager: Received response with status code: {response.StatusCode}");
 

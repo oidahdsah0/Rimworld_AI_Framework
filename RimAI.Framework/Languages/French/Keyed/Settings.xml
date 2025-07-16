@@ -28,6 +28,18 @@
 
   <!-- Status Messages -->
   <RimAI.Framework.Settings.TestingStatus>Test en cours...</RimAI.Framework.Settings.TestingStatus>
-  <RimAI.Framework.Settings.StreamingNotice>(La version actuelle de l'API ne prend en charge que les requêtes non-streaming)</RimAI.Framework.Settings.StreamingNotice>
+  <RimAI.Framework.Settings.StreamingNotice>(L'API de la version actuelle ne supporte que les requêtes non-streaming)</RimAI.Framework.Settings.StreamingNotice>
+
+  <!-- Test Connection Status Messages -->
+  <RimAI.Framework.Settings.TestConnectionStatus.Initializing>Initialisation...</RimAI.Framework.Settings.TestConnectionStatus.Initializing>
+  <RimAI.Framework.Settings.TestConnectionStatus.Validating>Validation des paramètres...</RimAI.Framework.Settings.TestConnectionStatus.Validating>
+  <RimAI.Framework.Settings.TestConnectionStatus.Connecting>Connexion à l'API...</RimAI.Framework.Settings.TestConnectionStatus.Connecting>
+
+  <!-- In-Game Messages -->
+  <RimAI.Framework.Messages.TestStarting>RimAI: Début du test de connexion...</RimAI.Framework.Messages.TestStarting>
+  <RimAI.Framework.Messages.SendingRequest>RimAI: Envoi de la requête vers l'API...</RimAI.Framework.Messages.SendingRequest>
+  <RimAI.Framework.Messages.TestSuccess>RimAI: Connexion réussie!</RimAI.Framework.Messages.TestSuccess>
+  <RimAI.Framework.Messages.TestFailed>RimAI: Connexion échouée!</RimAI.Framework.Messages.TestFailed>
+  <RimAI.Framework.Messages.TestError>RimAI: Erreur de connexion!</RimAI.Framework.Messages.TestError>
 
 </LanguageData>

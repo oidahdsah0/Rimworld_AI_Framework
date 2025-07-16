@@ -28,6 +28,18 @@
 
   <!-- Status Messages -->
   <RimAI.Framework.Settings.TestingStatus>Тестирование...</RimAI.Framework.Settings.TestingStatus>
-  <RimAI.Framework.Settings.StreamingNotice>(Текущая версия API поддерживает только непотоковые запросы)</RimAI.Framework.Settings.StreamingNotice>
+  <RimAI.Framework.Settings.StreamingNotice>(API текущей версии поддерживает только не-потоковые запросы)</RimAI.Framework.Settings.StreamingNotice>
+
+  <!-- Test Connection Status Messages -->
+  <RimAI.Framework.Settings.TestConnectionStatus.Initializing>Инициализация...</RimAI.Framework.Settings.TestConnectionStatus.Initializing>
+  <RimAI.Framework.Settings.TestConnectionStatus.Validating>Проверка настроек...</RimAI.Framework.Settings.TestConnectionStatus.Validating>
+  <RimAI.Framework.Settings.TestConnectionStatus.Connecting>Подключение к API...</RimAI.Framework.Settings.TestConnectionStatus.Connecting>
+
+  <!-- In-Game Messages -->
+  <RimAI.Framework.Messages.TestStarting>RimAI: Начинаем тест соединения...</RimAI.Framework.Messages.TestStarting>
+  <RimAI.Framework.Messages.SendingRequest>RimAI: Отправляем запрос к API...</RimAI.Framework.Messages.SendingRequest>
+  <RimAI.Framework.Messages.TestSuccess>RimAI: Соединение успешно!</RimAI.Framework.Messages.TestSuccess>
+  <RimAI.Framework.Messages.TestFailed>RimAI: Соединение не удалось!</RimAI.Framework.Messages.TestFailed>
+  <RimAI.Framework.Messages.TestError>RimAI: Ошибка соединения!</RimAI.Framework.Messages.TestError>
 
 </LanguageData>

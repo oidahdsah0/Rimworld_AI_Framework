@@ -30,4 +30,16 @@
   <RimAI.Framework.Settings.TestingStatus>Teste...</RimAI.Framework.Settings.TestingStatus>
   <RimAI.Framework.Settings.StreamingNotice>(Die aktuelle Version der API unterstützt nur nicht-streaming Anfragen)</RimAI.Framework.Settings.StreamingNotice>
 
+  <!-- Test Connection Status Messages -->
+  <RimAI.Framework.Settings.TestConnectionStatus.Initializing>Initialisierung...</RimAI.Framework.Settings.TestConnectionStatus.Initializing>
+  <RimAI.Framework.Settings.TestConnectionStatus.Validating>Einstellungen validieren...</RimAI.Framework.Settings.TestConnectionStatus.Validating>
+  <RimAI.Framework.Settings.TestConnectionStatus.Connecting>Verbindung zur API...</RimAI.Framework.Settings.TestConnectionStatus.Connecting>
+
+  <!-- In-Game Messages -->
+  <RimAI.Framework.Messages.TestStarting>RimAI: Verbindungstest starten...</RimAI.Framework.Messages.TestStarting>
+  <RimAI.Framework.Messages.SendingRequest>RimAI: Anfrage an API senden...</RimAI.Framework.Messages.SendingRequest>
+  <RimAI.Framework.Messages.TestSuccess>RimAI: Verbindung erfolgreich!</RimAI.Framework.Messages.TestSuccess>
+  <RimAI.Framework.Messages.TestFailed>RimAI: Verbindung fehlgeschlagen!</RimAI.Framework.Messages.TestFailed>
+  <RimAI.Framework.Messages.TestError>RimAI: Verbindungsfehler!</RimAI.Framework.Messages.TestError>
+
 </LanguageData>
