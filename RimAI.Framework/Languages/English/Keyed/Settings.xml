@@ -39,7 +39,7 @@
   <RimAI.Framework.Messages.TestStarting>RimAI: Starting connection test...</RimAI.Framework.Messages.TestStarting>
   <RimAI.Framework.Messages.SendingRequest>RimAI: Sending request to API...</RimAI.Framework.Messages.SendingRequest>
   <RimAI.Framework.Messages.TestSuccess>RimAI: Connection successful!</RimAI.Framework.Messages.TestSuccess>
-  <RimAI.Framework.Messages.TestFailed>RimAI: Connection failed!</RimAI.Framework.Messages.TestFailed>
-  <RimAI.Framework.Messages.TestError>RimAI: Connection error!</RimAI.Framework.Messages.TestError>
+  <RimAI.Framework.Messages.TestFailed>RimAI: Connection failed! Status: {0}, Reason: {1}</RimAI.Framework.Messages.TestFailed>
+  <RimAI.Framework.Messages.TestError>RimAI: An error occurred during connection: {0}</RimAI.Framework.Messages.TestError>
 
 </LanguageData>

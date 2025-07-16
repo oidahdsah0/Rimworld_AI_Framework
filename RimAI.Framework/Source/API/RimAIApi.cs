@@ -1,5 +1,6 @@
 using RimAI.Framework.LLM;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Verse;
 
@@ -12,31 +13,33 @@ namespace RimAI.Framework.API
     public static class RimAIApi
     {
         /// <summary>
-        /// Gets a chat completion from the configured Large Language Model.
-        /// This is the main entry point for other mods to leverage the AI capabilities.
+        /// Asynchronously enqueues a chat completion request to the configured Large Language Model.
+        /// The request will be processed according to the queue and concurrency limits.
         /// </summary>
         /// <param name="prompt">The text prompt to send to the LLM.</param>
+        /// <param name="cancellationToken">An optional cancellation token to cancel the request.</param>
         /// <returns>A Task that resolves to the LLM's response string, or null if an error occurs.</returns>
         /// <example>
         /// <code>
+        /// CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         /// string prompt = "Generate a short, dramatic backstory for a colonist named 'Jax'.";
-        /// string backstory = await RimAIApi.GetChatCompletion(prompt);
+        /// string backstory = await RimAIApi.GetChatCompletion(prompt, cts.Token);
         /// if (backstory != null)
         /// {
         ///     Log.Message($"Generated backstory for Jax: {backstory}");
         /// }
         /// </code>
         /// </example>
-        public static async Task<string> GetChatCompletion(string prompt)
+        public static Task<string> GetChatCompletion(string prompt, CancellationToken cancellationToken = default)
         {
             // Ensure the manager is initialized
             if (LLMManager.Instance == null)
             {
                 Log.Error("RimAI Framework: LLMManager is not initialized. Cannot get chat completion.");
-                return null;
+                return Task.FromResult<string>(null);
             }
 
-            return await LLMManager.Instance.GetChatCompletionAsync(prompt);
+            return LLMManager.Instance.GetChatCompletionAsync(prompt, cancellationToken);
         }
 
         /// <summary>

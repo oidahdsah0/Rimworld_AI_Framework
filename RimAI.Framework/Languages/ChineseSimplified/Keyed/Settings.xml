@@ -39,7 +39,7 @@
   <RimAI.Framework.Messages.TestStarting>RimAI：开始连接测试...</RimAI.Framework.Messages.TestStarting>
   <RimAI.Framework.Messages.SendingRequest>RimAI：正在向API发送请求...</RimAI.Framework.Messages.SendingRequest>
   <RimAI.Framework.Messages.TestSuccess>RimAI：连接成功！</RimAI.Framework.Messages.TestSuccess>
-  <RimAI.Framework.Messages.TestFailed>RimAI：连接失败！</RimAI.Framework.Messages.TestFailed>
-  <RimAI.Framework.Messages.TestError>RimAI：连接错误！</RimAI.Framework.Messages.TestError>
+  <RimAI.Framework.Messages.TestFailed>RimAI：连接失败！状态码：{0}，原因：{1}</RimAI.Framework.Messages.TestFailed>
+  <RimAI.Framework.Messages.TestError>RimAI：连接时发生错误：{0}</RimAI.Framework.Messages.TestError>
 
 </LanguageData>

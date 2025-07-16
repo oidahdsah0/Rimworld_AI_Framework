@@ -36,10 +36,10 @@
   <RimAI.Framework.Settings.TestConnectionStatus.Connecting>API 연결 중...</RimAI.Framework.Settings.TestConnectionStatus.Connecting>
 
   <!-- In-Game Messages -->
-  <RimAI.Framework.Messages.TestStarting>RimAI: 연결 테스트 시작...</RimAI.Framework.Messages.TestStarting>
-  <RimAI.Framework.Messages.SendingRequest>RimAI: API에 요청 전송 중...</RimAI.Framework.Messages.SendingRequest>
+  <RimAI.Framework.Messages.TestStarting>RimAI: 연결 테스트 시작 중...</RimAI.Framework.Messages.TestStarting>
+  <RimAI.Framework.Messages.SendingRequest>RimAI: API에 요청을 보내는 중...</RimAI.Framework.Messages.SendingRequest>
   <RimAI.Framework.Messages.TestSuccess>RimAI: 연결 성공!</RimAI.Framework.Messages.TestSuccess>
-  <RimAI.Framework.Messages.TestFailed>RimAI: 연결 실패!</RimAI.Framework.Messages.TestFailed>
-  <RimAI.Framework.Messages.TestError>RimAI: 연결 오류!</RimAI.Framework.Messages.TestError>
+  <RimAI.Framework.Messages.TestFailed>RimAI: 연결 실패! 상태: {0}, 이유: {1}</RimAI.Framework.Messages.TestFailed>
+  <RimAI.Framework.Messages.TestError>RimAI: 연결 중 오류 발생: {0}</RimAI.Framework.Messages.TestError>
 
 </LanguageData>

@@ -36,10 +36,10 @@
   <RimAI.Framework.Settings.TestConnectionStatus.Connecting>Connexion à l'API...</RimAI.Framework.Settings.TestConnectionStatus.Connecting>
 
   <!-- In-Game Messages -->
-  <RimAI.Framework.Messages.TestStarting>RimAI: Début du test de connexion...</RimAI.Framework.Messages.TestStarting>
-  <RimAI.Framework.Messages.SendingRequest>RimAI: Envoi de la requête vers l'API...</RimAI.Framework.Messages.SendingRequest>
-  <RimAI.Framework.Messages.TestSuccess>RimAI: Connexion réussie!</RimAI.Framework.Messages.TestSuccess>
-  <RimAI.Framework.Messages.TestFailed>RimAI: Connexion échouée!</RimAI.Framework.Messages.TestFailed>
-  <RimAI.Framework.Messages.TestError>RimAI: Erreur de connexion!</RimAI.Framework.Messages.TestError>
+  <RimAI.Framework.Messages.TestStarting>RimAI : Début du test de connexion...</RimAI.Framework.Messages.TestStarting>
+  <RimAI.Framework.Messages.SendingRequest>RimAI : Envoi de la requête à l'API...</RimAI.Framework.Messages.SendingRequest>
+  <RimAI.Framework.Messages.TestSuccess>RimAI : Connexion réussie !</RimAI.Framework.Messages.TestSuccess>
+  <RimAI.Framework.Messages.TestFailed>RimAI : Échec de la connexion ! Statut : {0}, Raison : {1}</RimAI.Framework.Messages.TestFailed>
+  <RimAI.Framework.Messages.TestError>RimAI : Une erreur est survenue lors de la connexion : {0}</RimAI.Framework.Messages.TestError>
 
 </LanguageData>

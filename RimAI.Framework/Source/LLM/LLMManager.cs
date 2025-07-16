@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Concurrent;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using RimAI.Framework.Core;
@@ -12,6 +14,7 @@ namespace RimAI.Framework.LLM
     /// <summary>
     /// Manages all communication with Large Language Models (LLMs).
     /// This class handles API requests, response parsing, and error management.
+    /// It features a request queue with concurrency limiting to prevent API rate limiting.
     /// </summary>
     public class LLMManager : IDisposable
     {
@@ -44,6 +47,31 @@ namespace RimAI.Framework.LLM
         #region Private Fields
         private readonly HttpClient _httpClient;
         private RimAISettings _settings;
+
+        // Concurrency and Queueing
+        private readonly ConcurrentQueue<RequestData> _requestQueue;
+        private readonly SemaphoreSlim _concurrentRequestLimiter;
+        private readonly CancellationTokenSource _disposeCts;
+        private readonly Task _queueProcessorTask;
+        #endregion
+
+        #region RequestData Helper Class
+        /// <summary>
+        /// Internal class to hold all information about a single request.
+        /// </summary>
+        private class RequestData
+        {
+            public string Prompt { get; }
+            public TaskCompletionSource<string> CompletionSource { get; }
+            public CancellationToken CancellationToken { get; }
+
+            public RequestData(string prompt, TaskCompletionSource<string> tcs, CancellationToken ct)
+            {
+                Prompt = prompt;
+                CompletionSource = tcs;
+                CancellationToken = ct;
+            }
+        }
         #endregion
 
         #region Constructor
@@ -55,61 +83,48 @@ namespace RimAI.Framework.LLM
             _httpClient = new HttpClient();
             _httpClient.Timeout = TimeSpan.FromSeconds(60); // 60 second timeout
             LoadSettings();
+
+            // Initialize concurrency controls
+            _requestQueue = new ConcurrentQueue<RequestData>();
+            _concurrentRequestLimiter = new SemaphoreSlim(3, 3); // Allow up to 3 concurrent requests
+            _disposeCts = new CancellationTokenSource();
+            _queueProcessorTask = Task.Run(() => ProcessQueueAsync(_disposeCts.Token));
         }
         #endregion
 
         #region Public Methods
         
         /// <summary>
-        /// Sends a chat completion request to the LLM API.
-        /// This is the primary public method for other mods to interact with the LLM.
+        /// Asynchronously enqueues a chat completion request to the LLM API.
+        /// The request will be processed when a slot is available.
         /// </summary>
         /// <param name="prompt">The text prompt to send to the LLM.</param>
-        /// <returns>The content of the LLM's response as a string, or null if an error occurred.</returns>
-        public async Task<string> GetChatCompletionAsync(string prompt)
+        /// <param name="cancellationToken">A cancellation token to cancel the request.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the content of the LLM's response, or null if an error occurred.</returns>
+        public Task<string> GetChatCompletionAsync(string prompt, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(_settings.apiKey))
             {
                 Log.Error("RimAI Framework: API key is not configured. Please check mod settings.");
-                return null;
+                return Task.FromResult<string>(null);
             }
 
             if (string.IsNullOrEmpty(prompt))
             {
                 Log.Warning("RimAI Framework: Empty prompt provided to GetChatCompletionAsync.");
-                return null;
+                return Task.FromResult<string>(null);
             }
 
-            try
-            {
-                var requestBody = new
-                {
-                    model = _settings.modelName,
-                    messages = new[]
-                    {
-                        new { role = "user", content = prompt }
-                    },
-                    stream = false
-                };
+            var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var requestData = new RequestData(prompt, tcs, cancellationToken);
+            
+            // Link the external cancellation token with the disposal token
+            var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_disposeCts.Token, cancellationToken);
+            linkedCts.Token.Register(() => tcs.TrySetCanceled());
 
-                var jsonBody = JsonConvert.SerializeObject(requestBody);
-                var response = await SendHttpRequestAsync(_settings.apiEndpoint, jsonBody, _settings.apiKey);
-
-                if (response.success)
-                {
-                    return ParseChatCompletionResponse(response.responseBody);
-                }
-                else
-                {
-                    // Error is logged within SendHttpRequestAsync
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"RimAI Framework: Error in GetChatCompletionAsync: {ex.Message}");
-                return null;
-            }
+            _requestQueue.Enqueue(requestData);
+            
+            return tcs.Task;
         }
 
         /// <summary>
@@ -165,55 +180,123 @@ namespace RimAI.Framework.LLM
             };
 
             var jsonBody = JsonConvert.SerializeObject(requestBody);
-            var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-
-            Log.Message($"[RimAI] LLMManager: Sending request to endpoint: {_settings.apiEndpoint}");
-            Log.Message($"[RimAI] LLMManager: Request body: {jsonBody}");
-
+            
             try
             {
-                // Clear existing headers and add the API key
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _settings.apiKey);
-
-                Log.Message("[RimAI] LLMManager: Sending POST request...");
                 Messages.Message("RimAI.Framework.Messages.SendingRequest".Translate(), MessageTypeDefOf.NeutralEvent);
-                var response = await _httpClient.PostAsync(_settings.apiEndpoint, content);
-                Log.Message($"[RimAI] LLMManager: Received response with status code: {response.StatusCode}");
+                var response = await SendHttpRequestAsync(_settings.apiEndpoint, jsonBody, _settings.apiKey, CancellationToken.None);
 
-                var responseBody = await response.Content.ReadAsStringAsync();
-                Log.Message($"[RimAI] LLMManager: Response body: {responseBody}");
-
-                if (response.IsSuccessStatusCode)
+                if (response.success)
                 {
                     Log.Message("[RimAI] LLMManager: Request successful.");
-                    return (true, "Connection successful!");
+                    Messages.Message("RimAI.Framework.Messages.TestSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
+                    return (true, "RimAI.Framework.Messages.TestSuccess".Translate());
                 }
                 else
                 {
-                    Log.Error($"[RimAI] LLMManager: Request failed. Status: {response.StatusCode}, Body: {responseBody}");
-                    return (false, $"Connection failed: {response.StatusCode} - {responseBody}");
+                    var failMessage = "RimAI.Framework.Messages.TestFailed".Translate(response.statusCode, response.errorContent);
+                    Log.Error($"[RimAI] LLMManager: Request failed. Status: {response.statusCode}, Body: {response.errorContent}");
+                    Messages.Message(failMessage, MessageTypeDefOf.NegativeEvent);
+                    return (false, failMessage);
                 }
             }
             catch (HttpRequestException e)
             {
+                var errorMessage = "RimAI.Framework.Messages.TestError".Translate(e.Message);
                 Log.Error($"[RimAI] LLMManager: HttpRequestException: {e.Message}");
-                return (false, $"Network error: {e.Message}");
+                Messages.Message(errorMessage, MessageTypeDefOf.NegativeEvent);
+                return (false, errorMessage);
             }
             catch (TaskCanceledException e)
             {
+                var errorMessage = "RimAI.Framework.Messages.TestError".Translate(e.Message);
                 Log.Error($"[RimAI] LLMManager: TaskCanceledException (Timeout): {e.Message}");
-                return (false, $"Request timed out: {e.Message}");
+                Messages.Message(errorMessage, MessageTypeDefOf.NegativeEvent);
+                return (false, errorMessage);
             }
             catch (Exception e)
             {
+                var errorMessage = "RimAI.Framework.Messages.TestError".Translate(e.Message);
                 Log.Error($"[RimAI] LLMManager: An unexpected error occurred: {e.ToString()}");
-                return (false, $"An unexpected error occurred: {e.Message}");
+                Messages.Message(errorMessage, MessageTypeDefOf.NegativeEvent);
+                return (false, errorMessage);
             }
         }
         #endregion
 
         #region Private Helper Methods
+
+        /// <summary>
+        /// Processes the request queue in a background task.
+        /// </summary>
+        private async Task ProcessQueueAsync(CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                if (_requestQueue.TryDequeue(out var requestData))
+                {
+                    await _concurrentRequestLimiter.WaitAsync(cancellationToken);
+
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            if (requestData.CancellationToken.IsCancellationRequested)
+                            {
+                                requestData.CompletionSource.TrySetCanceled();
+                                return;
+                            }
+
+                            var result = await ExecuteSingleRequestAsync(requestData.Prompt, requestData.CancellationToken);
+                            requestData.CompletionSource.TrySetResult(result);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            requestData.CompletionSource.TrySetCanceled();
+                        }
+                        catch (Exception ex)
+                        {
+                            requestData.CompletionSource.TrySetException(ex);
+                        }
+                        finally
+                        {
+                            _concurrentRequestLimiter.Release();
+                        }
+                    }, cancellationToken);
+                }
+                else
+                {
+                    await Task.Delay(100, cancellationToken); // Wait if queue is empty
+                }
+            }
+        }
+
+        /// <summary>
+        /// Executes a single chat completion request.
+        /// </summary>
+        private async Task<string> ExecuteSingleRequestAsync(string prompt, CancellationToken cancellationToken)
+        {
+            var requestBody = new
+            {
+                model = _settings.modelName,
+                messages = new[]
+                {
+                    new { role = "user", content = prompt }
+                },
+                stream = false
+            };
+
+            var jsonBody = JsonConvert.SerializeObject(requestBody);
+            var response = await SendHttpRequestAsync(_settings.apiEndpoint, jsonBody, _settings.apiKey, cancellationToken);
+
+            if (response.success)
+            {
+                return ParseChatCompletionResponse(response.responseBody);
+            }
+            
+            // Error is logged within SendHttpRequestAsync
+            return null;
+        }
         
         /// <summary>
         /// Loads the current settings from the mod configuration.
@@ -266,15 +349,15 @@ namespace RimAI.Framework.LLM
         /// <summary>
         /// Sends an HTTP POST request to the specified endpoint.
         /// </summary>
-        private async Task<(bool success, int statusCode, string responseBody, string errorContent)> SendHttpRequestAsync(string endpoint, string jsonBody, string apiKey)
+        private async Task<(bool success, int statusCode, string responseBody, string errorContent)> SendHttpRequestAsync(string endpoint, string jsonBody, string apiKey, CancellationToken cancellationToken)
         {
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-                request.Headers.Add("Authorization", $"Bearer {apiKey}");
+                using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
                 request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.SendAsync(request);
+                using var response = await _httpClient.SendAsync(request, cancellationToken);
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -287,6 +370,11 @@ namespace RimAI.Framework.LLM
                     Log.Error($"RimAI Framework: HTTP request failed with status {response.StatusCode}: {errorContent}");
                     return (false, (int)response.StatusCode, null, errorContent);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // Don't log cancellation as an error
+                throw;
             }
             catch (Exception ex)
             {
@@ -303,6 +391,9 @@ namespace RimAI.Framework.LLM
         /// </summary>
         public void Dispose()
         {
+            _disposeCts.Cancel();
+            _disposeCts.Dispose();
+            _concurrentRequestLimiter?.Dispose();
             _httpClient?.Dispose();
         }
         #endregion

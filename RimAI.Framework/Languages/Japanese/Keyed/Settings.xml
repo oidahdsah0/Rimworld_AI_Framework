@@ -36,10 +36,10 @@
   <RimAI.Framework.Settings.TestConnectionStatus.Connecting>APIに接続中...</RimAI.Framework.Settings.TestConnectionStatus.Connecting>
 
   <!-- In-Game Messages -->
-  <RimAI.Framework.Messages.TestStarting>RimAI：接続テストを開始...</RimAI.Framework.Messages.TestStarting>
-  <RimAI.Framework.Messages.SendingRequest>RimAI：APIにリクエストを送信中...</RimAI.Framework.Messages.SendingRequest>
-  <RimAI.Framework.Messages.TestSuccess>RimAI：接続成功！</RimAI.Framework.Messages.TestSuccess>
-  <RimAI.Framework.Messages.TestFailed>RimAI：接続失敗！</RimAI.Framework.Messages.TestFailed>
-  <RimAI.Framework.Messages.TestError>RimAI：接続エラー！</RimAI.Framework.Messages.TestError>
+  <RimAI.Framework.Messages.TestStarting>RimAI：接続テストを開始しています...</RimAI.Framework.Messages.TestStarting>
+  <RimAI.Framework.Messages.SendingRequest>RimAI：APIにリクエストを送信しています...</RimAI.Framework.Messages.SendingRequest>
+  <RimAI.Framework.Messages.TestSuccess>RimAI：接続に成功しました！</RimAI.Framework.Messages.TestSuccess>
+  <RimAI.Framework.Messages.TestFailed>RimAI：接続に失敗しました！ステータス：{0}、理由：{1}</RimAI.Framework.Messages.TestFailed>
+  <RimAI.Framework.Messages.TestError>RimAI：接続中にエラーが発生しました：{0}</RimAI.Framework.Messages.TestError>
 
 </LanguageData>
