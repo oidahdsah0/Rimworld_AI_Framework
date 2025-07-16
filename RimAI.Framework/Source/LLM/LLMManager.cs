@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using RimAI.Framework.Core;
 using Verse;
+using RimWorld;
 
 namespace RimAI.Framework.LLM
 {
@@ -88,8 +89,7 @@ namespace RimAI.Framework.LLM
                     {
                         new { role = "user", content = prompt }
                     },
-                    stream = false, // V1 API is non-streaming only.
-                    // TODO: Expose parameters like max_tokens, temperature etc. in settings
+                    stream = false
                 };
 
                 var jsonBody = JsonConvert.SerializeObject(requestBody);
@@ -135,43 +135,80 @@ namespace RimAI.Framework.LLM
         }
 
         /// <summary>
-        /// Tests the connection to the LLM API with a simple request.
+        /// Tests the connection to the LLM API using the current settings.
         /// </summary>
-        /// <returns>Tuple indicating success and message.</returns>
+        /// <returns>A tuple containing a boolean for success and a status message.</returns>
         public async Task<(bool success, string message)> TestConnectionAsync()
         {
+            Log.Message("[RimAI] LLMManager: TestConnectionAsync called.");
+
             if (string.IsNullOrEmpty(_settings.apiKey))
             {
-                return (false, "API Key is missing.");
+                Log.Warning("[RimAI] LLMManager: API Key is not set.");
+                return (false, "API Key is not set.");
             }
+            if (string.IsNullOrEmpty(_settings.apiEndpoint))
+            {
+                Log.Warning("[RimAI] LLMManager: API Endpoint is not set.");
+                return (false, "API Endpoint is not set.");
+            }
+
+            // Create JSON request body using JsonConvert
+            var requestBody = new
+            {
+                model = _settings.modelName,
+                messages = new[]
+                {
+                    new { role = "user", content = "Say 'test'." }
+                },
+                max_tokens = 5
+            };
+
+            var jsonBody = JsonConvert.SerializeObject(requestBody);
+            var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+            Log.Message($"[RimAI] LLMManager: Sending request to endpoint: {_settings.apiEndpoint}");
+            Log.Message($"[RimAI] LLMManager: Request body: {jsonBody}");
 
             try
             {
-                var requestBody = new
-                {
-                    model = _settings.modelName,
-                    messages = new[]
-                    {
-                        new { role = "user", content = "Say 'Hello, World!' to confirm connection." }
-                    },
-                    max_tokens = 15
-                };
+                // Clear existing headers and add the API key
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _settings.apiKey);
 
-                var jsonBody = JsonConvert.SerializeObject(requestBody);
-                var response = await SendHttpRequestAsync(_settings.apiEndpoint, jsonBody, _settings.apiKey);
+                Log.Message("[RimAI] LLMManager: Sending POST request...");
+                Messages.Message("RimAI: Sending request to API...", MessageTypeDefOf.NeutralEvent);
+                var response = await _httpClient.PostAsync(_settings.apiEndpoint, content);
+                Log.Message($"[RimAI] LLMManager: Received response with status code: {response.StatusCode}");
 
-                if (response.success)
+                var responseBody = await response.Content.ReadAsStringAsync();
+                Log.Message($"[RimAI] LLMManager: Response body: {responseBody}");
+
+                if (response.IsSuccessStatusCode)
                 {
-                    return (true, $"Success! Model '{_settings.modelName}' responded.");
+                    Log.Message("[RimAI] LLMManager: Request successful.");
+                    return (true, "Connection successful!");
                 }
                 else
                 {
-                    return (false, $"Error: {response.statusCode}. Details: {response.errorContent}");
+                    Log.Error($"[RimAI] LLMManager: Request failed. Status: {response.StatusCode}, Body: {responseBody}");
+                    return (false, $"Connection failed: {response.StatusCode} - {responseBody}");
                 }
+            }
+            catch (HttpRequestException e)
+            {
+                Log.Error($"[RimAI] LLMManager: HttpRequestException: {e.Message}");
+                return (false, $"Network error: {e.Message}");
+            }
+            catch (TaskCanceledException e)
+            {
+                Log.Error($"[RimAI] LLMManager: TaskCanceledException (Timeout): {e.Message}");
+                return (false, $"Request timed out: {e.Message}");
             }
             catch (Exception e)
             {
-                return (false, $"Exception: {e.Message}");
+                Log.Error($"[RimAI] LLMManager: An unexpected error occurred: {e.ToString()}");
+                return (false, $"An unexpected error occurred: {e.Message}");
             }
         }
         #endregion

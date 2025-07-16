@@ -27,7 +27,7 @@ namespace RimAI.Framework.Core
         /// <summary>
         /// Whether to enable streaming responses.
         /// </summary>
-        public bool enableStreaming = true;
+        public bool enableStreaming = false;
 
         /// <summary>
         /// A master switch to enable embedding-related features.
@@ -57,14 +57,14 @@ namespace RimAI.Framework.Core
         public override void ExposeData()
         {
             base.ExposeData();
-            
-            // Chat Completion
+
+            // Chat Completion Settings
             Scribe_Values.Look(ref apiKey, "apiKey", "");
             Scribe_Values.Look(ref apiEndpoint, "apiEndpoint", "https://api.openai.com/v1/chat/completions");
             Scribe_Values.Look(ref modelName, "modelName", "gpt-4o");
-            Scribe_Values.Look(ref enableStreaming, "enableStreaming", true);
+            Scribe_Values.Look(ref enableStreaming, "enableStreaming", false);
 
-            // Embeddings
+            // Embeddings Settings
             Scribe_Values.Look(ref enableEmbeddings, "enableEmbeddings", false);
             Scribe_Values.Look(ref embeddingApiKey, "embeddingApiKey", "");
             Scribe_Values.Look(ref embeddingEndpoint, "embeddingEndpoint", "https://api.openai.com/v1/embeddings");

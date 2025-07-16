@@ -1,7 +1,9 @@
+using System;
+using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
+using RimWorld;
 using RimAI.Framework.LLM;
-using System.Threading.Tasks;
 
 namespace RimAI.Framework.Core
 {
@@ -19,6 +21,7 @@ namespace RimAI.Framework.Core
         private bool isTesting = false;
         private string testResult = "";
         private Color testResultColor = Color.white;
+        private string testingStatus = "";
 
         /// <summary>
         /// The constructor for the Mod class. It's called once when the mod is loaded.
@@ -77,13 +80,21 @@ namespace RimAI.Framework.Core
             if (isTesting)
             {
                 listingStandard.Label("RimAI.Framework.Settings.TestingStatus".Translate());
+                if (!string.IsNullOrEmpty(testingStatus))
+                {
+                    GUI.color = Color.yellow;
+                    listingStandard.Label($"  {testingStatus}");
+                    GUI.color = Color.white;
+                }
             }
             else
             {
                 if (listingStandard.ButtonText("RimAI.Framework.Settings.TestConnectionButton".Translate()))
                 {
+                    Log.Message("[RimAI] RimAIMod: Test Connection button clicked");
                     isTesting = true;
                     testResult = "";
+                    testingStatus = "Initializing...";
                     _ = TestConnection();
                 }
             }
@@ -122,9 +133,11 @@ namespace RimAI.Framework.Core
             {
                 // Reset Chat settings
                 settings.apiKey = "";
-                settings.apiEndpoint = "https://api.openai.com/v1/chat/completions";
-                settings.modelName = "gpt-4o";
-                settings.enableStreaming = true;
+                // settings.apiEndpoint = "https://api.openai.com/v1/chat/completions";
+                // settings.modelName = "gpt-4o";
+                settings.apiEndpoint = "https://api.deepseek.com/v1/chat/completions";
+                settings.modelName = "deepseek-chat";
+                settings.enableStreaming = false;
 
                 // Reset Embeddings settings
                 settings.enableEmbeddings = false;
@@ -139,18 +152,43 @@ namespace RimAI.Framework.Core
 
         private async Task TestConnection()
         {
-            var (success, message) = await LLMManager.Instance.TestConnectionAsync();
-            if (success)
+            Log.Message("[RimAI] RimAIMod: TestConnection started");
+            Messages.Message("RimAI: Starting connection test...", MessageTypeDefOf.NeutralEvent);
+            testingStatus = "Validating settings...";
+            
+            try
             {
-                testResultColor = Color.green;
-                testResult = $"Success: {message}";
+                testingStatus = "Connecting to API...";
+                var (success, message) = await LLMManager.Instance.TestConnectionAsync();
+                
+                Log.Message($"[RimAI] RimAIMod: TestConnection completed. Success: {success}, Message: {message}");
+                
+                if (success)
+                {
+                    testResultColor = Color.green;
+                    testResult = $"Success: {message}";
+                    Messages.Message($"RimAI: Connection successful! {message}", MessageTypeDefOf.PositiveEvent);
+                }
+                else
+                {
+                    testResultColor = Color.red;
+                    testResult = $"Failure: {message}";
+                    Messages.Message($"RimAI: Connection failed! {message}", MessageTypeDefOf.NegativeEvent);
+                }
             }
-            else
+            catch (Exception ex)
             {
+                Log.Error($"[RimAI] RimAIMod: TestConnection exception: {ex.ToString()}");
                 testResultColor = Color.red;
-                testResult = $"Failure: {message}";
+                testResult = $"Exception: {ex.Message}";
+                Messages.Message($"RimAI: Connection error! {ex.Message}", MessageTypeDefOf.RejectInput);
             }
-            isTesting = false;
+            finally
+            {
+                Log.Message("[RimAI] RimAIMod: Setting isTesting to false");
+                testingStatus = "";
+                isTesting = false;
+            }
         }
     }
 }
