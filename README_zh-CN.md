@@ -121,10 +121,34 @@ RimAI框架通过**"无摩擦交互"**引入了殖民地管理的范式转变—
 这是一个开源项目，欢迎贡献！请查看我们的[贡献指南](CONTRIBUTING.md)了解详情。
 
 ### 开发设置
-1. 克隆仓库
-2. 安装.NET Framework 4.7.2 SDK
-3. 安装带有C# Dev Kit的VS Code
-4. 使用`dotnet build`构建
+1. **克隆仓库**
+   ```bash
+   git clone https://github.com/oidahdsah0/Rim_AI_Framework.git
+   cd Rim_AI_Framework
+   ```
+
+2. **构建项目**
+   ```bash
+   # 进入框架目录
+   cd RimAI.Framework
+   
+   # 使用dotnet CLI构建（跨平台）
+   dotnet build
+   
+   # 或在Windows上使用MSBuild
+   msbuild Rim_AI_Framework.sln /p:Configuration=Debug
+   ```
+
+3. **开发要求**
+   - .NET Framework 4.7.2 SDK
+   - Visual Studio 2019+ 或带有C# Dev Kit的VS Code
+   - RimWorld 1.6+（用于测试）
+
+4. **macOS构建注意事项**
+   - 使用`dotnet build`命令（macOS上不可用MSBuild）
+   - 项目自动检测macOS RimWorld安装路径
+   - 需要Mono运行时（通常随.NET SDK一起安装）
+   - PostBuild事件直接部署到RimWorld Mods文件夹
 
 ### 架构文档
 - [技术设计](docs/TECHNICAL_DESIGN.md)

@@ -132,7 +132,10 @@ This is an open-source project and contributions are welcome! Please see our [Co
    # Navigate to the framework directory
    cd RimAI.Framework
    
-   # Build using MSBuild
+   # Build using dotnet CLI (cross-platform)
+   dotnet build
+   
+   # Or using MSBuild on Windows
    msbuild Rim_AI_Framework.sln /p:Configuration=Debug
    ```
 
@@ -140,6 +143,12 @@ This is an open-source project and contributions are welcome! Please see our [Co
    - .NET Framework 4.7.2 SDK
    - Visual Studio 2019+ or VS Code with C# Dev Kit
    - RimWorld 1.6+ (for testing)
+
+4. **macOS Build Notes**
+   - Use `dotnet build` command (MSBuild not available on macOS)
+   - Project automatically detects macOS RimWorld installation path
+   - Requires Mono runtime (usually installed with .NET SDK)
+   - PostBuild event deploys directly to RimWorld Mods folder
 
 ### Repository Structure
 - **Source Code Only**: This repository contains only source code

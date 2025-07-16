@@ -23,9 +23,18 @@
   -->
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <PropertyGroup>
-      <!-- IMPORTANT: SET THIS TO YOUR RIMWORLD INSTALLATION DIRECTORY -->
-      <RimWorldDir>C:\Program Files (x86)\Steam\steamapps\common\RimWorld</RimWorldDir>
-      <ModDir>$(RimWorldDir)\Mods\RimAI_Framework</ModDir>
+      <!-- Cross-platform RimWorld directory detection -->
+      <!-- Windows (Steam) -->
+      <RimWorldDir Condition="$([MSBuild]::IsOSPlatform('Windows'))">C:\Program Files (x86)\Steam\steamapps\common\RimWorld</RimWorldDir>
+      <!-- macOS (Steam) -->
+      <RimWorldDir Condition="$([MSBuild]::IsOSPlatform('OSX'))">$(HOME)/Library/Application Support/Steam/steamapps/common/RimWorld/RimWorldMac.app/Contents/Resources/Data</RimWorldDir>
+      <!-- Linux (Steam) -->
+      <RimWorldDir Condition="$([MSBuild]::IsOSPlatform('Linux'))">$(HOME)/.steam/steam/steamapps/common/RimWorld</RimWorldDir>
+      
+      <!-- Fallback: Allow manual override via environment variable -->
+      <RimWorldDir Condition="'$(RIMWORLD_DIR)' != ''">$(RIMWORLD_DIR)</RimWorldDir>
+      
+      <ModDir>$(RimWorldDir)/Mods/RimAI_Framework</ModDir>
     </PropertyGroup>
 
     <!-- Step 1: Clean the destination directory to prevent stale files. -->
