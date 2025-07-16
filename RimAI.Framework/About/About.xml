@@ -11,15 +11,4 @@ The foundational framework for the RimAI ecosystem. It handles all communication
 
 This framework itself does not add gameplay features but is required by all other RimAI modules.
   </description>
-  <modDependencies>
-    <li>
-      <packageId>brrainz.harmony</packageId>
-      <displayName>Harmony</displayName>
-      <steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl>
-      <downloadUrl>https://github.com/pardeike/Harmony/releases/latest</downloadUrl>
-    </li>
-  </modDependencies>
-  <loadAfter>
-    <li>brrainz.harmony</li>
-  </loadAfter>
 </ModMetaData>

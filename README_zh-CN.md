@@ -74,7 +74,7 @@ RimAI框架通过**"无摩擦交互"**引入了殖民地管理的范式转变—
 ## 🛠️ **技术实现**
 
 ### 核心技术
-- **Harmony**：事件驱动架构和运行时代码注入
+- **轻量级**: 除游戏本体和 Newtonsoft.Json 外无外部依赖。**不需要 Harmony**。
 - **ThingComp**：对象特定数据和行为的组件系统
 - **GameComponent**：全局数据管理和持久存储
 - **自定义Defs**：新的XML可定义概念（`ToolDef`、`CaseDef`）
@@ -90,7 +90,6 @@ RimAI框架通过**"无摩擦交互"**引入了殖民地管理的范式转变—
 
 ### 前置要求
 - RimWorld 1.6+
-- [Harmony](https://steamcommunity.com/sharedfiles/filedetails/?id=2009463077)
 
 ### 安装
 1. 在Steam创意工坊订阅模组（即将推出）
@@ -162,7 +161,6 @@ RimAI框架通过**"无摩擦交互"**引入了殖民地管理的范式转变—
 ## 🙏 **致谢**
 
 - RimWorld社区的灵感和支持
-- Harmony项目的运行时补丁能力
 - OpenAI使AI民主化
 - 所有贡献者和早期采用者
 

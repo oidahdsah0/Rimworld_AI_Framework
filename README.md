@@ -9,7 +9,7 @@
 > **A revolutionary AI-powered framework for RimWorld that brings Large Language Models directly into your colony management experience, enabling intelligent, context-aware administrative decisions.**
 
 **Author**: [@oidahdsah0](https://github.com/oidahdsah0)  
-**Created**: July 2025
+**Created**: 15 July 2025
 
 ---
 
@@ -74,7 +74,7 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
 ## 🛠️ **Technical Implementation**
 
 ### Core Technologies
-- **Harmony**: Event-driven architecture and runtime code injection
+- **Lightweight**: No external dependencies beyond the base game and Newtonsoft.Json. **Does not require Harmony**.
 - **ThingComp**: Component system for object-specific data and behavior
 - **GameComponent**: Global data management and persistent storage
 - **Custom Defs**: New XML-definable concepts (`ToolDef`, `CaseDef`)
@@ -90,7 +90,6 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
 
 ### Prerequisites
 - RimWorld 1.6+
-- [Harmony](https://steamcommunity.com/sharedfiles/filedetails/?id=2009463077)
 
 ### Installation
 1. **For End Users**: Download from [Releases](https://github.com/oidahdsah0/Rim_AI_Framework/releases)
@@ -168,7 +167,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 **Acknowledgments**
 
 - RimWorld community for inspiration and support
-- Harmony project for runtime patching capabilities
 - OpenAI for democratizing AI access
 - All contributors and early adopters
 

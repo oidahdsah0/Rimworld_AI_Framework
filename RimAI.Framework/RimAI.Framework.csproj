@@ -12,9 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- RimWorld and Harmony references via NuGet packages -->
+    <!-- RimWorld and other references via NuGet packages -->
     <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4518" />
-    <PackageReference Include="Lib.Harmony" Version="2.3.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
