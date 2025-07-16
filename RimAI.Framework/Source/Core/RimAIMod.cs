@@ -67,7 +67,7 @@ namespace RimAI.Framework.Core
             // Add a description label to clarify the V1 behavior
             Text.Font = GameFont.Tiny;
             GUI.color = Color.gray;
-            listingStandard.Label("  (当前版本API仅支持非流式请求)");
+            listingStandard.Label("  " + "RimAI.Framework.Settings.StreamingNotice".Translate());
             GUI.color = Color.white;
             Text.Font = GameFont.Small;
 
@@ -76,11 +76,11 @@ namespace RimAI.Framework.Core
             // --- Test Connection Button ---
             if (isTesting)
             {
-                listingStandard.Label("Testing...");
+                listingStandard.Label("RimAI.Framework.Settings.TestingStatus".Translate());
             }
             else
             {
-                if (listingStandard.ButtonText("Test Connection"))
+                if (listingStandard.ButtonText("RimAI.Framework.Settings.TestConnectionButton".Translate()))
                 {
                     isTesting = true;
                     testResult = "";

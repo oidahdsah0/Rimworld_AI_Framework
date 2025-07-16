@@ -24,5 +24,10 @@
 
   <!-- Buttons -->
   <RimAI.Framework.Settings.ResetButton>Сбросить к Умолчанию</RimAI.Framework.Settings.ResetButton>
+  <RimAI.Framework.Settings.TestConnectionButton>Проверить Соединение</RimAI.Framework.Settings.TestConnectionButton>
+
+  <!-- Status Messages -->
+  <RimAI.Framework.Settings.TestingStatus>Тестирование...</RimAI.Framework.Settings.TestingStatus>
+  <RimAI.Framework.Settings.StreamingNotice>(Текущая версия API поддерживает только непотоковые запросы)</RimAI.Framework.Settings.StreamingNotice>
 
 </LanguageData>

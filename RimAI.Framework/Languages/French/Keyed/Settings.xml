@@ -24,5 +24,10 @@
 
   <!-- Buttons -->
   <RimAI.Framework.Settings.ResetButton>Réinitialiser aux Défauts</RimAI.Framework.Settings.ResetButton>
+  <RimAI.Framework.Settings.TestConnectionButton>Tester la Connexion</RimAI.Framework.Settings.TestConnectionButton>
+
+  <!-- Status Messages -->
+  <RimAI.Framework.Settings.TestingStatus>Test en cours...</RimAI.Framework.Settings.TestingStatus>
+  <RimAI.Framework.Settings.StreamingNotice>(La version actuelle de l'API ne prend en charge que les requêtes non-streaming)</RimAI.Framework.Settings.StreamingNotice>
 
 </LanguageData>

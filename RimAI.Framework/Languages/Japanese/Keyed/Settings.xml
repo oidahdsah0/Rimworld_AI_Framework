@@ -24,5 +24,10 @@
 
   <!-- Buttons -->
   <RimAI.Framework.Settings.ResetButton>デフォルトにリセット</RimAI.Framework.Settings.ResetButton>
+  <RimAI.Framework.Settings.TestConnectionButton>接続テスト</RimAI.Framework.Settings.TestConnectionButton>
+
+  <!-- Status Messages -->
+  <RimAI.Framework.Settings.TestingStatus>テスト中...</RimAI.Framework.Settings.TestingStatus>
+  <RimAI.Framework.Settings.StreamingNotice>(現在のバージョンのAPIは非ストリーミングリクエストのみをサポートしています)</RimAI.Framework.Settings.StreamingNotice>
 
 </LanguageData>

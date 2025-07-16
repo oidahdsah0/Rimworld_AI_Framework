@@ -24,5 +24,10 @@
 
   <!-- Buttons -->
   <RimAI.Framework.Settings.ResetButton>重置为默认值</RimAI.Framework.Settings.ResetButton>
+  <RimAI.Framework.Settings.TestConnectionButton>测试连接</RimAI.Framework.Settings.TestConnectionButton>
+
+  <!-- Status Messages -->
+  <RimAI.Framework.Settings.TestingStatus>测试中...</RimAI.Framework.Settings.TestingStatus>
+  <RimAI.Framework.Settings.StreamingNotice>(当前版本API仅支持非流式请求)</RimAI.Framework.Settings.StreamingNotice>
 
 </LanguageData>
