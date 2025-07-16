@@ -59,16 +59,16 @@ namespace RimAI.Framework.Core
             base.ExposeData();
 
             // Chat Completion Settings
-            Scribe_Values.Look(ref apiKey, "apiKey", "");
-            Scribe_Values.Look(ref apiEndpoint, "apiEndpoint", "https://api.openai.com/v1/chat/completions");
-            Scribe_Values.Look(ref modelName, "modelName", "gpt-4o");
-            Scribe_Values.Look(ref enableStreaming, "enableStreaming", false);
+            Scribe_Values.Look(ref apiKey, "RimAIFramework_apiKey", "");
+            Scribe_Values.Look(ref apiEndpoint, "RimAIFramework_apiEndpoint", "https://api.openai.com/v1/chat/completions");
+            Scribe_Values.Look(ref modelName, "RimAIFramework_modelName", "gpt-4o");
+            Scribe_Values.Look(ref enableStreaming, "RimAIFramework_enableStreaming", false);
 
             // Embeddings Settings
-            Scribe_Values.Look(ref enableEmbeddings, "enableEmbeddings", false);
-            Scribe_Values.Look(ref embeddingApiKey, "embeddingApiKey", "");
-            Scribe_Values.Look(ref embeddingEndpoint, "embeddingEndpoint", "https://api.openai.com/v1/embeddings");
-            Scribe_Values.Look(ref embeddingModelName, "embeddingModelName", "text-embedding-3-small");
+            Scribe_Values.Look(ref enableEmbeddings, "RimAIFramework_enableEmbeddings", false);
+            Scribe_Values.Look(ref embeddingApiKey, "RimAIFramework_embeddingApiKey", "");
+            Scribe_Values.Look(ref embeddingEndpoint, "RimAIFramework_embeddingEndpoint", "https://api.openai.com/v1/embeddings");
+            Scribe_Values.Look(ref embeddingModelName, "RimAIFramework_embeddingModelName", "text-embedding-3-small");
         }
     }
 }

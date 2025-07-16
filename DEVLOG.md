@@ -88,6 +88,46 @@ System.TypeLoadException: Could not resolve type with token 0100003e from typere
 
 ---
 
+## 2025年7月16日 - 翻译文件更新和国际化完善
+
+### 更新内容
+在成功解决 Newtonsoft.Json 问题后，发现界面中新增的状态消息和游戏内消息缺少翻译。
+
+### 添加的翻译条目
+1. **连接测试状态消息**：
+   - `RimAI.Framework.Settings.TestConnectionStatus.Initializing`
+   - `RimAI.Framework.Settings.TestConnectionStatus.Validating`
+   - `RimAI.Framework.Settings.TestConnectionStatus.Connecting`
+
+2. **游戏内消息**：
+   - `RimAI.Framework.Messages.TestStarting`
+   - `RimAI.Framework.Messages.SendingRequest`
+   - `RimAI.Framework.Messages.TestSuccess`
+   - `RimAI.Framework.Messages.TestFailed`
+   - `RimAI.Framework.Messages.TestError`
+
+### 支持的语言
+- ✅ English
+- ✅ 简体中文 (Simplified Chinese)
+- ✅ 日本語 (Japanese)
+- ✅ 한국어 (Korean)
+- ✅ Français (French)
+- ✅ Deutsch (German)
+- ✅ Русский (Russian)
+
+### 代码更改
+- 更新了 `RimAIMod.cs` 中的硬编码字符串使用翻译键
+- 更新了 `LLMManager.cs` 中的游戏内消息使用翻译键
+- 确保所有用户可见的文本都有完整的多语言支持
+
+### 国际化最佳实践
+1. 所有用户可见的字符串都使用翻译键
+2. 翻译文件结构清晰，便于维护
+3. 为所有支持的语言提供完整翻译
+4. 使用语义化的翻译键命名
+
+---
+
 ## 下一步计划
 1. 实现基础的 AI 聊天功能
 2. 开发终端 UI 系统
