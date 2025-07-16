@@ -26,10 +26,9 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
 ### 1. **Framework Layer** (This Repository)
 - **Purpose**: Pure technical backend and communication layer
 - **Responsibilities**:
-  - All Large Language Model (LLM) network communication
-  - API key management, request building, response parsing, and error handling
-  - Core data structures and interfaces (`ToolDef`, `CaseDef`, `IContextProvider`, etc.)
-  - Extensible UI containers (terminals, windows)
+  - All Large Language Model (LLM) network communication ✅
+  - API key management, request building, response parsing, and error handling ✅
+  - Something else.
 - **Goal**: Absolutely neutral, stable, and efficient. Contains no gameplay logic.
 
 ### 2. **Core Gameplay Modules** (Future Repositories)
