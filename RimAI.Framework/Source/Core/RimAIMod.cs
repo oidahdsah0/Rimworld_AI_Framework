@@ -64,6 +64,13 @@ namespace RimAI.Framework.Core
 
             listingStandard.CheckboxLabeled("RimAI.Framework.Settings.ChatCompletion.EnableStreaming".Translate(), ref settings.enableStreaming, "RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip".Translate());
 
+            // Add a description label to clarify the V1 behavior
+            Text.Font = GameFont.Tiny;
+            GUI.color = Color.gray;
+            listingStandard.Label("  (当前版本API仅支持非流式请求)");
+            GUI.color = Color.white;
+            Text.Font = GameFont.Small;
+
             listingStandard.Gap(12f);
 
             // --- Test Connection Button ---

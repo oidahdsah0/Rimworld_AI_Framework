@@ -18,6 +18,10 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
   <!-- 
     Post-Build Event: A robust, explicit process to deploy the mod.
     This method is less "elegant" but far more reliable than smart wildcards.
