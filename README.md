@@ -23,13 +23,13 @@ Your decisions become "smart directives" that seamlessly influence the world wit
 
 To create a clear and extensible ecosystem, the RimAI project is organized into three distinct layers:
 
-### 1. **Framework Layer** (This Repository)
+### 1. **Framework Layer** (This Repository) ✅
 - **Purpose**: Pure technical backend and communication layer
 - **Responsibilities**:
   - All Large Language Model (LLM) network communication ✅
   - API key management, request building, response parsing, and error handling ✅
-  - Something else.
-- **Goal**: Absolutely neutral, stable, and efficient. Contains no gameplay logic.
+  - Something else (Update Comming).
+- **Goal**: Absolutely neutral, stable, and efficient. Contains no gameplay logic. ✅
 
 ### 2. **Core Gameplay Modules** (Future Repositories)
 - **Purpose**: Official content packages that define core game experiences
