@@ -1,5 +1,7 @@
 using UnityEngine;
 using Verse;
+using RimAI.Framework.LLM;
+using System.Threading.Tasks;
 
 namespace RimAI.Framework.Core
 {
@@ -13,6 +15,10 @@ namespace RimAI.Framework.Core
         /// A reference to our settings instance.
         /// </summary>
         public readonly RimAISettings settings;
+
+        private bool isTesting = false;
+        private string testResult = "";
+        private Color testResultColor = Color.white;
 
         /// <summary>
         /// The constructor for the Mod class. It's called once when the mod is loaded.
@@ -58,6 +64,30 @@ namespace RimAI.Framework.Core
 
             listingStandard.CheckboxLabeled("RimAI.Framework.Settings.ChatCompletion.EnableStreaming".Translate(), ref settings.enableStreaming, "RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip".Translate());
 
+            listingStandard.Gap(12f);
+
+            // --- Test Connection Button ---
+            if (isTesting)
+            {
+                listingStandard.Label("Testing...");
+            }
+            else
+            {
+                if (listingStandard.ButtonText("Test Connection"))
+                {
+                    isTesting = true;
+                    testResult = "";
+                    _ = TestConnection();
+                }
+            }
+
+            if (!string.IsNullOrEmpty(testResult))
+            {
+                GUI.color = testResultColor;
+                listingStandard.Label(testResult);
+                GUI.color = Color.white;
+            }
+
             listingStandard.Gap(24f);
 
             // --- Embeddings Settings ---
@@ -98,6 +128,22 @@ namespace RimAI.Framework.Core
 
             listingStandard.End();
             base.DoSettingsWindowContents(inRect);
+        }
+
+        private async Task TestConnection()
+        {
+            var (success, message) = await LLMManager.Instance.TestConnectionAsync();
+            if (success)
+            {
+                testResultColor = Color.green;
+                testResult = $"Success: {message}";
+            }
+            else
+            {
+                testResultColor = Color.red;
+                testResult = $"Failure: {message}";
+            }
+            isTesting = false;
         }
     }
 }
