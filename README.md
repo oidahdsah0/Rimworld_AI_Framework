@@ -169,7 +169,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 **Acknowledgments** ❤️
 
 - 🎮 RimWorld community for inspiration and support
-- 🤖 OpenAI for democratizing AI access
 - 👥 All contributors and early adopters
 
 ---
