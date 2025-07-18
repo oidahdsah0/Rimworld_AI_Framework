@@ -156,39 +156,59 @@ namespace RimAI.Framework.Core
             Messages.Message("RimAI.Framework.Messages.TestStarting".Translate(), MessageTypeDefOf.NeutralEvent);
             testingStatus = "RimAI.Framework.Settings.TestConnectionStatus.Validating".Translate();
             
+            (bool success, string message) result = (false, "Unknown error");
+            Exception testException = null;
+
             try
             {
                 testingStatus = "RimAI.Framework.Settings.TestConnectionStatus.Connecting".Translate();
-                var (success, message) = await LLMManager.Instance.TestConnectionAsync();
-                
-                Log.Message($"[RimAI] RimAIMod: TestConnection completed. Success: {success}, Message: {message}");
-                
-                if (success)
-                {
-                    testResultColor = Color.green;
-                    testResult = $"Success: {message}";
-                    Messages.Message($"{"RimAI.Framework.Messages.TestSuccess".Translate()} {message}", MessageTypeDefOf.PositiveEvent);
-                }
-                else
-                {
-                    testResultColor = Color.red;
-                    testResult = $"Failure: {message}";
-                    Messages.Message($"{"RimAI.Framework.Messages.TestFailed".Translate()} {message}", MessageTypeDefOf.NegativeEvent);
-                }
+                result = await LLMManager.Instance.TestConnectionAsync();
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimAI] RimAIMod: TestConnection exception: {ex.ToString()}");
-                testResultColor = Color.red;
-                testResult = $"Exception: {ex.Message}";
-                Messages.Message($"{"RimAI.Framework.Messages.TestError".Translate()} {ex.Message}", MessageTypeDefOf.RejectInput);
+                testException = ex;
             }
-            finally
+
+            // Schedule UI updates to run on the main thread
+            LongEventHandler.ExecuteWhenFinished(() =>
             {
-                Log.Message("[RimAI] RimAIMod: Setting isTesting to false");
-                testingStatus = "";
-                isTesting = false;
-            }
+                try
+                {
+                    Log.Message($"[RimAI] RimAIMod: TestConnection completed. Success: {result.success}, Message: {result.message}");
+                    
+                    if (testException != null)
+                    {
+                        Log.Error($"[RimAI] RimAIMod: TestConnection exception: {testException}");
+                        testResultColor = Color.red;
+                        testResult = $"Exception: {testException.Message}";
+                        Messages.Message($"{"RimAI.Framework.Messages.TestError".Translate()} {testException.Message}", MessageTypeDefOf.RejectInput);
+                    }
+                    else if (result.success)
+                    {
+                        testResultColor = Color.green;
+                        testResult = $"Success: {result.message}";
+                        Messages.Message($"{"RimAI.Framework.Messages.TestSuccess".Translate()} {result.message}", MessageTypeDefOf.PositiveEvent);
+                    }
+                    else
+                    {
+                        testResultColor = Color.red;
+                        testResult = $"Failure: {result.message}";
+                        Messages.Message($"{"RimAI.Framework.Messages.TestFailed".Translate()} {result.message}", MessageTypeDefOf.NegativeEvent);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"[RimAI] RimAIMod: Error in main thread callback: {ex}");
+                    testResultColor = Color.red;
+                    testResult = $"Callback error: {ex.Message}";
+                }
+                finally
+                {
+                    Log.Message("[RimAI] RimAIMod: Setting isTesting to false");
+                    testingStatus = "";
+                    isTesting = false;
+                }
+            });
         }
     }
 }
