@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -60,17 +61,48 @@ namespace RimAI.Framework.LLM
         /// <summary>
         /// Internal class to hold all information about a single request.
         /// </summary>
-        private class RequestData
+        private class RequestData : IDisposable
         {
             public string Prompt { get; }
             public TaskCompletionSource<string> CompletionSource { get; }
             public CancellationToken CancellationToken { get; }
+            public bool IsStreaming { get; }
+            public Action<string> StreamCallback { get; }
+            public TaskCompletionSource<bool> StreamCompletionSource { get; }
+            public CancellationTokenSource LinkedCts { get; private set; }
 
+            // Constructor for non-streaming requests
             public RequestData(string prompt, TaskCompletionSource<string> tcs, CancellationToken ct)
             {
                 Prompt = prompt;
                 CompletionSource = tcs;
                 CancellationToken = ct;
+                IsStreaming = false;
+                StreamCallback = null;
+                StreamCompletionSource = null;
+            }
+
+            // Constructor for streaming requests
+            public RequestData(string prompt, Action<string> streamCallback, TaskCompletionSource<bool> streamTcs, CancellationToken ct)
+            {
+                Prompt = prompt;
+                CompletionSource = null;
+                CancellationToken = ct;
+                IsStreaming = true;
+                StreamCallback = streamCallback;
+                StreamCompletionSource = streamTcs;
+            }
+
+            public void SetLinkedCancellationTokenSource(CancellationTokenSource linkedCts)
+            {
+                LinkedCts = linkedCts;
+            }
+
+            public bool IsCancellationRequested => CancellationToken.IsCancellationRequested || LinkedCts?.Token.IsCancellationRequested == true;
+
+            public void Dispose()
+            {
+                LinkedCts?.Dispose();
             }
         }
         #endregion
@@ -128,6 +160,17 @@ namespace RimAI.Framework.LLM
         #region Public Methods
         
         /// <summary>
+        /// Gets whether streaming is currently enabled in the settings.
+        /// Downstream mods can use this to adjust their UI behavior accordingly.
+        /// </summary>
+        public bool IsStreamingEnabled => _settings?.enableStreaming ?? false;
+
+        /// <summary>
+        /// Gets the current API settings. Read-only access for downstream mods.
+        /// </summary>
+        public RimAISettings CurrentSettings => _settings;
+
+        /// <summary>
         /// Asynchronously enqueues a chat completion request to the LLM API.
         /// The request will be processed when a slot is available.
         /// </summary>
@@ -142,10 +185,18 @@ namespace RimAI.Framework.LLM
                 return Task.FromResult<string>(null);
             }
 
-            if (string.IsNullOrEmpty(prompt))
+            // Enhanced validation: reject null, empty, or whitespace-only prompts
+            if (string.IsNullOrWhiteSpace(prompt))
             {
-                Log.Warning("RimAI Framework: Empty prompt provided to GetChatCompletionAsync.");
+                Log.Warning("RimAI Framework: Empty or whitespace-only prompt provided to GetChatCompletionAsync. No API request will be made.");
                 return Task.FromResult<string>(null);
+            }
+
+            // Check if streaming is enabled in settings
+            if (_settings.enableStreaming)
+            {
+                // Use streaming mode but collect all chunks into a single response
+                return GetStreamingAsNonStreamingAsync(prompt, cancellationToken);
             }
 
             var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -153,6 +204,7 @@ namespace RimAI.Framework.LLM
             
             // Link the external cancellation token with the disposal token
             var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_disposeCts.Token, cancellationToken);
+            requestData.SetLinkedCancellationTokenSource(linkedCts);
             linkedCts.Token.Register(() => tcs.TrySetCanceled());
 
             _requestQueue.Enqueue(requestData);
@@ -161,16 +213,75 @@ namespace RimAI.Framework.LLM
         }
 
         /// <summary>
-        /// Gets a chat completion as a stream of tokens. (NOT IMPLEMENTED IN V1)
-        /// This method is reserved for future use. It will send a request and process the response as a stream.
+        /// Internal method to handle streaming requests when enableStreaming is true,
+        /// but the caller expects a non-streaming interface.
+        /// </summary>
+        private async Task<string> GetStreamingAsNonStreamingAsync(string prompt, CancellationToken cancellationToken)
+        {
+            var fullResponse = new StringBuilder();
+
+            try
+            {
+                await GetChatCompletionStreamAsync(
+                    prompt,
+                    chunk => fullResponse.Append(chunk),
+                    cancellationToken
+                );
+
+                return fullResponse.ToString();
+            }
+            catch (OperationCanceledException)
+            {
+                Log.Message("RimAI Framework: Streaming request was cancelled by user");
+                throw; // Re-throw to allow proper handling by caller
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"RimAI Framework: Error in streaming-as-non-streaming request: {ex}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets a chat completion as a stream of tokens.
+        /// This method sends a request and processes the response as a stream.
         /// </summary>
         /// <param name="prompt">The text prompt to send to the LLM.</param>
         /// <param name="onChunkReceived">An action to be called for each received token chunk.</param>
-        public async Task GetChatCompletionStreamAsync(string prompt, Action<string> onChunkReceived)
+        /// <param name="cancellationToken">A cancellation token to cancel the stream.</param>
+        /// <returns>A task that completes when the streaming is finished.</returns>
+        public Task GetChatCompletionStreamAsync(string prompt, Action<string> onChunkReceived, CancellationToken cancellationToken = default)
         {
-            Log.Warning("RimAI Framework: GetChatCompletionStreamAsync is not implemented in this version.");
-            // In a future version, this would handle streaming responses by calling a method like ProcessStreamChunk.
-            await Task.CompletedTask;
+            if (string.IsNullOrEmpty(_settings.apiKey))
+            {
+                Log.Error("RimAI Framework: API key is not configured for streaming request.");
+                return Task.CompletedTask;
+            }
+
+            // Enhanced validation: reject null, empty, or whitespace-only prompts
+            if (string.IsNullOrWhiteSpace(prompt))
+            {
+                Log.Warning("RimAI Framework: Empty or whitespace-only prompt provided to GetChatCompletionStreamAsync. No API request will be made.");
+                return Task.CompletedTask;
+            }
+
+            if (onChunkReceived == null)
+            {
+                Log.Error("RimAI Framework: onChunkReceived callback is null.");
+                return Task.CompletedTask;
+            }
+
+            var streamTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var requestData = new RequestData(prompt, onChunkReceived, streamTcs, cancellationToken);
+            
+            // Link the external cancellation token with the disposal token
+            var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_disposeCts.Token, cancellationToken);
+            requestData.SetLinkedCancellationTokenSource(linkedCts);
+            linkedCts.Token.Register(() => streamTcs.TrySetCanceled());
+
+            _requestQueue.Enqueue(requestData);
+            
+            return streamTcs.Task;
         }
 
         /// <summary>
@@ -182,6 +293,7 @@ namespace RimAI.Framework.LLM
             LoadSettings();
         }
 
+        /// <summary>
         /// <summary>
         /// Tests the connection to the LLM API using the current settings.
         /// </summary>
@@ -216,7 +328,7 @@ namespace RimAI.Framework.LLM
             
             try
             {
-                var response = await SendHttpRequestAsync(_settings.apiEndpoint, jsonBody, _settings.apiKey, CancellationToken.None);
+                var response = await SendHttpRequestAsync(_settings.ChatCompletionsEndpoint, jsonBody, _settings.apiKey, CancellationToken.None);
 
                 if (response.success)
                 {
@@ -245,6 +357,33 @@ namespace RimAI.Framework.LLM
                 return (false, $"Unexpected error: {e.Message}");
             }
         }
+
+        /// <summary>
+        /// Cancels all pending requests in the queue.
+        /// This method can be called from downstream mods to interrupt all ongoing requests.
+        /// </summary>
+        public void CancelAllRequests()
+        {
+            Log.Message("RimAI Framework: Cancelling all pending requests");
+            
+            // Cancel all requests in the queue
+            while (_requestQueue.TryDequeue(out var requestData))
+            {
+                if (requestData != null)
+                {
+                    if (requestData.IsStreaming)
+                    {
+                        requestData.StreamCompletionSource?.TrySetCanceled();
+                    }
+                    else
+                    {
+                        requestData.CompletionSource?.TrySetCanceled();
+                    }
+                    requestData.LinkedCts?.Cancel();
+                    requestData.Dispose();
+                }
+            }
+        }
         #endregion
 
         #region Private Helper Methods
@@ -258,7 +397,29 @@ namespace RimAI.Framework.LLM
             {
                 if (_requestQueue.TryDequeue(out var requestData))
                 {
-                    // Process one request at a time to avoid overwhelming the system
+                    // Check if the request was already cancelled before processing
+                    if (requestData.IsCancellationRequested)
+                    {
+                        // Complete the cancelled request immediately without processing
+                        try
+                        {
+                            if (requestData.IsStreaming)
+                            {
+                                requestData.StreamCompletionSource.TrySetCanceled();
+                            }
+                            else
+                            {
+                                requestData.CompletionSource.TrySetCanceled();
+                            }
+                        }
+                        finally
+                        {
+                            requestData.Dispose();
+                        }
+                        continue; // Skip to next request
+                    }
+
+                    // Process the request normally
                     await ProcessSingleRequestFromQueue(requestData, cancellationToken);
                 }
                 else
@@ -277,32 +438,65 @@ namespace RimAI.Framework.LLM
             await _concurrentRequestLimiter.WaitAsync(cancellationToken);
             try
             {
-                if (requestData.CancellationToken.IsCancellationRequested)
+                // Check for cancellation using the improved method that checks both tokens
+                if (requestData.IsCancellationRequested)
                 {
-                    requestData.CompletionSource.TrySetCanceled();
+                    if (requestData.IsStreaming)
+                    {
+                        requestData.StreamCompletionSource.TrySetCanceled();
+                    }
+                    else
+                    {
+                        requestData.CompletionSource.TrySetCanceled();
+                    }
                     return;
                 }
 
-                // Execute the request safely - ExecuteSingleRequestAsync now handles its own exceptions
-                var result = await ExecuteSingleRequestAsync(requestData.Prompt, requestData.CancellationToken);
+                // Get the appropriate cancellation token for the actual HTTP request
+                var effectiveCancellationToken = requestData.LinkedCts?.Token ?? requestData.CancellationToken;
 
-                // Always set a result, never set an exception. If ExecuteSingleRequestAsync fails, result will be null.
-                requestData.CompletionSource.TrySetResult(result);
+                if (requestData.IsStreaming)
+                {
+                    // Handle streaming requests
+                    await ExecuteStreamingRequestAsync(requestData.Prompt, requestData.StreamCallback, effectiveCancellationToken);
+                    requestData.StreamCompletionSource.TrySetResult(true);
+                }
+                else
+                {
+                    // Handle non-streaming requests (existing logic)
+                    var result = await ExecuteSingleRequestAsync(requestData.Prompt, effectiveCancellationToken);
+                    requestData.CompletionSource.TrySetResult(result);
+                }
             }
             catch (OperationCanceledException)
             {
                 // Handle cancellation properly
-                requestData.CompletionSource.TrySetCanceled();
+                if (requestData.IsStreaming)
+                {
+                    requestData.StreamCompletionSource.TrySetCanceled();
+                }
+                else
+                {
+                    requestData.CompletionSource.TrySetCanceled();
+                }
             }
             catch (Exception ex)
             {
-                // This is a fallback catch that should rarely be hit if ExecuteSingleRequestAsync is robust
-                // We log the error and return null to prevent downstream mod crashes
+                // This is a fallback catch that should rarely be hit
                 Log.Error($"[RimAI] LLMManager: Unhandled exception in ProcessSingleRequestFromQueue: {ex}");
-                requestData.CompletionSource.TrySetResult(null); // Safe fallback - return null instead of crashing
+                if (requestData.IsStreaming)
+                {
+                    requestData.StreamCompletionSource.TrySetResult(false); // Indicate failure
+                }
+                else
+                {
+                    requestData.CompletionSource.TrySetResult(null); // Safe fallback - return null instead of crashing
+                }
             }
             finally
             {
+                // Dispose the request data to clean up linked cancellation token
+                requestData.Dispose();
                 _concurrentRequestLimiter.Release();
             }
         }
@@ -326,7 +520,7 @@ namespace RimAI.Framework.LLM
                 };
 
                 var jsonBody = JsonConvert.SerializeObject(requestBody);
-                var response = await SendHttpRequestAsync(_settings.apiEndpoint, jsonBody, _settings.apiKey, cancellationToken);
+                var response = await SendHttpRequestAsync(_settings.ChatCompletionsEndpoint, jsonBody, _settings.apiKey, cancellationToken);
 
                 if (response.success)
                 {
@@ -346,6 +540,63 @@ namespace RimAI.Framework.LLM
                 // Log the error and return null instead of propagating the exception
                 Log.Error($"[RimAI] LLMManager: Failed to execute single request. Details: {ex}");
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Executes a streaming chat completion request.
+        /// This method handles all exceptions internally and invokes the callback for each chunk.
+        /// </summary>
+        private async Task ExecuteStreamingRequestAsync(string prompt, Action<string> onChunkReceived, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var requestBody = new
+                {
+                    model = _settings.modelName,
+                    messages = new[]
+                    {
+                        new { role = "user", content = prompt }
+                    },
+                    stream = true  // Enable streaming
+                };
+
+                var jsonBody = JsonConvert.SerializeObject(requestBody);
+                
+                using var request = new HttpRequestMessage(HttpMethod.Post, _settings.ChatCompletionsEndpoint);
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _settings.apiKey);
+                request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+                using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Log.Error($"RimAI Framework: Streaming request failed with status {response.StatusCode}: {errorContent}");
+                    return;
+                }
+
+                using var stream = await response.Content.ReadAsStreamAsync();
+                using var reader = new StreamReader(stream);
+                
+                string line;
+                while ((line = await reader.ReadLineAsync()) != null)
+                {
+                    // Check cancellation more frequently during streaming
+                    cancellationToken.ThrowIfCancellationRequested();
+                        
+                    ProcessStreamLine(line, onChunkReceived, cancellationToken);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Log.Message("RimAI Framework: Streaming request was cancelled");
+                // Re-throw cancellation to be handled by the calling method
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[RimAI] LLMManager: Failed to execute streaming request. Details: {ex}");
             }
         }
         
@@ -428,14 +679,104 @@ namespace RimAI.Framework.LLM
         }
 
         /// <summary>
-        /// Processes a single chunk from a streaming HTTP response. (NOT IMPLEMENTED IN V1)
-        /// This method is a placeholder for future streaming functionality.
+        /// Processes a single line from the SSE stream.
+        /// </summary>
+        /// <param name="line">A single line from the streaming response.</param>
+        /// <param name="onChunkReceived">The callback to invoke when content is received.</param>
+        /// <param name="cancellationToken">Cancellation token to check for interruption.</param>
+        private void ProcessStreamLine(string line, Action<string> onChunkReceived, CancellationToken cancellationToken = default)
+        {
+            // Early cancellation check
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
+            if (string.IsNullOrWhiteSpace(line))
+                return;
+
+            // SSE format: "data: {json}"
+            if (!line.StartsWith("data: "))
+                return;
+
+            var data = line.Substring(6); // Remove "data: " prefix
+            
+            // Check for end of stream
+            if (data.Trim() == "[DONE]")
+                return;
+
+            try
+            {
+                var chunk = JsonConvert.DeserializeObject<StreamingChatCompletionChunk>(data);
+                
+                if (chunk?.choices != null && chunk.choices.Count > 0)
+                {
+                    var delta = chunk.choices[0].delta;
+                    if (!string.IsNullOrEmpty(delta?.content))
+                    {
+                        // Check cancellation before processing chunk
+                        if (cancellationToken.IsCancellationRequested)
+                            return;
+
+                        // Execute callback safely - check if we need to marshal to main thread
+                        try
+                        {
+                            // For RimWorld, we need to ensure UI updates happen on the main thread
+                            LongEventHandler.ExecuteWhenFinished(() => 
+                            {
+                                try
+                                {
+                                    // Final cancellation check before callback
+                                    if (!cancellationToken.IsCancellationRequested)
+                                    {
+                                        onChunkReceived(delta.content);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Warning($"RimAI Framework: Exception in streaming callback: {ex.Message}");
+                                }
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            // Fallback: call directly if LongEventHandler fails
+                            Log.Warning($"RimAI Framework: Could not marshal to main thread, calling directly: {ex.Message}");
+                            try
+                            {
+                                if (!cancellationToken.IsCancellationRequested)
+                                {
+                                    onChunkReceived(delta.content);
+                                }
+                            }
+                            catch (Exception callbackEx)
+                            {
+                                Log.Warning($"RimAI Framework: Exception in direct streaming callback: {callbackEx.Message}");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (JsonException ex)
+            {
+                Log.Warning($"RimAI Framework: Failed to parse streaming chunk: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"RimAI Framework: Error processing stream chunk: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Processes a single chunk from a streaming HTTP response. (LEGACY METHOD - use ProcessStreamLine instead)
+        /// This method is kept for compatibility.
         /// </summary>
         /// <param name="chunk">A single data chunk from the stream.</param>
         private void ProcessStreamChunk(string chunk)
         {
-            // In a future version, this would parse Server-Sent Events (SSE)
-            // and extract the content from each chunk.
+            // Legacy method - now redirects to ProcessStreamLine
+            ProcessStreamLine(chunk, (content) => 
+            {
+                Log.Message($"RimAI Framework: Received chunk: {content}");
+            });
         }
 
         /// <summary>
@@ -507,6 +848,29 @@ namespace RimAI.Framework.LLM
             public int prompt_tokens { get; set; }
             public int completion_tokens { get; set; }
             public int total_tokens { get; set; }
+        }
+
+        // Streaming response DTOs
+        private class StreamingChatCompletionChunk
+        {
+            public List<StreamingChoice> choices { get; set; }
+            public string id { get; set; }
+            public string model { get; set; }
+            public string @object { get; set; }
+            public long created { get; set; }
+        }
+
+        private class StreamingChoice
+        {
+            public Delta delta { get; set; }
+            public int index { get; set; }
+            public string finish_reason { get; set; }
+        }
+
+        private class Delta
+        {
+            public string content { get; set; }
+            public string role { get; set; }
         }
         #endregion
 

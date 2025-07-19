@@ -5,11 +5,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![RimWorld](https://img.shields.io/badge/RimWorld-1.6-brightgreen.svg)](https://rimworldgame.com/)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.7.2-blue.svg)](https://dotnet.microsoft.com/download/dotnet-framework)
+[![Steam Workshop](https://img.shields.io/badge/Steam-Workshop-blue.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
+[![Status](https://img.shields.io/badge/Status-Released-success.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
 
 > **🚀 A revolutionary AI-powered framework for RimWorld that brings Large Language Models directly into your colony management experience, enabling intelligent, context-aware administrative decisions! 🎮✨**
 
-**👨‍💻 Author**: [@oidahdsah0](https://github.com/oidahdsah0)  
-**📅 Created**: 15 July 2025
+**🎉 NOW AVAILABLE ON STEAM WORKSHOP!** 🎉  
+**[� Download RimAI Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)**
+
+**�👨‍💻 Author**: [@oidahdsah0](https://github.com/oidahdsah0)  
+**📅 Created**: 15 July 2025  
+**🚀 Released**: 19 July 2025
 
 ---
 
@@ -94,9 +100,16 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
 - 🎮 RimWorld 1.6+
 
 ### 💾 Installation
-1. **👥 For End Users**: Download from [Releases](https://github.com/oidahdsah0/Rim_AI_Framework/releases) 📥
-2. **👨‍💻 For Developers**: Clone and build from source (see Development Setup below) 🔨
-3. ⚙️ Configure your API settings in Mod Options
+
+#### 🎮 **For Players (Recommended)**
+1. **� Steam Workshop**: [Subscribe to RimAI Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
+2. **🔧 Enable Mod**: Launch RimWorld and enable "RimAI Framework" in the mod list
+3. **⚙️ Configure**: Set up your API credentials in Mod Options
+
+#### 👨‍💻 **For Developers**
+1. **📂 Manual Install**: Download from [GitHub Releases](https://github.com/oidahdsah0/Rim_AI_Framework/releases)
+2. **� Build from Source**: Clone and build locally (see Development Setup below)
+3. **⚙️ Configure**: Set up your development environment and API settings
 
 ### ⚙️ Configuration
 1. 🎮 Open RimWorld > Options > Mod Settings > RimAI Framework
@@ -176,6 +189,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **⚠️ Disclaimer**: This is a framework-level mod that requires additional content modules for full functionality. The core gameplay features (Judicial System, Colony Chronicles, etc.) will be released as separate modules. 🚧
 
 **🔗 Links**:
-- 🎮 [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=TBD) (coming soon)
+- 🎮 **[Steam Workshop - LIVE NOW!](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)** ⭐
 - 💬 [Discord Server](https://discord.gg/TBD) (coming soon)
-- 🐛 [Bug Reports](https://github.com/oidahdsah0/Rim_AI_Framework/issues)
+- 🐛 [Bug Reports & Issues](https://github.com/oidahdsah0/Rim_AI_Framework/issues)
+- 📖 [GitHub Repository](https://github.com/oidahdsah0/Rim_AI_Framework)
+- 📋 [Changelog](https://github.com/oidahdsah0/Rim_AI_Framework/releases)

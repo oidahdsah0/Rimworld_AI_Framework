@@ -28,7 +28,8 @@
 
   <!-- Status Messages -->
   <RimAI.Framework.Settings.TestingStatus>测试中...</RimAI.Framework.Settings.TestingStatus>
-  <RimAI.Framework.Settings.StreamingNotice>(当前版本API仅支持非流式请求)</RimAI.Framework.Settings.StreamingNotice>
+  <RimAI.Framework.Settings.StreamingEnabled>流式传输已启用：GetChatCompletionAsync 将在内部使用流式传输以提高响应速度</RimAI.Framework.Settings.StreamingEnabled>
+  <RimAI.Framework.Settings.StreamingDisabled>流式传输已禁用：使用传统的请求-响应模式</RimAI.Framework.Settings.StreamingDisabled>
 
   <!-- Test Connection Status Messages -->
   <RimAI.Framework.Settings.TestConnectionStatus.Initializing>初始化中...</RimAI.Framework.Settings.TestConnectionStatus.Initializing>

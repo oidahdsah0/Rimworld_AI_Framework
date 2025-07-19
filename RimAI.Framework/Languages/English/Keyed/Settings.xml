@@ -28,7 +28,8 @@
 
   <!-- Status Messages -->
   <RimAI.Framework.Settings.TestingStatus>Testing...</RimAI.Framework.Settings.TestingStatus>
-  <RimAI.Framework.Settings.StreamingNotice>(Current version API only supports non-streaming requests)</RimAI.Framework.Settings.StreamingNotice>
+  <RimAI.Framework.Settings.StreamingEnabled>Streaming enabled: GetChatCompletionAsync will use streaming internally for better responsiveness</RimAI.Framework.Settings.StreamingEnabled>
+  <RimAI.Framework.Settings.StreamingDisabled>Streaming disabled: Using traditional request-response mode</RimAI.Framework.Settings.StreamingDisabled>
 
   <!-- Test Connection Status Messages -->
   <RimAI.Framework.Settings.TestConnectionStatus.Initializing>Initializing...</RimAI.Framework.Settings.TestConnectionStatus.Initializing>

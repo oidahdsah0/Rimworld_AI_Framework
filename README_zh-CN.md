@@ -5,11 +5,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![RimWorld](https://img.shields.io/badge/RimWorld-1.6-brightgreen.svg)](https://rimworldgame.com/)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.7.2-blue.svg)](https://dotnet.microsoft.com/download/dotnet-framework)
+[![Steam Workshop](https://img.shields.io/badge/Steam-创意工坊-blue.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
+[![Status](https://img.shields.io/badge/状态-已发布-success.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
 
 > **🚀 一个革命性的AI驱动的RimWorld框架，将大语言模型直接集成到您的殖民地管理体验中，实现智能化、上下文感知的行政决策！🎮✨**
 
+**🎉 现已在Steam创意工坊发布！** 🎉  
+**[📥 下载RimAI框架](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)**
+
 **👨‍💻 作者**: [@oidahdsah0](https://github.com/oidahdsah0)  
-**📅 创建时间**: 2025年7月15日
+**📅 创建时间**: 2025年7月15日  
+**🚀 发布时间**: 2025年7月19日
 
 ---
 
@@ -94,9 +100,16 @@ RimAI框架通过**"无摩擦交互"** 🌊 引入了殖民地管理的范式转
 - 🎮 RimWorld 1.6+
 
 ### 💾 安装
-1. **👥 对于最终用户**：从[发布页面](https://github.com/oidahdsah0/Rim_AI_Framework/releases)下载 📥
-2. **👨‍💻 对于开发者**：克隆并从源代码构建（见下方开发设置）🔨
-3. ⚙️ 在模组选项中配置您的API设置
+
+#### 🎮 **对于玩家（推荐）**
+1. **📥 Steam创意工坊**：[订阅RimAI框架](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
+2. **🔧 启用模组**：启动RimWorld并在模组列表中启用"RimAI Framework"
+3. **⚙️ 配置**：在模组选项中设置您的API凭证
+
+#### �‍💻 **对于开发者**
+1. **📂 手动安装**：从[GitHub发布页面](https://github.com/oidahdsah0/Rim_AI_Framework/releases)下载
+2. **� 从源代码构建**：克隆并本地构建（见下方开发设置）
+3. **⚙️ 配置**：设置您的开发环境和API设置
 
 ### ⚙️ 配置
 1. 🎮 打开RimWorld > 选项 > 模组设置 > RimAI Framework
@@ -176,6 +189,8 @@ RimAI框架通过**"无摩擦交互"** 🌊 引入了殖民地管理的范式转
 **⚠️ 免责声明**：这是一个框架级模组，需要额外的内容模块才能实现完整功能。核心游戏功能（司法系统、殖民地编年史等）将作为单独的模块发布。🚧
 
 **🔗 链接**：
-- 🎮 [Steam创意工坊](https://steamcommunity.com/sharedfiles/filedetails/?id=TBD)（即将推出）
+- 🎮 **[Steam创意工坊 - 现已发布！](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)** ⭐
 - 💬 [Discord服务器](https://discord.gg/TBD)（即将推出）
-- 🐛 [错误报告](https://github.com/oidahdsah0/Rim_AI_Framework/issues)
+- 🐛 [错误报告与问题](https://github.com/oidahdsah0/Rim_AI_Framework/issues)
+- 📖 [GitHub仓库](https://github.com/oidahdsah0/Rim_AI_Framework)
+- 📋 [更新日志](https://github.com/oidahdsah0/Rim_AI_Framework/releases)

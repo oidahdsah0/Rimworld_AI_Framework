@@ -67,12 +67,26 @@ namespace RimAI.Framework.Core
 
             listingStandard.CheckboxLabeled("RimAI.Framework.Settings.ChatCompletion.EnableStreaming".Translate(), ref settings.enableStreaming, "RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip".Translate());
 
-            // Add a description label to clarify the V1 behavior
+            // Add a helpful description for streaming
             Text.Font = GameFont.Tiny;
             GUI.color = Color.gray;
-            listingStandard.Label("  " + "RimAI.Framework.Settings.StreamingNotice".Translate());
+            if (settings.enableStreaming)
+            {
+                listingStandard.Label("  " + "RimAI.Framework.Settings.StreamingEnabled".Translate());
+            }
+            else
+            {
+                listingStandard.Label("  " + "RimAI.Framework.Settings.StreamingDisabled".Translate());
+            }
             GUI.color = Color.white;
             Text.Font = GameFont.Small;
+
+            // Add a note about applying changes
+            if (GUI.changed)
+            {
+                // Refresh LLMManager settings when any setting changes
+                LLMManager.Instance.RefreshSettings();
+            }
 
             listingStandard.Gap(12f);
 
@@ -133,16 +147,16 @@ namespace RimAI.Framework.Core
             {
                 // Reset Chat settings
                 settings.apiKey = "";
-                settings.apiEndpoint = "https://api.openai.com/v1/chat/completions";
+                settings.apiEndpoint = "https://api.openai.com/v1";
                 settings.modelName = "gpt-4o";
-                // settings.apiEndpoint = "https://api.deepseek.com/v1/chat/completions";
+                // settings.apiEndpoint = "https://api.deepseek.com/v1";
                 // settings.modelName = "deepseek-chat";
                 settings.enableStreaming = false;
 
                 // Reset Embeddings settings
                 settings.enableEmbeddings = false;
                 settings.embeddingApiKey = "";
-                settings.embeddingEndpoint = "https://api.openai.com/v1/embeddings";
+                settings.embeddingEndpoint = "https://api.openai.com/v1";
                 settings.embeddingModelName = "text-embedding-3-small";
             }
 
