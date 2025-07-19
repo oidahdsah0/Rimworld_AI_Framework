@@ -13,7 +13,7 @@
 > **🚀 A revolutionary AI-powered framework for RimWorld that brings Large Language Models directly into your colony management experience, enabling intelligent, context-aware administrative decisions! 🎮✨**
 
 **🎉 NOW AVAILABLE ON STEAM WORKSHOP!** 🎉  
-**[� Download RimAI Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3529238337)**
+**[� Download RimAI Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)**
 
 **�👨‍💻 Author**: [@oidahdsah0](https://github.com/oidahdsah0)  
 **📅 Created**: 15 July 2025  
@@ -104,7 +104,7 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
 ### 💾 Installation
 
 #### 🎮 **For Players (Recommended)**
-1. **� Steam Workshop**: [Subscribe to RimAI Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3529238337)
+1. **� Steam Workshop**: [Subscribe to RimAI Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)
 2. **🔧 Enable Mod**: Launch RimWorld and enable "RimAI Framework" in the mod list
 3. **⚙️ Configure**: Set up your API credentials in Mod Options
 
@@ -191,7 +191,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **⚠️ Disclaimer**: This is a framework-level mod that requires additional content modules for full functionality. The core gameplay features (Judicial System, Colony Chronicles, etc.) will be released as separate modules. 🚧
 
 **🔗 Links**:
-- 🎮 **[Steam Workshop - LIVE NOW!](https://steamcommunity.com/sharedfiles/filedetails/?id=3529238337)** ⭐
+- 🎮 **[Steam Workshop - LIVE NOW!](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)** ⭐
 - 💬 [Discord Server](https://discord.gg/TBD) (coming soon)
 - 🐛 [Bug Reports & Issues](https://github.com/oidahdsah0/Rim_AI_Framework/issues)
 - 📖 [GitHub Repository](https://github.com/oidahdsah0/Rim_AI_Framework)
