@@ -102,7 +102,7 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
 ### 💾 Installation
 
 #### 🎮 **For Players (Recommended)**
-1. **� Steam Workshop**: [Subscribe to RimAI Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
+1. **� Steam Workshop**: [Subscribe to RimAI Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3529238337)
 2. **🔧 Enable Mod**: Launch RimWorld and enable "RimAI Framework" in the mod list
 3. **⚙️ Configure**: Set up your API credentials in Mod Options
 
