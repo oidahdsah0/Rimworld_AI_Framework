@@ -11,12 +11,42 @@ RimAI Framework是整个RimAI生态系统的基础核心，为边缘世界带来
 • 🔄 支持异步处理和实时响应
 • 🏠 **完全支持本地OpenAI兼容API** (Ollama, vLLM等)
 
-🔑 **需要API配置**
-使用此框架需要配置：
-• **API URL**: 您的LLM服务端点
-• **API Key**: 身份验证令牌（如需要）
-• **模型名称**: 具体的模型标识符
-• **可选**: 自定义请求头和参数
+🔑 **重要：使用前必须进行设置**
+
+⚠️ **使用前必须配置Mod设置！**
+
+**详细设置步骤：**
+1. **启用Mod** 并重启边缘世界
+2. **进入 设置 → Mod设置 → RimAI Framework**
+3. **填写以下字段：**
+
+    🔑 **API Key**（大多数服务需要）：
+   • OpenAI：从 https://platform.openai.com/api-keys 获取
+   • 本地Ollama、vllm：留空（无需密钥）
+   • 完全按照提供商给出的密钥复制粘贴
+
+   📍 **Endpoint URL**（必填）：
+   • OpenAI用户：https://api.openai.com/v1
+     (Deepseek、Siliconflow的设置类似)
+   • 本地Ollama用户：http://localhost:11434/v1
+   • 其他服务商：请查看提供商文档
+
+   🤖 **模型名称**（必填）：
+   • OpenAI：`gpt-4o-mini`、`gpt-4o`、`gpt-3.5-turbo`
+   • Ollama：`llama3.2:3b`、`qwen2.5:7b`、`mistral:7b`（你已安装的模型）
+   • 输入提供商指定的准确模型名称
+
+   🔄 **启用流式传输**（可选）：
+   • ✅ 勾选此项获得实时响应（推荐）
+   • ❌ 取消勾选获得单次完整响应
+
+4. **使用设置中的测试按钮**测试连接
+5. **保存设置**，即可开始使用！
+
+💡 **快速入门推荐：**
+• **免费方案**：本地安装Ollama配合`llama3.2:3b`模型
+• **付费方案**：OpenAI GPT-4o-mini（非常实惠，约每100万token ￥1）
+• **经济方案**：使用Anthropic Claude Haiku处理基本任务
 
 💰 **重要费用说明**
 ⚠️ **Token费用直接支付给您的AI服务提供商，而非Mod作者！**
@@ -59,6 +89,6 @@ RimAI Framework是整个RimAI生态系统的基础核心，为边缘世界带来
 👨‍💻 **作者**: Kilokio
 📦 **模块ID**: kilokio.RimAI.Framework
 
-🔥 如果您喜欢这个项目，请点赞并关注更多RimAI模块的更新！
+🔥 如果您喜欢这个项目，请点赞👍并关注➕更多RimAI模块的更新！
 
 ⭐ **加入社区**: 在GitHub上报告错误、建议功能或贡献代码！

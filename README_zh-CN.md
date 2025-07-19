@@ -188,6 +188,69 @@ RimAI框架通过**"无摩擦交互"** 🌊 引入了殖民地管理的范式转
 
 ---
 
+## ⚙️ **基础设置指南** 🔧
+
+**⚠️ 重要：在使用任何RimAI模块前，您必须配置Mod设置！**
+
+### 📋 **详细配置步骤**
+
+1. **安装并启用**
+   - 在Steam创意工坊订阅RimAI Framework
+   - 在Mod列表中启用该模组并重启边缘世界
+
+2. **进入Mod设置**
+   - 前往 **设置 → Mod设置 → RimAI Framework**
+   - 您将看到包含多个需要填写字段的配置面板
+
+3. **配置必填字段**
+
+   **� API Key**（云服务必需）：
+   - **OpenAI**：从 https://platform.openai.com/api-keys 获取
+   - **Ollama（本地）、vLLM**：留空 - 无需密钥
+   - 完全按照服务商提供的密钥复制粘贴
+
+   **� Endpoint URL**（必填）：
+   ```
+   OpenAI用户：  https://api.openai.com/v1（Deepseek、Siliconflow设置类似）
+   本地Ollama：  http://localhost:11434/v1
+   其他服务商：  请查看提供商文档
+   ```
+
+   **🤖 模型名称**（必填）：
+   ```
+   OpenAI：     gpt-4o-mini, gpt-4o, gpt-3.5-turbo
+   Ollama：     llama3.2:3b, qwen2.5:7b, mistral:7b（你已安装的模型）
+   ```
+
+   **🔄 启用流式传输**（可选）：
+   - ✅ **推荐**：勾选以获得实时响应
+   - ❌ 取消勾选获得单次完整响应
+
+4. **测试并保存**
+   - 使用 **测试连接** 按钮验证您的设置
+   - 点击 **保存** 应用您的配置
+   - 现在您可以使用RimAI模块了！
+
+### 💡 **新手推荐设置**
+
+**🆓 免费方案（本地AI）**：
+- 在您的电脑上安装Ollama
+- 下载 `llama3.2:3b` 模型
+- URL：`http://localhost:11434/v1`
+- API Key：（留空）
+- 模型：`llama3.2:3b`
+
+**💰 经济方案（云端AI）**：
+- 注册OpenAI账户
+- URL：`https://api.openai.com/v1`
+- 从OpenAI仪表板获取API密钥
+- 模型：`gpt-4o-mini`（非常实惠：每100万token约￥1）
+
+**⭐ 高级方案**：
+- 使用 `gpt-4o` 获得最佳效果，或尝试Deepseek、Siliconflow等经济替代方案
+
+---
+
 **⚠️ 免责声明**：这是一个框架级模组，需要额外的内容模块才能实现完整功能。核心游戏功能（司法系统、殖民地编年史等）将作为单独的模块发布。🚧
 
 **🔗 链接**：

@@ -188,6 +188,69 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
+## ⚙️ **Essential Setup Guide** 🔧
+
+**⚠️ CRITICAL: You MUST configure the mod settings before any RimAI module will work!**
+
+### 📋 **Step-by-Step Configuration**
+
+1. **Install and Enable**
+   - Subscribe to RimAI Framework on Steam Workshop
+   - Enable the mod in your mod list and restart RimWorld
+
+2. **Access Mod Settings**
+   - Go to **Settings → Mod Settings → RimAI Framework**
+   - You'll see the configuration panel with several fields to fill
+
+3. **Configure Required Fields**
+
+   **� API Key** (Required for cloud services):
+   - **OpenAI**: Get from https://platform.openai.com/api-keys
+   - **Ollama (Local), vLLM**: Leave empty - no key needed
+   - Copy the key exactly as provided by your service
+
+   **� Endpoint URL** (Required):
+   ```
+   OpenAI users: https://api.openai.com/v1 (Deepseek, Siliconflow settings are similar)
+   Local Ollama: http://localhost:11434/v1
+   Other services: Check your provider's documentation
+   ```
+
+   **🤖 Model Name** (Required):
+   ```
+   OpenAI:     gpt-4o-mini, gpt-4o, gpt-3.5-turbo
+   Ollama:     llama3.2:3b, qwen2.5:7b, mistral:7b (your installed model)
+   ```
+
+   **🔄 Enable Streaming** (Optional):
+   - ✅ **Recommended**: Check for real-time responses
+   - ❌ Uncheck for single complete responses
+
+4. **Test and Save**
+   - Use the **Test Connection** button to verify your settings
+   - Click **Save** to apply your configuration
+   - You're ready to use RimAI modules!
+
+### 💡 **Recommended Setups for Beginners**
+
+**🆓 Free Option (Local AI)**:
+- Install Ollama on your computer
+- Download `llama3.2:3b` model
+- URL: `http://localhost:11434/v1`
+- API Key: (leave empty)
+- Model: `llama3.2:3b`
+
+**💰 Budget Option (Cloud AI)**:
+- Sign up for OpenAI
+- URL: `https://api.openai.com/v1`
+- Get API key from OpenAI dashboard
+- Model: `gpt-4o-mini` (very affordable: ~$0.15 per 1M tokens)
+
+**⭐ Premium Option**:
+- Use `gpt-4o` for best results, or try Deepseek, Siliconflow for cost-effective alternatives
+
+---
+
 **⚠️ Disclaimer**: This is a framework-level mod that requires additional content modules for full functionality. The core gameplay features (Judicial System, Colony Chronicles, etc.) will be released as separate modules. 🚧
 
 **🔗 Links**:
