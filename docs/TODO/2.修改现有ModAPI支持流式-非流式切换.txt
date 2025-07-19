@@ -1,0 +1,87 @@
+namespace AIChatNewFramework.Models
+{
+    public class RequestOptions
+    {
+        public bool Stream { get; set; } = true;
+        public double? Temperature { get; set; }
+        public int? MaxTokens { get; set; }
+        public string? Model { get; set; }
+    }
+}
+
+
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using AIChatNewFramework.Models;
+
+namespace AIChatNewFramework.Services
+{
+    public interface IModService
+    {
+        // 统一接口，通过 options 参数控制流式/非流式
+        Task<string> SendMessageAsync(string modId, string message, RequestOptions options = null);
+        IAsyncEnumerable<string> SendMessageStreamAsync(string modId, string message, RequestOptions options = null);
+        
+        // 保留原有接口以保持兼容性
+        Task<string> SendMessageToModAsync(string modId, string message);
+    }
+}
+
+
+// ...existing code...
+
+public async Task<string> SendMessageAsync(string modId, string message, RequestOptions options = null)
+{
+    var mod = GetModById(modId);
+    if (mod == null) return "Mod not found";
+
+    options ??= new RequestOptions();
+    
+    var request = new LLMRequest
+    {
+        Model = options.Model ?? _configuration["DefaultModel"],
+        Messages = new List<Message>
+        {
+            new Message { Role = "system", Content = mod.SystemPrompt },
+            new Message { Role = "user", Content = message }
+        },
+        Temperature = options.Temperature ?? 0.7,
+        MaxTokens = options.MaxTokens ?? 1000,
+        Stream = false
+    };
+
+    var response = await _llmService.SendRequestAsync(request);
+    return response.Content;
+}
+
+public async IAsyncEnumerable<string> SendMessageStreamAsync(string modId, string message, RequestOptions options = null)
+{
+    var mod = GetModById(modId);
+    if (mod == null)
+    {
+        yield return "Mod not found";
+        yield break;
+    }
+
+    options ??= new RequestOptions();
+    
+    var request = new LLMRequest
+    {
+        Model = options.Model ?? _configuration["DefaultModel"],
+        Messages = new List<Message>
+        {
+            new Message { Role = "system", Content = mod.SystemPrompt },
+            new Message { Role = "user", Content = message }
+        },
+        Temperature = options.Temperature ?? 0.7,
+        MaxTokens = options.MaxTokens ?? 1000,
+        Stream = true
+    };
+
+    await foreach (var chunk in _llmService.SendStreamRequestAsync(request))
+    {
+        yield return chunk;
+    }
+}
+
+// ...existing code...

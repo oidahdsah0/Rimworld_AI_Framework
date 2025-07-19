@@ -67,6 +67,18 @@ namespace RimAI.Framework.Core
 
             listingStandard.CheckboxLabeled("RimAI.Framework.Settings.ChatCompletion.EnableStreaming".Translate(), ref settings.enableStreaming, "RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip".Translate());
 
+            // Add Temperature slider
+            listingStandard.Gap(6f);
+            listingStandard.Label($"{"RimAI.Framework.Settings.ChatCompletion.Temperature".Translate()}: {settings.temperature:F1}");
+            settings.temperature = (float)Math.Round(listingStandard.Slider(settings.temperature, 0.0f, 2.0f), 1);
+            
+            // Add temperature guidance
+            Text.Font = GameFont.Tiny;
+            GUI.color = Color.gray;
+            listingStandard.Label("  " + "RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip".Translate());
+            GUI.color = Color.white;
+            Text.Font = GameFont.Small;
+
             // Add a helpful description for streaming
             Text.Font = GameFont.Tiny;
             GUI.color = Color.gray;
@@ -152,6 +164,7 @@ namespace RimAI.Framework.Core
                 // settings.apiEndpoint = "https://api.deepseek.com/v1";
                 // settings.modelName = "deepseek-chat";
                 settings.enableStreaming = false;
+                settings.temperature = 0.7f;
 
                 // Reset Embeddings settings
                 settings.enableEmbeddings = false;

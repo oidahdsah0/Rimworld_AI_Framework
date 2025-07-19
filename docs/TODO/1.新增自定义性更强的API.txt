@@ -1,0 +1,135 @@
+using System.Collections.Generic;
+
+namespace AIChatNewFramework.Models
+{
+    public class CustomRequest
+    {
+        public string Model { get; set; }
+        public List<object> Messages { get; set; } = new List<object>();
+        public double? Temperature { get; set; }
+        public int? MaxTokens { get; set; }
+        public bool? Stream { get; set; }
+        public object? ResponseFormat { get; set; }
+        public Dictionary<string, object>? AdditionalParameters { get; set; }
+    }
+
+    public class CustomResponse
+    {
+        public bool IsStream { get; set; }
+        public string? Content { get; set; }
+        public object? JsonContent { get; set; }
+        public Dictionary<string, object>? RawResponse { get; set; }
+        public string? Error { get; set; }
+    }
+}
+
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using AIChatNewFramework.Models;
+
+namespace AIChatNewFramework.Services
+{
+    public interface ICustomLLMService
+    {
+        Task<CustomResponse> SendCustomRequestAsync(CustomRequest request);
+        IAsyncEnumerable<string> SendCustomStreamRequestAsync(CustomRequest request);
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using AIChatNewFramework.Models;
+using Newtonsoft.Json;
+
+namespace AIChatNewFramework.Services
+{
+    public class CustomLLMService : ICustomLLMService
+    {
+        private readonly HttpClient _httpClient;
+        private readonly string _apiKey;
+        private readonly string _baseUrl;
+
+        public CustomLLMService(HttpClient httpClient, string apiKey, string baseUrl)
+        {
+            _httpClient = httpClient;
+            _apiKey = apiKey;
+            _baseUrl = baseUrl;
+        }
+
+        public async Task<CustomResponse> SendCustomRequestAsync(CustomRequest request)
+        {
+            try
+            {
+                var requestBody = new Dictionary<string, object>
+                {
+                    ["model"] = request.Model,
+                    ["messages"] = request.Messages,
+                    ["stream"] = false
+                };
+
+                if (request.Temperature.HasValue)
+                    requestBody["temperature"] = request.Temperature.Value;
+                if (request.MaxTokens.HasValue)
+                    requestBody["max_tokens"] = request.MaxTokens.Value;
+                if (request.ResponseFormat != null)
+                    requestBody["response_format"] = request.ResponseFormat;
+
+                if (request.AdditionalParameters != null)
+                {
+                    foreach (var param in request.AdditionalParameters)
+                    {
+                        requestBody[param.Key] = param.Value;
+                    }
+                }
+
+                var json = JsonConvert.SerializeObject(requestBody);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
+
+                var response = await _httpClient.PostAsync($"{_baseUrl}/chat/completions", content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new CustomResponse { Error = responseContent };
+                }
+
+                var responseData = JsonConvert.DeserializeObject<Dictionary<string, object>>(responseContent);
+                return new CustomResponse
+                {
+                    IsStream = false,
+                    RawResponse = responseData,
+                    Content = ExtractContent(responseData),
+                    JsonContent = ExtractJsonContent(responseData)
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CustomResponse { Error = ex.Message };
+            }
+        }
+
+        public async IAsyncEnumerable<string> SendCustomStreamRequestAsync(CustomRequest request)
+        {
+            // ...existing code...
+            yield return "";
+        }
+
+        private string ExtractContent(Dictionary<string, object> response)
+        {
+            // Extract content from response
+            return "";
+        }
+
+        private object ExtractJsonContent(Dictionary<string, object> response)
+        {
+            // Extract JSON content if response_format was JSON
+            return null;
+        }
+    }
+}

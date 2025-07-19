@@ -30,6 +30,12 @@ namespace RimAI.Framework.Core
         public bool enableStreaming = false;
 
         /// <summary>
+        /// Temperature parameter for controlling AI response creativity.
+        /// Range: 0.0 (deterministic) to 2.0 (very random). Recommended: 0.0-1.0.
+        /// </summary>
+        public float temperature = 0.7f;
+
+        /// <summary>
         /// A master switch to enable embedding-related features.
         /// </summary>
         public bool enableEmbeddings = false;
@@ -94,6 +100,7 @@ namespace RimAI.Framework.Core
             Scribe_Values.Look(ref apiEndpoint, "RimAIFramework_apiEndpoint", "https://api.openai.com/v1");
             Scribe_Values.Look(ref modelName, "RimAIFramework_modelName", "gpt-4o");
             Scribe_Values.Look(ref enableStreaming, "RimAIFramework_enableStreaming", false);
+            Scribe_Values.Look(ref temperature, "RimAIFramework_temperature", 0.7f);
 
             // Embeddings Settings
             Scribe_Values.Look(ref enableEmbeddings, "RimAIFramework_enableEmbeddings", false);

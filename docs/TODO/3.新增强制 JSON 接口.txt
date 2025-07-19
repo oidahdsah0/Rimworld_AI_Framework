@@ -1,0 +1,129 @@
+namespace AIChatNewFramework.Models
+{
+    public class JsonRequestOptions : RequestOptions
+    {
+        public object JsonSchema { get; set; }
+        public bool StrictMode { get; set; } = true;
+    }
+
+    public class JsonResponse<T>
+    {
+        public bool Success { get; set; }
+        public T Data { get; set; }
+        public string Error { get; set; }
+        public string RawJson { get; set; }
+    }
+}
+
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using AIChatNewFramework.Models;
+
+namespace AIChatNewFramework.Services
+{
+    public interface IJsonLLMService
+    {
+        Task<JsonResponse<T>> SendJsonRequestAsync<T>(string prompt, JsonRequestOptions options = null);
+        IAsyncEnumerable<string> SendJsonStreamRequestAsync(string prompt, JsonRequestOptions options = null);
+        Task<JsonResponse<object>> SendJsonRequestAsync(string prompt, object schema, JsonRequestOptions options = null);
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using AIChatNewFramework.Models;
+using Newtonsoft.Json;
+
+namespace AIChatNewFramework.Services
+{
+    public class JsonLLMService : IJsonLLMService
+    {
+        private readonly ILLMService _llmService;
+        private readonly IConfiguration _configuration;
+
+        public JsonLLMService(ILLMService llmService, IConfiguration configuration)
+        {
+            _llmService = llmService;
+            _configuration = configuration;
+        }
+
+        public async Task<JsonResponse<T>> SendJsonRequestAsync<T>(string prompt, JsonRequestOptions options = null)
+        {
+            options ??= new JsonRequestOptions();
+            
+            var request = new LLMRequest
+            {
+                Model = options.Model ?? _configuration["DefaultModel"],
+                Messages = new List<Message>
+                {
+                    new Message 
+                    { 
+                        Role = "system", 
+                        Content = "You must respond in valid JSON format only. No additional text or formatting." 
+                    },
+                    new Message { Role = "user", Content = prompt }
+                },
+                Temperature = options.Temperature ?? 0.7,
+                MaxTokens = options.MaxTokens ?? 1000,
+                Stream = false,
+                ResponseFormat = new { type = "json_object" }
+            };
+
+            try
+            {
+                var response = await _llmService.SendRequestAsync(request);
+                var data = JsonConvert.DeserializeObject<T>(response.Content);
+                
+                return new JsonResponse<T>
+                {
+                    Success = true,
+                    Data = data,
+                    RawJson = response.Content
+                };
+            }
+            catch (Exception ex)
+            {
+                return new JsonResponse<T>
+                {
+                    Success = false,
+                    Error = ex.Message
+                };
+            }
+        }
+
+        public async IAsyncEnumerable<string> SendJsonStreamRequestAsync(string prompt, JsonRequestOptions options = null)
+        {
+            options ??= new JsonRequestOptions();
+            
+            var request = new LLMRequest
+            {
+                Model = options.Model ?? _configuration["DefaultModel"],
+                Messages = new List<Message>
+                {
+                    new Message 
+                    { 
+                        Role = "system", 
+                        Content = "You must respond in valid JSON format only. Stream the JSON response." 
+                    },
+                    new Message { Role = "user", Content = prompt }
+                },
+                Temperature = options.Temperature ?? 0.7,
+                MaxTokens = options.MaxTokens ?? 1000,
+                Stream = true,
+                ResponseFormat = new { type = "json_object" }
+            };
+
+            await foreach (var chunk in _llmService.SendStreamRequestAsync(request))
+            {
+                yield return chunk;
+            }
+        }
+
+        public async Task<JsonResponse<object>> SendJsonRequestAsync(string prompt, object schema, JsonRequestOptions options = null)
+        {
+            // Implementation with schema validation
+            return new JsonResponse<object>();
+        }
+    }
+}
