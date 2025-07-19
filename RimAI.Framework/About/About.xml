@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
+  
   <name>RimAI Framework</name>
+  
   <author>oidahdsah0</author>
+  
   <supportedVersions>
+    <li>1.5</li>
     <li>1.6</li>
   </supportedVersions>
+  
   <packageId>oidahdsah0.RimAI.Framework</packageId>
+  
   <description>
 The foundational framework for the RimAI ecosystem. It handles all communication with Large Language Models (LLMs) and provides the core APIs for other content modules. 
 
 This framework itself does not add gameplay features but is required by all other RimAI modules.
   </description>
+
 </ModMetaData>
