@@ -10,7 +10,11 @@
     <li>1.6</li>
   </supportedVersions>
   
-  <packageId>kilokio.RimAI.Framework</packageId>
+  <packageId>kilokio.rimai.framework</packageId>
+  
+  <modVersion>1.0.1</modVersion>
+  
+  <url>https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357</url>
   
   <description>
 The foundational framework for the RimAI ecosystem. It handles all communication with Large Language Models (LLMs) and provides the core APIs for other content modules. 

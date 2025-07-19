@@ -1,3 +1,5 @@
+![GitHub Preview](docs/preview/GithubPreview.png)
+
 # 🤖 RimAI Framework 🏛️
 
 [🇺🇸 English](README.md) | [🇨🇳 简体中文](README_zh-CN.md) | [📚 文档](docs/)
