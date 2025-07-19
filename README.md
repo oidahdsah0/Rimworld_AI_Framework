@@ -11,7 +11,7 @@
 > **🚀 A revolutionary AI-powered framework for RimWorld that brings Large Language Models directly into your colony management experience, enabling intelligent, context-aware administrative decisions! 🎮✨**
 
 **🎉 NOW AVAILABLE ON STEAM WORKSHOP!** 🎉  
-**[� Download RimAI Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)**
+**[� Download RimAI Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3529238337)**
 
 **�👨‍💻 Author**: [@oidahdsah0](https://github.com/oidahdsah0)  
 **📅 Created**: 15 July 2025  
