@@ -15,9 +15,15 @@ namespace RimAI.Framework.LLM.Models
 
     public class Choice
     {
-        public Message message { get; set; }
+        public ResponseMessage message { get; set; }
         public int index { get; set; }
         public string finish_reason { get; set; }
+    }
+
+    public class ResponseMessage
+    {
+        public string role { get; set; }
+        public string content { get; set; }
     }
 
     public class Usage

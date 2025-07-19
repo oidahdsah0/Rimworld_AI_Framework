@@ -12,6 +12,8 @@
   <RimAI.Framework.Settings.ChatCompletion.APIKey>API Ключ:</RimAI.Framework.Settings.ChatCompletion.APIKey>
   <RimAI.Framework.Settings.ChatCompletion.EndpointURL>URL Конечной Точки:</RimAI.Framework.Settings.ChatCompletion.EndpointURL>
   <RimAI.Framework.Settings.ChatCompletion.ModelName>Имя Модели:</RimAI.Framework.Settings.ChatCompletion.ModelName>
+  <RimAI.Framework.Settings.ChatCompletion.Temperature>Температура</RimAI.Framework.Settings.ChatCompletion.Temperature>
+  <RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip>Управляет креативностью ответов ИИ. Диапазон: 0.0 (детерминированный) до 2.0 (очень случайный). Рекомендуется: 0.0-1.0.</RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip>
   <RimAI.Framework.Settings.ChatCompletion.EnableStreaming>Включить Потоковую Передачу</RimAI.Framework.Settings.ChatCompletion.EnableStreaming>
   <RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>Включить для получения ответов слово за словом для более интерактивного опыта.</RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>
 

@@ -9,7 +9,7 @@ namespace RimAI.Framework.LLM.Services
     /// <summary>
     /// Interface for executing LLM requests
     /// </summary>
-    public interface ILLMExecutor
+    public interface ILLMExecutor : IDisposable
     {
         Task<string> ExecuteSingleRequestAsync(string prompt, CancellationToken cancellationToken);
         Task ExecuteStreamingRequestAsync(string prompt, Action<string> onChunkReceived, CancellationToken cancellationToken);

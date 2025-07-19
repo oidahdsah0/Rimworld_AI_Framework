@@ -12,6 +12,8 @@
   <RimAI.Framework.Settings.ChatCompletion.APIKey>API 키:</RimAI.Framework.Settings.ChatCompletion.APIKey>
   <RimAI.Framework.Settings.ChatCompletion.EndpointURL>엔드포인트 URL:</RimAI.Framework.Settings.ChatCompletion.EndpointURL>
   <RimAI.Framework.Settings.ChatCompletion.ModelName>모델 이름:</RimAI.Framework.Settings.ChatCompletion.ModelName>
+  <RimAI.Framework.Settings.ChatCompletion.Temperature>온도</RimAI.Framework.Settings.ChatCompletion.Temperature>
+  <RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip>AI 응답의 창의성을 제어합니다. 범위: 0.0 (결정론적)에서 2.0 (매우 무작위). 권장: 0.0-1.0.</RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip>
   <RimAI.Framework.Settings.ChatCompletion.EnableStreaming>스트리밍 활성화</RimAI.Framework.Settings.ChatCompletion.EnableStreaming>
   <RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>보다 상호작용적인 느낌을 위해 단어별로 응답을 받도록 활성화합니다.</RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>
 
@@ -28,7 +30,8 @@
 
   <!-- Status Messages -->
   <RimAI.Framework.Settings.TestingStatus>테스트 중...</RimAI.Framework.Settings.TestingStatus>
-  <RimAI.Framework.Settings.StreamingNotice>(현재 버전 API는 비스트리밍 요청만 지원)</RimAI.Framework.Settings.StreamingNotice>
+  <RimAI.Framework.Settings.StreamingEnabled>스트리밍이 활성화되었습니다: GetChatCompletionAsync가 내부적으로 스트리밍을 사용하여 응답성을 향상시킵니다</RimAI.Framework.Settings.StreamingEnabled>
+  <RimAI.Framework.Settings.StreamingDisabled>스트리밍이 비활성화되었습니다: 전통적인 요청-응답 모드를 사용합니다</RimAI.Framework.Settings.StreamingDisabled>
 
   <!-- Test Connection Status Messages -->
   <RimAI.Framework.Settings.TestConnectionStatus.Initializing>초기화 중...</RimAI.Framework.Settings.TestConnectionStatus.Initializing>

@@ -12,6 +12,8 @@
   <RimAI.Framework.Settings.ChatCompletion.APIKey>API キー：</RimAI.Framework.Settings.ChatCompletion.APIKey>
   <RimAI.Framework.Settings.ChatCompletion.EndpointURL>エンドポイント URL：</RimAI.Framework.Settings.ChatCompletion.EndpointURL>
   <RimAI.Framework.Settings.ChatCompletion.ModelName>モデル名：</RimAI.Framework.Settings.ChatCompletion.ModelName>
+  <RimAI.Framework.Settings.ChatCompletion.Temperature>温度</RimAI.Framework.Settings.ChatCompletion.Temperature>
+  <RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip>AI応答の創造性を制御します。範囲：0.0（決定論的）から2.0（非常にランダム）。推奨：0.0-1.0。</RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip>
   <RimAI.Framework.Settings.ChatCompletion.EnableStreaming>ストリーミングを有効にする</RimAI.Framework.Settings.ChatCompletion.EnableStreaming>
   <RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>より対話的な体験のために、単語ごとに応答を受信するように有効にします。</RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>
 
@@ -28,7 +30,8 @@
 
   <!-- Status Messages -->
   <RimAI.Framework.Settings.TestingStatus>テスト中...</RimAI.Framework.Settings.TestingStatus>
-  <RimAI.Framework.Settings.StreamingNotice>(現在のバージョンAPIは非ストリーミングリクエストのみをサポート)</RimAI.Framework.Settings.StreamingNotice>
+  <RimAI.Framework.Settings.StreamingEnabled>ストリーミングが有効化されました：GetChatCompletionAsyncが内部的にストリーミングを使用し、応答性が向上します</RimAI.Framework.Settings.StreamingEnabled>
+  <RimAI.Framework.Settings.StreamingDisabled>ストリーミングが無効化されました：従来のリクエスト-レスポンスモードを使用します</RimAI.Framework.Settings.StreamingDisabled>
 
   <!-- Test Connection Status Messages -->
   <RimAI.Framework.Settings.TestConnectionStatus.Initializing>初期化中...</RimAI.Framework.Settings.TestConnectionStatus.Initializing>

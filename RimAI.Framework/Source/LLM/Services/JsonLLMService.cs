@@ -77,25 +77,33 @@ namespace RimAI.Framework.LLM.Services
             var jsonPrompt = $"{prompt}\n\nPlease respond in valid JSON format only. Stream the JSON response.";
             
             var chunks = new List<string>();
-            var tcs = new TaskCompletionSource<bool>();
-            
+            Exception streamingException = null;
+
             try
             {
                 await _executor.ExecuteStreamingRequestAsync(jsonPrompt, chunk => 
                 {
                     chunks.Add(chunk);
                 }, default);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"JsonLLMService: Streaming error: {ex.Message}");
+                streamingException = ex;
+            }
 
+            // Process results outside try-catch
+            if (streamingException != null)
+            {
+                yield return $"{{\"error\": \"{streamingException.Message}\"}}";
+            }
+            else
+            {
                 // Yield collected chunks as JSON
                 foreach (var chunk in chunks)
                 {
                     yield return chunk;
                 }
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"JsonLLMService: Streaming error: {ex.Message}");
-                yield return $"{{\"error\": \"{ex.Message}\"}}";
             }
         }
 

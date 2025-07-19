@@ -73,7 +73,7 @@ namespace RimAI.Framework.LLM.Services
 
             var fullPrompt = BuildFullPrompt(config, message);
             var chunks = new List<string>();
-            var tcs = new TaskCompletionSource<bool>();
+            Exception streamingException = null;
 
             try
             {
@@ -81,16 +81,24 @@ namespace RimAI.Framework.LLM.Services
                 {
                     chunks.Add(chunk);
                 }, default);
-
-                foreach (var chunk in chunks)
-                {
-                    yield return chunk;
-                }
             }
             catch (Exception ex)
             {
                 Log.Error($"ModService: Error in streaming for mod '{modId}': {ex.Message}");
-                yield return $"Error: {ex.Message}";
+                streamingException = ex;
+            }
+
+            // Process results outside try-catch
+            if (streamingException != null)
+            {
+                yield return $"Error: {streamingException.Message}";
+            }
+            else
+            {
+                foreach (var chunk in chunks)
+                {
+                    yield return chunk;
+                }
             }
         }
 

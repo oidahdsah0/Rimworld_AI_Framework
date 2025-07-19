@@ -23,6 +23,10 @@ namespace RimAI.Framework.LLM.Models
     {
         public string Role { get; set; }
         public string Content { get; set; }
+        
+        // Additional properties for API compatibility
+        public string role => Role;
+        public string content => Content;
     }
 
     /// <summary>
@@ -37,6 +41,40 @@ namespace RimAI.Framework.LLM.Models
         public object JsonSchema { get; set; }
         public string Model { get; set; }
         public Dictionary<string, object> AdditionalParameters { get; set; }
+
+        /// <summary>
+        /// Indicates whether streaming was explicitly set by the caller
+        /// </summary>
+        public bool HasExplicitStreamingSetting { get; set; } = false;
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public LLMRequestOptions()
+        {
+        }
+
+        /// <summary>
+        /// Constructor that explicitly sets streaming preference
+        /// </summary>
+        /// <param name="enableStreaming">Whether to enable streaming</param>
+        public LLMRequestOptions(bool enableStreaming)
+        {
+            EnableStreaming = enableStreaming;
+            HasExplicitStreamingSetting = true;
+        }
+
+        /// <summary>
+        /// Fluent API method to explicitly set streaming preference
+        /// </summary>
+        /// <param name="enableStreaming">Whether to enable streaming</param>
+        /// <returns>This options instance for chaining</returns>
+        public LLMRequestOptions WithStreaming(bool enableStreaming)
+        {
+            EnableStreaming = enableStreaming;
+            HasExplicitStreamingSetting = true;
+            return this;
+        }
     }
 
     /// <summary>

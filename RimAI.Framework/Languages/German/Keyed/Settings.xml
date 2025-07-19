@@ -12,6 +12,8 @@
   <RimAI.Framework.Settings.ChatCompletion.APIKey>API-Schlüssel:</RimAI.Framework.Settings.ChatCompletion.APIKey>
   <RimAI.Framework.Settings.ChatCompletion.EndpointURL>Endpunkt-URL:</RimAI.Framework.Settings.ChatCompletion.EndpointURL>
   <RimAI.Framework.Settings.ChatCompletion.ModelName>Modellname:</RimAI.Framework.Settings.ChatCompletion.ModelName>
+  <RimAI.Framework.Settings.ChatCompletion.Temperature>Temperatur</RimAI.Framework.Settings.ChatCompletion.Temperature>
+  <RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip>Steuert die Kreativität der KI-Antworten. Bereich: 0.0 (deterministisch) bis 2.0 (sehr zufällig). Empfohlen: 0.0-1.0.</RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip>
   <RimAI.Framework.Settings.ChatCompletion.EnableStreaming>Streaming aktivieren</RimAI.Framework.Settings.ChatCompletion.EnableStreaming>
   <RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>Aktivieren, um Antworten Wort für Wort für ein interaktiveres Erlebnis zu erhalten.</RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>
 

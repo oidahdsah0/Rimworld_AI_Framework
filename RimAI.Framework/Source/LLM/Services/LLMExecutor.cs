@@ -307,5 +307,14 @@ namespace RimAI.Framework.LLM.Services
                 return (false, 0, null, ex.Message);
             }
         }
+
+        /// <summary>
+        /// Dispose implementation for IDisposable
+        /// </summary>
+        public void Dispose()
+        {
+            // HttpClient is managed externally, so we don't dispose it here
+            // Any other cleanup logic can be added here if needed
+        }
     }
 }

@@ -4,17 +4,18 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using RimAI.Framework.Core;
+using RimAI.Framework.LLM.Configuration;
+using RimAI.Framework.LLM.Http;
 using RimAI.Framework.LLM.Models;
 using RimAI.Framework.LLM.RequestQueue;
 using RimAI.Framework.LLM.Services;
 using Verse;
-using RimWorld;
 
 namespace RimAI.Framework.LLM
 {
     /// <summary>
-    /// Simplified LLM Manager that coordinates between components.
-    /// This class now focuses on high-level coordination rather than implementation details.
+    /// Simplified LLM Manager that provides a unified API for LLM interactions.
+    /// Coordinates between various services while maintaining backward compatibility.
     /// </summary>
     public class LLMManager : IDisposable
     {
@@ -44,9 +45,10 @@ namespace RimAI.Framework.LLM
         }
         #endregion
 
-        #region Private Fields
+        #region Dependencies
         private readonly HttpClient _httpClient;
-        private RimAISettings _settings;
+        private readonly SettingsManager _settingsManager;
+        private readonly LLMServiceFactory _serviceFactory;
         private readonly ILLMExecutor _executor;
         private readonly LLMRequestQueue _requestQueue;
         private readonly ICustomLLMService _customService;
@@ -62,15 +64,19 @@ namespace RimAI.Framework.LLM
         {
             try
             {
-                _httpClient = CreateHttpClient();
-                LoadSettings();
-
-                // Initialize services
-                _executor = new LLMExecutor(_httpClient, _settings);
-                _requestQueue = new LLMRequestQueue(_executor);
-                _customService = new CustomLLMService(_httpClient, _settings.apiKey, _settings.apiEndpoint);
-                _jsonService = new JsonLLMService(_executor, _settings);
-                _modService = new ModService(_executor, _settings);
+                // Initialize dependencies
+                _httpClient = HttpClientFactory.CreateClient();
+                _settingsManager = new SettingsManager();
+                
+                // Create services through factory
+                var settings = _settingsManager.GetSettings();
+                _serviceFactory = new LLMServiceFactory(_httpClient, settings);
+                
+                _executor = _serviceFactory.CreateExecutor();
+                _requestQueue = _serviceFactory.CreateRequestQueue(_executor);
+                _customService = _serviceFactory.CreateCustomService();
+                _jsonService = _serviceFactory.CreateJsonService(_executor);
+                _modService = _serviceFactory.CreateModService(_executor);
                 
                 Log.Message("RimAI Framework: LLMManager initialized successfully.");
             }
@@ -80,54 +86,18 @@ namespace RimAI.Framework.LLM
                 throw;
             }
         }
-
-        /// <summary>
-        /// Creates and configures HttpClient with safe settings for Unity/Mono environment
-        /// </summary>
-        private HttpClient CreateHttpClient()
-        {
-            try
-            {
-                var handler = new HttpClientHandler();
-                
-                try
-                {
-                    handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning($"RimAI Framework: Could not configure SSL validation bypass: {ex.Message}");
-                }
-                
-                var client = new HttpClient(handler);
-                client.Timeout = TimeSpan.FromSeconds(60);
-                client.DefaultRequestHeaders.Add("User-Agent", "RimAI-Framework/1.0");
-                client.DefaultRequestHeaders.Add("Accept", "application/json");
-                
-                Log.Message("RimAI Framework: HttpClient initialized successfully.");
-                return client;
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"RimAI Framework: Failed to initialize HttpClient with custom handler, using default: {ex.Message}");
-                var client = new HttpClient();
-                client.Timeout = TimeSpan.FromSeconds(60);
-                return client;
-            }
-        }
         #endregion
 
-        #region Public Methods
-        
+        #region Public Properties
         /// <summary>
         /// Gets whether streaming is currently enabled in the settings.
         /// </summary>
-        public bool IsStreamingEnabled => _settings?.enableStreaming ?? false;
+        public bool IsStreamingEnabled => _settingsManager.GetSettings()?.enableStreaming ?? false;
 
         /// <summary>
         /// Gets the current API settings. Read-only access for downstream mods.
         /// </summary>
-        public RimAISettings CurrentSettings => _settings;
+        public RimAISettings CurrentSettings => _settingsManager.GetSettings();
 
         /// <summary>
         /// Gets access to custom LLM service for advanced usage
@@ -143,6 +113,9 @@ namespace RimAI.Framework.LLM
         /// Gets access to Mod service for enhanced mod integration
         /// </summary>
         public IModService ModService => _modService;
+        #endregion
+
+        #region Public API Methods
 
         /// <summary>
         /// Enhanced API: Sends a message with customizable options
@@ -153,21 +126,14 @@ namespace RimAI.Framework.LLM
 
             options ??= new LLMRequestOptions();
             
-            // Use streaming or non-streaming based on options
-            if (options.EnableStreaming || (_settings.enableStreaming && !options.EnableStreaming))
+            // Delegate to streaming handler if needed
+            if (ShouldUseStreaming(options))
             {
                 return GetStreamingAsNonStreamingAsync(prompt, cancellationToken);
             }
 
-            var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var requestData = new RequestData(prompt, tcs, cancellationToken);
-            
-            var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            requestData.SetLinkedCancellationTokenSource(linkedCts);
-            linkedCts.Token.Register(() => tcs.TrySetCanceled());
-
-            _requestQueue.EnqueueRequest(requestData);
-            return tcs.Task;
+            // Queue non-streaming request
+            return QueueNonStreamingRequest(prompt, cancellationToken);
         }
 
         /// <summary>
@@ -177,66 +143,20 @@ namespace RimAI.Framework.LLM
         {
             if (!ValidateRequest(prompt) || onChunkReceived == null) return Task.CompletedTask;
 
-            var streamTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var requestData = new RequestData(prompt, onChunkReceived, streamTcs, cancellationToken);
-            
-            var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            requestData.SetLinkedCancellationTokenSource(linkedCts);
-            linkedCts.Token.Register(() => streamTcs.TrySetCanceled());
-
-            _requestQueue.EnqueueRequest(requestData);
-            return streamTcs.Task;
+            return QueueStreamingRequest(prompt, onChunkReceived, cancellationToken);
         }
+
         /// <summary>
-        /// Legacy API: Asynchronously enqueues a chat completion request to the LLM API.
-        /// Maintained for backward compatibility.
+        /// Legacy API: Maintained for backward compatibility
         /// </summary>
-        /// <param name="prompt">The text prompt to send to the LLM.</param>
-        /// <param name="cancellationToken">A cancellation token to cancel the request.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the content of the LLM's response, or null if an error occurred.</returns>
         public Task<string> GetChatCompletionAsync(string prompt, CancellationToken cancellationToken = default)
         {
             return SendMessageAsync(prompt, null, cancellationToken);
         }
 
         /// <summary>
-        /// Internal method to handle streaming requests when enableStreaming is true,
-        /// but the caller expects a non-streaming interface.
+        /// Legacy API: Maintained for backward compatibility
         /// </summary>
-        private async Task<string> GetStreamingAsNonStreamingAsync(string prompt, CancellationToken cancellationToken)
-        {
-            var fullResponse = new StringBuilder();
-
-            try
-            {
-                await GetChatCompletionStreamAsync(
-                    prompt,
-                    chunk => fullResponse.Append(chunk),
-                    cancellationToken
-                );
-
-                return fullResponse.ToString();
-            }
-            catch (OperationCanceledException)
-            {
-                Log.Message("RimAI Framework: Streaming request was cancelled by user");
-                throw; // Re-throw to allow proper handling by caller
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"RimAI Framework: Error in streaming-as-non-streaming request: {ex}");
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Legacy API: Gets a chat completion as a stream of tokens.
-        /// Maintained for backward compatibility.
-        /// </summary>
-        /// <param name="prompt">The text prompt to send to the LLM.</param>
-        /// <param name="onChunkReceived">An action to be called for each received token chunk.</param>
-        /// <param name="cancellationToken">A cancellation token to cancel the stream.</param>
-        /// <returns>A task that completes when the streaming is finished.</returns>
         public Task GetChatCompletionStreamAsync(string prompt, Action<string> onChunkReceived, CancellationToken cancellationToken = default)
         {
             return SendMessageStreamAsync(prompt, onChunkReceived, null, cancellationToken);
@@ -265,26 +185,35 @@ namespace RimAI.Framework.LLM
         /// </summary>
         public void RefreshSettings()
         {
-            LoadSettings();
+            _settingsManager.RefreshSettings();
+            Log.Warning("RimAI Framework: Settings refreshed. Some services may require restart to apply new settings.");
         }
+
         #endregion
 
         #region Private Helper Methods
 
         /// <summary>
-        /// Validates a request prompt and API settings
+        /// Validates request parameters
         /// </summary>
         private bool ValidateRequest(string prompt)
         {
-            if (string.IsNullOrEmpty(_settings.apiKey))
+            if (string.IsNullOrWhiteSpace(prompt))
             {
-                Log.Error("RimAI Framework: API key is not configured. Please check mod settings.");
+                Log.Warning("RimAI Framework: Empty prompt provided to SendMessageAsync.");
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(prompt))
+            if (_executor == null)
             {
-                Log.Warning("RimAI Framework: Empty or whitespace-only prompt provided. No API request will be made.");
+                Log.Error("RimAI Framework: Executor not initialized. LLMManager may be in an invalid state.");
+                return false;
+            }
+
+            var settings = _settingsManager.GetSettings();
+            if (string.IsNullOrEmpty(settings?.apiKey))
+            {
+                Log.Error("RimAI Framework: API key is not configured. Please check mod settings.");
                 return false;
             }
 
@@ -292,85 +221,108 @@ namespace RimAI.Framework.LLM
         }
 
         /// <summary>
-        /// Internal method to handle streaming requests when enableStreaming is true,
-        /// but the caller expects a non-streaming interface.
+        /// Determines if streaming should be used based on options and settings
         /// </summary>
-        private async Task<string> GetStreamingAsNonStreamingAsync(string prompt, CancellationToken cancellationToken)
+        private bool ShouldUseStreaming(LLMRequestOptions options)
         {
-            var fullResponse = new StringBuilder();
-
-            try
+            // Explicit streaming setting takes precedence
+            if (options.HasExplicitStreamingSetting)
             {
-                await SendMessageStreamAsync(
-                    prompt,
-                    chunk => fullResponse.Append(chunk),
-                    null,
-                    cancellationToken
-                );
-
-                return fullResponse.ToString();
+                return options.EnableStreaming;
             }
-            catch (OperationCanceledException)
-            {
-                Log.Message("RimAI Framework: Streaming request was cancelled by user");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"RimAI Framework: Error in streaming-as-non-streaming request: {ex}");
-                return null;
-            }
+            
+            // Fall back to global setting
+            return _settingsManager.GetSettings().enableStreaming;
         }
 
         /// <summary>
-        /// Loads the current settings from the mod configuration.
-        /// Thread-safe version that handles cross-thread access gracefully.
+        /// Queues a non-streaming request
         /// </summary>
-        private void LoadSettings()
+        private Task<string> QueueNonStreamingRequest(string prompt, CancellationToken cancellationToken)
         {
+            var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var requestData = new RequestData(prompt, tcs, cancellationToken);
+            
+            var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            requestData.SetLinkedCancellationTokenSource(linkedCts);
+            linkedCts.Token.Register(() => tcs.TrySetCanceled());
+
+            _requestQueue.EnqueueRequest(requestData);
+            return tcs.Task;
+        }
+
+        /// <summary>
+        /// Queues a streaming request
+        /// </summary>
+        private Task QueueStreamingRequest(string prompt, Action<string> onChunkReceived, CancellationToken cancellationToken)
+        {
+            var streamTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var requestData = new RequestData(prompt, onChunkReceived, streamTcs, cancellationToken);
+            
+            var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            requestData.SetLinkedCancellationTokenSource(linkedCts);
+            linkedCts.Token.Register(() => streamTcs.TrySetCanceled());
+
+            _requestQueue.EnqueueRequest(requestData);
+            return streamTcs.Task;
+        }
+
+        /// <summary>
+        /// Converts streaming response to non-streaming by accumulating chunks
+        /// </summary>
+        private async Task<string> GetStreamingAsNonStreamingAsync(string prompt, CancellationToken cancellationToken = default)
+        {
+            var responseBuilder = new StringBuilder();
+            var completionTcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+
             try
             {
-                if (_settings == null)
-                {
-                    try
-                    {
-                        var rimAIMod = LoadedModManager.GetMod<RimAIMod>();
-                        if (rimAIMod != null)
-                        {
-                            _settings = rimAIMod.settings;
-                            Log.Message("RimAI Framework: Settings loaded successfully.");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warning($"RimAI Framework: Could not load settings from ModManager (possibly called from wrong thread): {ex.Message}");
-                    }
-                }
-                
-                if (_settings == null)
-                {
-                    _settings = new RimAISettings();
-                    Log.Message("RimAI Framework: Using default settings due to loading failure.");
-                }
+                await SendMessageStreamAsync(prompt, chunk => responseBuilder.Append(chunk), null, cancellationToken);
+                completionTcs.SetResult(responseBuilder.ToString());
             }
             catch (Exception ex)
             {
-                Log.Error($"RimAI Framework: Critical error in LoadSettings: {ex}");
-                _settings = new RimAISettings();
+                completionTcs.SetException(ex);
             }
+
+            return await completionTcs.Task;
         }
 
         #endregion
 
-        #region Cleanup
+        #region IDisposable Implementation
+
         /// <summary>
-        /// Disposes of resources when the manager is no longer needed.
+        /// Releases all resources used by the LLMManager.
         /// </summary>
         public void Dispose()
         {
-            _requestQueue?.Dispose();
-            _httpClient?.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
+
+        /// <summary>
+        /// Protected implementation of Dispose pattern.
+        /// </summary>
+        /// <param name="disposing">true if disposing managed resources.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                try
+                {
+                    _requestQueue?.CancelAllRequests();
+                    _requestQueue?.Dispose();
+                    _executor?.Dispose();
+                    _httpClient?.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"RimAI Framework: Error during LLMManager disposal: {ex.Message}");
+                }
+            }
+        }
+
         #endregion
     }
 }

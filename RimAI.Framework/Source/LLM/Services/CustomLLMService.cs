@@ -80,10 +80,17 @@ namespace RimAI.Framework.LLM.Services
             }
         }
 
-        public async IAsyncEnumerable<string> SendCustomStreamRequestAsync(CustomRequest request)
+        public IAsyncEnumerable<string> SendCustomStreamRequestAsync(CustomRequest request)
+        {
+            // Implement streaming for custom requests
+            return SendCustomStreamRequestAsyncInternal(request);
+        }
+
+        private async IAsyncEnumerable<string> SendCustomStreamRequestAsyncInternal(CustomRequest request)
         {
             // Implement streaming for custom requests
             yield return "Streaming implementation pending";
+            await Task.CompletedTask; // Satisfy async requirement
         }
 
         private string ExtractContent(Dictionary<string, object> response)
