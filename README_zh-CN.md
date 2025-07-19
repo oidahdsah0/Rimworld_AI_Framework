@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![RimWorld](https://img.shields.io/badge/RimWorld-1.6-brightgreen.svg)](https://rimworldgame.com/)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.7.2-blue.svg)](https://dotnet.microsoft.com/download/dotnet-framework)
-[![Steam Workshop](https://img.shields.io/badge/Steam-创意工坊-blue.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
+[![Steam Workshop](https://img.shields.io/badge/Steam-创意工坊-blue.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)
 [![Status](https://img.shields.io/badge/状态-已发布-success.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
 
 > **🚀 一个革命性的AI驱动的RimWorld框架，将大语言模型直接集成到您的殖民地管理体验中，实现智能化、上下文感知的行政决策！🎮✨**
