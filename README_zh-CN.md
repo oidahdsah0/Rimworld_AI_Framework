@@ -189,7 +189,7 @@ RimAI框架通过**"无摩擦交互"** 🌊 引入了殖民地管理的范式转
 **⚠️ 免责声明**：这是一个框架级模组，需要额外的内容模块才能实现完整功能。核心游戏功能（司法系统、殖民地编年史等）将作为单独的模块发布。🚧
 
 **🔗 链接**：
-- 🎮 **[Steam创意工坊 - 现已发布！](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)** ⭐
+- 🎮 **[Steam创意工坊 - 现已发布！](https://steamcommunity.com/sharedfiles/filedetails/?id=3529238337)** ⭐
 - 💬 [Discord服务器](https://discord.gg/TBD)（即将推出）
 - 🐛 [错误报告与问题](https://github.com/oidahdsah0/Rim_AI_Framework/issues)
 - 📖 [GitHub仓库](https://github.com/oidahdsah0/Rim_AI_Framework)

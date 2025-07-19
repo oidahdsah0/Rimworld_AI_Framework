@@ -189,7 +189,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **⚠️ Disclaimer**: This is a framework-level mod that requires additional content modules for full functionality. The core gameplay features (Judicial System, Colony Chronicles, etc.) will be released as separate modules. 🚧
 
 **🔗 Links**:
-- 🎮 **[Steam Workshop - LIVE NOW!](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)** ⭐
+- 🎮 **[Steam Workshop - LIVE NOW!](https://steamcommunity.com/sharedfiles/filedetails/?id=3529238337)** ⭐
 - 💬 [Discord Server](https://discord.gg/TBD) (coming soon)
 - 🐛 [Bug Reports & Issues](https://github.com/oidahdsah0/Rim_AI_Framework/issues)
 - 📖 [GitHub Repository](https://github.com/oidahdsah0/Rim_AI_Framework)
