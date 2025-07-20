@@ -1,47 +1,95 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
+  <!-- Informational Labels -->
+  <RimAI.Framework.Info.EmbeddingsAllowAdvanced>L'incorporation de texte active des fonctionnalités IA avancées comme la recherche sémantique.</RimAI.Framework.Info.EmbeddingsAllowAdvanced>
+  <RimAI.Framework.Info.EmbeddingsConvertText>📊 L'incorporation de texte convertit le texte en vecteurs numériques pour le traitement IA</RimAI.Framework.Info.EmbeddingsConvertText>
+  <RimAI.Framework.Info.EmbeddingsForSimilarity>🔗 L'incorporation de texte permet la recherche sémantique et la correspondance par similarité</RimAI.Framework.Info.EmbeddingsForSimilarity>
+  <RimAI.Framework.Info.EmbeddingsIncreasesCost>💡 Nécessite des appels API supplémentaires et augmentera les coûts d'utilisation</RimAI.Framework.Info.EmbeddingsIncreasesCost>
+  <RimAI.Framework.Info.EmbeddingsUseful>🎯 Utile pour la correspondance par similarité, la catégorisation et la recherche sémantique</RimAI.Framework.Info.EmbeddingsUseful>
+  <RimAI.Framework.Info.EnableEmbeddingsForConfig>Activez l'incorporation de texte pour accéder aux options de configuration.</RimAI.Framework.Info.EnableEmbeddingsForConfig>
+  <RimAI.Framework.Info.LargerBatchesMoreEfficient>📦 Les lots plus importants sont plus efficaces mais utilisent plus de mémoire</RimAI.Framework.Info.LargerBatchesMoreEfficient>
+  <RimAI.Framework.Info.LongerTimeoutsSlowerResponses>⏰ Des délais plus longs permettent des réponses plus lentes mais peuvent bloquer le jeu</RimAI.Framework.Info.LongerTimeoutsSlowerResponses>
+  <!-- Messages -->
+  <RimAI.Framework.Messages.CacheCleared>Cache vidé avec succès</RimAI.Framework.Messages.CacheCleared>
+  <RimAI.Framework.Messages.FailedToApplySettings>Échec de l'application des paramètres : {0}</RimAI.Framework.Messages.FailedToApplySettings>
+  <RimAI.Framework.Messages.PresetApplied>Préréglage {0} appliqué</RimAI.Framework.Messages.PresetApplied>
+  <RimAI.Framework.Messages.SettingsApplied>Paramètres appliqués avec succès</RimAI.Framework.Messages.SettingsApplied>
+  <RimAI.Framework.Messages.TestError>RimAI : Erreur de connexion : {0}</RimAI.Framework.Messages.TestError>
+  <RimAI.Framework.Messages.TestFailed>RimAI : Connexion échouée ! Statut : {0}, Raison : {1}</RimAI.Framework.Messages.TestFailed>
+  <RimAI.Framework.Messages.TestStarting>RimAI : Démarrage du test de connexion...</RimAI.Framework.Messages.TestStarting>
+  <RimAI.Framework.Messages.TestSuccess>RimAI : Connexion réussie !</RimAI.Framework.Messages.TestSuccess>
+  <RimAI.Framework.Messages.UnableToRetrieveCacheStats>Impossible de récupérer les statistiques du cache : {0}</RimAI.Framework.Messages.UnableToRetrieveCacheStats>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.APIEndpoint>URL du serveur (Point d'accès API) :</RimAI.Framework.Settings.APIEndpoint>
+  <RimAI.Framework.Settings.APIKey>Clé API :</RimAI.Framework.Settings.APIKey>
+  <!-- Bottom Buttons -->
+  <RimAI.Framework.Settings.Apply>Appliquer</RimAI.Framework.Settings.Apply>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.ApplyPreset>Appliquer le préréglage {0}</RimAI.Framework.Settings.ApplyPreset>
+  <RimAI.Framework.Settings.BatchSize>Taille du lot : {0}</RimAI.Framework.Settings.BatchSize>
+  <RimAI.Framework.Settings.BatchTimeout>Délai du lot (secondes) : {0}</RimAI.Framework.Settings.BatchTimeout>
+  <RimAI.Framework.Settings.CacheHitRate>Taux de réussite du cache : {0:P2}</RimAI.Framework.Settings.CacheHitRate>
+  <RimAI.Framework.Settings.CacheHits>Succès du cache : {0}</RimAI.Framework.Settings.CacheHits>
+  <RimAI.Framework.Settings.CacheMisses>Échecs du cache : {0}</RimAI.Framework.Settings.CacheMisses>
+  <RimAI.Framework.Settings.CacheSize>Taille du cache (entrées) : {0}</RimAI.Framework.Settings.CacheSize>
+  <RimAI.Framework.Settings.CacheTTL>Durée de vie du cache (minutes) : {0}</RimAI.Framework.Settings.CacheTTL>
   <!-- Settings Category -->
   <RimAI.Framework.Settings.Category>RimAI Framework</RimAI.Framework.Settings.Category>
-
-  <!-- Titles -->
-  <RimAI.Framework.Settings.ChatCompletion.Title>Paramètres de Complétion de Chat</RimAI.Framework.Settings.ChatCompletion.Title>
-  <RimAI.Framework.Settings.Embeddings.Title>Paramètres d'Embeddings</RimAI.Framework.Settings.Embeddings.Title>
-
-  <!-- Chat Completion -->
-  <RimAI.Framework.Settings.ChatCompletion.APIKey>Clé API :</RimAI.Framework.Settings.ChatCompletion.APIKey>
-  <RimAI.Framework.Settings.ChatCompletion.EndpointURL>URL du Point de Terminaison :</RimAI.Framework.Settings.ChatCompletion.EndpointURL>
-  <RimAI.Framework.Settings.ChatCompletion.ModelName>Nom du Modèle :</RimAI.Framework.Settings.ChatCompletion.ModelName>
-  <RimAI.Framework.Settings.ChatCompletion.Temperature>Température</RimAI.Framework.Settings.ChatCompletion.Temperature>
-  <RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip>Contrôle la créativité des réponses IA. Plage : 0.0 (déterministe) à 2.0 (très aléatoire). Recommandé : 0.0-1.0.</RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip>
-  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming>Activer le Streaming</RimAI.Framework.Settings.ChatCompletion.EnableStreaming>
-  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>Activer pour recevoir les réponses mot par mot pour une expérience plus interactive.</RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>
-
-  <!-- Embeddings -->
-  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings>Activer les Embeddings</RimAI.Framework.Settings.Embeddings.EnableEmbeddings>
-  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>Activer pour utiliser les fonctionnalités d'embeddings pour la récupération de contexte.</RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>
-  <RimAI.Framework.Settings.Embeddings.APIKey>Clé API d'Embeddings (optionnel, utilise la clé principale si vide) :</RimAI.Framework.Settings.Embeddings.APIKey>
-  <RimAI.Framework.Settings.Embeddings.EndpointURL>URL du Point de Terminaison d'Embeddings :</RimAI.Framework.Settings.Embeddings.EndpointURL>
-  <RimAI.Framework.Settings.Embeddings.ModelName>Nom du Modèle d'Embeddings :</RimAI.Framework.Settings.Embeddings.ModelName>
-
-  <!-- Buttons -->
-  <RimAI.Framework.Settings.ResetButton>Réinitialiser aux Défauts</RimAI.Framework.Settings.ResetButton>
-  <RimAI.Framework.Settings.TestConnectionButton>Tester la Connexion</RimAI.Framework.Settings.TestConnectionButton>
-
-  <!-- Status Messages -->
-  <RimAI.Framework.Settings.TestingStatus>Test en cours...</RimAI.Framework.Settings.TestingStatus>
-  <RimAI.Framework.Settings.StreamingNotice>(L'API de la version actuelle ne supporte que les requêtes non-streaming)</RimAI.Framework.Settings.StreamingNotice>
-
-  <!-- Test Connection Status Messages -->
-  <RimAI.Framework.Settings.TestConnectionStatus.Initializing>Initialisation...</RimAI.Framework.Settings.TestConnectionStatus.Initializing>
-  <RimAI.Framework.Settings.TestConnectionStatus.Validating>Validation des paramètres...</RimAI.Framework.Settings.TestConnectionStatus.Validating>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.ClearCache>Vider le cache</RimAI.Framework.Settings.ClearCache>
+  <!-- Bottom Buttons -->
+  <RimAI.Framework.Settings.Close>Fermer</RimAI.Framework.Settings.Close>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.EmbeddingAPIKey>Clé API d'incorporation :</RimAI.Framework.Settings.EmbeddingAPIKey>
+  <RimAI.Framework.Settings.EmbeddingEndpoint>URL du serveur d'incorporation :</RimAI.Framework.Settings.EmbeddingEndpoint>
+  <RimAI.Framework.Settings.EmbeddingModel>Modèle d'incorporation :</RimAI.Framework.Settings.EmbeddingModel>
+  <RimAI.Framework.Settings.EnableCaching>Activer la mise en cache intelligente</RimAI.Framework.Settings.EnableCaching>
+  <RimAI.Framework.Settings.EnableCaching.Tooltip>Met en cache les réponses identiques pour améliorer les performances</RimAI.Framework.Settings.EnableCaching.Tooltip>
+  <RimAI.Framework.Settings.EnableEmbeddings>Activer l'incorporation de texte</RimAI.Framework.Settings.EnableEmbeddings>
+  <RimAI.Framework.Settings.EnableEmbeddings.Tooltip>Active la fonctionnalité d'incorporation de texte pour des fonctions IA avancées comme la recherche sémantique</RimAI.Framework.Settings.EnableEmbeddings.Tooltip>
+  <RimAI.Framework.Settings.EnableMemoryMonitoring>Activer la surveillance mémoire</RimAI.Framework.Settings.EnableMemoryMonitoring>
+  <RimAI.Framework.Settings.EnableMemoryMonitoring.Tooltip>Surveille l'utilisation mémoire et déclenche un nettoyage automatique</RimAI.Framework.Settings.EnableMemoryMonitoring.Tooltip>
+  <RimAI.Framework.Settings.EnableStreaming>Activer les réponses en temps réel</RimAI.Framework.Settings.EnableStreaming>
+  <RimAI.Framework.Settings.EnableStreaming.Tooltip>Active les réponses en flux continu pour voir les réponses IA au fur et à mesure qu'elles sont générées</RimAI.Framework.Settings.EnableStreaming.Tooltip>
+  <RimAI.Framework.Settings.MaxConcurrentRequests>Requêtes simultanées max : {0}</RimAI.Framework.Settings.MaxConcurrentRequests>
+  <RimAI.Framework.Settings.MaxTokens>Longueur de réponse max : {0}</RimAI.Framework.Settings.MaxTokens>
+  <RimAI.Framework.Settings.MemoryThreshold>Seuil de nettoyage mémoire (Mo) : {0}</RimAI.Framework.Settings.MemoryThreshold>
+  <RimAI.Framework.Settings.ModelName>Modèle IA :</RimAI.Framework.Settings.ModelName>
+  <RimAI.Framework.Settings.RequestTimeout>Délai de requête (secondes) : {0}</RimAI.Framework.Settings.RequestTimeout>
+  <!-- Bottom Buttons -->
+  <RimAI.Framework.Settings.Reset>Réinitialiser</RimAI.Framework.Settings.Reset>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.RetryCount>Nombre de tentatives : {0}</RimAI.Framework.Settings.RetryCount>
+  <!-- Section Headers -->
+  <RimAI.Framework.Settings.Section.APIConfiguration>Configuration API</RimAI.Framework.Settings.Section.APIConfiguration>
+  <RimAI.Framework.Settings.Section.BasicOptions>Options de base</RimAI.Framework.Settings.Section.BasicOptions>
+  <RimAI.Framework.Settings.Section.BatchProcessing>Traitement par lots</RimAI.Framework.Settings.Section.BatchProcessing>
+  <RimAI.Framework.Settings.Section.CacheConfiguration>Configuration du cache</RimAI.Framework.Settings.Section.CacheConfiguration>
+  <RimAI.Framework.Settings.Section.CacheStatistics>Statistiques du cache</RimAI.Framework.Settings.Section.CacheStatistics>
+  <RimAI.Framework.Settings.Section.ConnectionTesting>Test de connexion</RimAI.Framework.Settings.Section.ConnectionTesting>
+  <RimAI.Framework.Settings.Section.EmbeddingConfiguration>Configuration de l'incorporation de texte</RimAI.Framework.Settings.Section.EmbeddingConfiguration>
+  <RimAI.Framework.Settings.Section.EmbeddingInformation>Informations sur l'incorporation de texte</RimAI.Framework.Settings.Section.EmbeddingInformation>
+  <RimAI.Framework.Settings.Section.MemoryManagement>Gestion mémoire</RimAI.Framework.Settings.Section.MemoryManagement>
+  <RimAI.Framework.Settings.Section.NetworkTimeout>Paramètres réseau et délais</RimAI.Framework.Settings.Section.NetworkTimeout>
+  <RimAI.Framework.Settings.Section.PerformancePresets>Préréglages de performance</RimAI.Framework.Settings.Section.PerformancePresets>
+  <RimAI.Framework.Settings.Section.RequestSettings>Paramètres de requête</RimAI.Framework.Settings.Section.RequestSettings>
+  <!-- Tab Names -->
+  <RimAI.Framework.Settings.Tab.Basic>Base</RimAI.Framework.Settings.Tab.Basic>
+  <RimAI.Framework.Settings.Tab.Cache>Cache</RimAI.Framework.Settings.Tab.Cache>
+  <RimAI.Framework.Settings.Tab.Debug>Débogage</RimAI.Framework.Settings.Tab.Debug>
+  <RimAI.Framework.Settings.Tab.Diagnostics>Diagnostics</RimAI.Framework.Settings.Tab.Diagnostics>
+  <RimAI.Framework.Settings.Tab.Embedding>Incorporation</RimAI.Framework.Settings.Tab.Embedding>
+  <RimAI.Framework.Settings.Tab.Network>Réseau</RimAI.Framework.Settings.Tab.Network>
+  <RimAI.Framework.Settings.Tab.Performance>Performance</RimAI.Framework.Settings.Tab.Performance>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.Temperature>Créativité : {0:F1} (0.0 = Précis, 2.0 = Créatif)</RimAI.Framework.Settings.Temperature>
+  <RimAI.Framework.Settings.TestConnection>Tester la connexion</RimAI.Framework.Settings.TestConnection>
   <RimAI.Framework.Settings.TestConnectionStatus.Connecting>Connexion à l'API...</RimAI.Framework.Settings.TestConnectionStatus.Connecting>
-
-  <!-- In-Game Messages -->
-  <RimAI.Framework.Messages.TestStarting>RimAI : Début du test de connexion...</RimAI.Framework.Messages.TestStarting>
-  <RimAI.Framework.Messages.SendingRequest>RimAI : Envoi de la requête à l'API...</RimAI.Framework.Messages.SendingRequest>
-  <RimAI.Framework.Messages.TestSuccess>RimAI : Connexion réussie !</RimAI.Framework.Messages.TestSuccess>
-  <RimAI.Framework.Messages.TestFailed>RimAI : Échec de la connexion ! Statut : {0}, Raison : {1}</RimAI.Framework.Messages.TestFailed>
-  <RimAI.Framework.Messages.TestError>RimAI : Une erreur est survenue lors de la connexion : {0}</RimAI.Framework.Messages.TestError>
+  <RimAI.Framework.Settings.TestConnectionStatus.Validating>Validation des paramètres...</RimAI.Framework.Settings.TestConnectionStatus.Validating>
+  <RimAI.Framework.Settings.TestingConnection>Test de connexion en cours...</RimAI.Framework.Settings.TestingConnection>
+  <RimAI.Framework.Settings.Timeout>Délai (secondes) : {0}</RimAI.Framework.Settings.Timeout>
+  <!-- Settings Category -->
+  <RimAI.Framework.Settings.WindowTitle>Paramètres RimAI Framework v3.0</RimAI.Framework.Settings.WindowTitle>
 
 </LanguageData>

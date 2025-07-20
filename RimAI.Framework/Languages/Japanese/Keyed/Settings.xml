@@ -1,48 +1,95 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
-  <!-- Settings Category -->
-  <RimAI.Framework.Settings.Category>RimAI フレームワーク</RimAI.Framework.Settings.Category>
-
-  <!-- Titles -->
-  <RimAI.Framework.Settings.ChatCompletion.Title>チャット完了設定</RimAI.Framework.Settings.ChatCompletion.Title>
-  <RimAI.Framework.Settings.Embeddings.Title>エンベディング設定</RimAI.Framework.Settings.Embeddings.Title>
-
-  <!-- Chat Completion -->
-  <RimAI.Framework.Settings.ChatCompletion.APIKey>API キー：</RimAI.Framework.Settings.ChatCompletion.APIKey>
-  <RimAI.Framework.Settings.ChatCompletion.EndpointURL>エンドポイント URL：</RimAI.Framework.Settings.ChatCompletion.EndpointURL>
-  <RimAI.Framework.Settings.ChatCompletion.ModelName>モデル名：</RimAI.Framework.Settings.ChatCompletion.ModelName>
-  <RimAI.Framework.Settings.ChatCompletion.Temperature>温度</RimAI.Framework.Settings.ChatCompletion.Temperature>
-  <RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip>AI応答の創造性を制御します。範囲：0.0（決定論的）から2.0（非常にランダム）。推奨：0.0-1.0。</RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip>
-  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming>ストリーミングを有効にする</RimAI.Framework.Settings.ChatCompletion.EnableStreaming>
-  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>より対話的な体験のために、単語ごとに応答を受信するように有効にします。</RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>
-
-  <!-- Embeddings -->
-  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings>エンベディングを有効にする</RimAI.Framework.Settings.Embeddings.EnableEmbeddings>
-  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>コンテキスト検索のためのエンベディング機能を使用するために有効にします。</RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>
-  <RimAI.Framework.Settings.Embeddings.APIKey>エンベディング API キー（オプション、空の場合はメインキーを使用）：</RimAI.Framework.Settings.Embeddings.APIKey>
-  <RimAI.Framework.Settings.Embeddings.EndpointURL>エンベディング エンドポイント URL：</RimAI.Framework.Settings.Embeddings.EndpointURL>
-  <RimAI.Framework.Settings.Embeddings.ModelName>エンベディング モデル名：</RimAI.Framework.Settings.Embeddings.ModelName>
-
-  <!-- Buttons -->
-  <RimAI.Framework.Settings.ResetButton>デフォルトにリセット</RimAI.Framework.Settings.ResetButton>
-  <RimAI.Framework.Settings.TestConnectionButton>接続テスト</RimAI.Framework.Settings.TestConnectionButton>
-
-  <!-- Status Messages -->
-  <RimAI.Framework.Settings.TestingStatus>テスト中...</RimAI.Framework.Settings.TestingStatus>
-  <RimAI.Framework.Settings.StreamingEnabled>ストリーミングが有効化されました：GetChatCompletionAsyncが内部的にストリーミングを使用し、応答性が向上します</RimAI.Framework.Settings.StreamingEnabled>
-  <RimAI.Framework.Settings.StreamingDisabled>ストリーミングが無効化されました：従来のリクエスト-レスポンスモードを使用します</RimAI.Framework.Settings.StreamingDisabled>
-
-  <!-- Test Connection Status Messages -->
-  <RimAI.Framework.Settings.TestConnectionStatus.Initializing>初期化中...</RimAI.Framework.Settings.TestConnectionStatus.Initializing>
-  <RimAI.Framework.Settings.TestConnectionStatus.Validating>設定を検証中...</RimAI.Framework.Settings.TestConnectionStatus.Validating>
-  <RimAI.Framework.Settings.TestConnectionStatus.Connecting>APIに接続中...</RimAI.Framework.Settings.TestConnectionStatus.Connecting>
-
-  <!-- In-Game Messages -->
-  <RimAI.Framework.Messages.TestStarting>RimAI：接続テストを開始しています...</RimAI.Framework.Messages.TestStarting>
-  <RimAI.Framework.Messages.SendingRequest>RimAI：APIにリクエストを送信しています...</RimAI.Framework.Messages.SendingRequest>
-  <RimAI.Framework.Messages.TestSuccess>RimAI：接続に成功しました！</RimAI.Framework.Messages.TestSuccess>
+  <!-- Informational Labels -->
+  <RimAI.Framework.Info.EmbeddingsAllowAdvanced>テキスト埋め込みによりセマンティック検索などの高度なAI機能が使用可能になります。</RimAI.Framework.Info.EmbeddingsAllowAdvanced>
+  <RimAI.Framework.Info.EmbeddingsConvertText>📊 テキスト埋め込みはテキストをAI処理用の数値ベクトルに変換します</RimAI.Framework.Info.EmbeddingsConvertText>
+  <RimAI.Framework.Info.EmbeddingsForSimilarity>🔗 テキスト埋め込みはセマンティック検索と類似性マッチングを可能にします</RimAI.Framework.Info.EmbeddingsForSimilarity>
+  <RimAI.Framework.Info.EmbeddingsIncreasesCost>💡 追加のAPI呼び出しが必要で、使用コストが増加します</RimAI.Framework.Info.EmbeddingsIncreasesCost>
+  <RimAI.Framework.Info.EmbeddingsUseful>🎯 類似性マッチング、分類、セマンティック検索に有用です</RimAI.Framework.Info.EmbeddingsUseful>
+  <RimAI.Framework.Info.EnableEmbeddingsForConfig>設定オプションにアクセスするにはテキスト埋め込みを有効にしてください。</RimAI.Framework.Info.EnableEmbeddingsForConfig>
+  <RimAI.Framework.Info.LargerBatchesMoreEfficient>📦 大きなバッチはより効率的ですが、より多くのメモリを使用します</RimAI.Framework.Info.LargerBatchesMoreEfficient>
+  <RimAI.Framework.Info.LongerTimeoutsSlowerResponses>⏰ 長いタイムアウトはより遅い応答を許しますが、ゲームをブロックする可能性があります</RimAI.Framework.Info.LongerTimeoutsSlowerResponses>
+  <!-- Messages -->
+  <RimAI.Framework.Messages.CacheCleared>キャッシュを正常にクリアしました</RimAI.Framework.Messages.CacheCleared>
+  <RimAI.Framework.Messages.FailedToApplySettings>設定の適用に失敗しました：{0}</RimAI.Framework.Messages.FailedToApplySettings>
+  <RimAI.Framework.Messages.PresetApplied>{0}プリセットを適用しました</RimAI.Framework.Messages.PresetApplied>
+  <RimAI.Framework.Messages.SettingsApplied>設定を正常に適用しました</RimAI.Framework.Messages.SettingsApplied>
+  <RimAI.Framework.Messages.TestError>RimAI：接続エラーが発生しました：{0}</RimAI.Framework.Messages.TestError>
   <RimAI.Framework.Messages.TestFailed>RimAI：接続に失敗しました！ステータス：{0}、理由：{1}</RimAI.Framework.Messages.TestFailed>
-  <RimAI.Framework.Messages.TestError>RimAI：接続中にエラーが発生しました：{0}</RimAI.Framework.Messages.TestError>
+  <RimAI.Framework.Messages.TestStarting>RimAI：接続テストを開始しています...</RimAI.Framework.Messages.TestStarting>
+  <RimAI.Framework.Messages.TestSuccess>RimAI：接続に成功しました！</RimAI.Framework.Messages.TestSuccess>
+  <RimAI.Framework.Messages.UnableToRetrieveCacheStats>キャッシュ統計を取得できません：{0}</RimAI.Framework.Messages.UnableToRetrieveCacheStats>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.APIEndpoint>サーバーURL（APIエンドポイント）：</RimAI.Framework.Settings.APIEndpoint>
+  <RimAI.Framework.Settings.APIKey>APIキー：</RimAI.Framework.Settings.APIKey>
+  <!-- Bottom Buttons -->
+  <RimAI.Framework.Settings.Apply>適用</RimAI.Framework.Settings.Apply>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.ApplyPreset>{0}プリセットを適用</RimAI.Framework.Settings.ApplyPreset>
+  <RimAI.Framework.Settings.BatchSize>バッチサイズ：{0}</RimAI.Framework.Settings.BatchSize>
+  <RimAI.Framework.Settings.BatchTimeout>バッチタイムアウト（秒）：{0}</RimAI.Framework.Settings.BatchTimeout>
+  <RimAI.Framework.Settings.CacheHitRate>キャッシュヒット率：{0:P2}</RimAI.Framework.Settings.CacheHitRate>
+  <RimAI.Framework.Settings.CacheHits>キャッシュヒット：{0}</RimAI.Framework.Settings.CacheHits>
+  <RimAI.Framework.Settings.CacheMisses>キャッシュミス：{0}</RimAI.Framework.Settings.CacheMisses>
+  <RimAI.Framework.Settings.CacheSize>キャッシュサイズ（エントリ数）：{0}</RimAI.Framework.Settings.CacheSize>
+  <RimAI.Framework.Settings.CacheTTL>キャッシュTTL（分）：{0}</RimAI.Framework.Settings.CacheTTL>
+  <!-- Settings Category -->
+  <RimAI.Framework.Settings.Category>RimAI Framework</RimAI.Framework.Settings.Category>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.ClearCache>キャッシュをクリア</RimAI.Framework.Settings.ClearCache>
+  <!-- Bottom Buttons -->
+  <RimAI.Framework.Settings.Close>閉じる</RimAI.Framework.Settings.Close>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.EmbeddingAPIKey>埋め込みAPIキー：</RimAI.Framework.Settings.EmbeddingAPIKey>
+  <RimAI.Framework.Settings.EmbeddingEndpoint>埋め込みサーバーURL：</RimAI.Framework.Settings.EmbeddingEndpoint>
+  <RimAI.Framework.Settings.EmbeddingModel>埋め込みモデル：</RimAI.Framework.Settings.EmbeddingModel>
+  <RimAI.Framework.Settings.EnableCaching>スマートキャッシュを有効化</RimAI.Framework.Settings.EnableCaching>
+  <RimAI.Framework.Settings.EnableCaching.Tooltip>パフォーマンス向上のため同一の応答をキャッシュします</RimAI.Framework.Settings.EnableCaching.Tooltip>
+  <RimAI.Framework.Settings.EnableEmbeddings>テキスト埋め込みを有効化</RimAI.Framework.Settings.EnableEmbeddings>
+  <RimAI.Framework.Settings.EnableEmbeddings.Tooltip>セマンティック検索などの高度なAI機能のためテキスト埋め込み機能を有効化します</RimAI.Framework.Settings.EnableEmbeddings.Tooltip>
+  <RimAI.Framework.Settings.EnableMemoryMonitoring>メモリ監視を有効化</RimAI.Framework.Settings.EnableMemoryMonitoring>
+  <RimAI.Framework.Settings.EnableMemoryMonitoring.Tooltip>メモリ使用量を監視し、自動クリーンアップを実行します</RimAI.Framework.Settings.EnableMemoryMonitoring.Tooltip>
+  <RimAI.Framework.Settings.EnableStreaming>リアルタイム応答を有効化</RimAI.Framework.Settings.EnableStreaming>
+  <RimAI.Framework.Settings.EnableStreaming.Tooltip>AI応答の生成中に表示するストリーミング応答を有効にします</RimAI.Framework.Settings.EnableStreaming.Tooltip>
+  <RimAI.Framework.Settings.MaxConcurrentRequests>最大同時リクエスト数：{0}</RimAI.Framework.Settings.MaxConcurrentRequests>
+  <RimAI.Framework.Settings.MaxTokens>最大応答長：{0}</RimAI.Framework.Settings.MaxTokens>
+  <RimAI.Framework.Settings.MemoryThreshold>メモリクリーンアップ閾値（MB）：{0}</RimAI.Framework.Settings.MemoryThreshold>
+  <RimAI.Framework.Settings.ModelName>AIモデル：</RimAI.Framework.Settings.ModelName>
+  <RimAI.Framework.Settings.RequestTimeout>リクエストタイムアウト（秒）：{0}</RimAI.Framework.Settings.RequestTimeout>
+  <!-- Bottom Buttons -->
+  <RimAI.Framework.Settings.Reset>リセット</RimAI.Framework.Settings.Reset>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.RetryCount>再試行回数：{0}</RimAI.Framework.Settings.RetryCount>
+  <!-- Section Headers -->
+  <RimAI.Framework.Settings.Section.APIConfiguration>API設定</RimAI.Framework.Settings.Section.APIConfiguration>
+  <RimAI.Framework.Settings.Section.BasicOptions>基本オプション</RimAI.Framework.Settings.Section.BasicOptions>
+  <RimAI.Framework.Settings.Section.BatchProcessing>バッチ処理</RimAI.Framework.Settings.Section.BatchProcessing>
+  <RimAI.Framework.Settings.Section.CacheConfiguration>キャッシュ設定</RimAI.Framework.Settings.Section.CacheConfiguration>
+  <RimAI.Framework.Settings.Section.CacheStatistics>キャッシュ統計</RimAI.Framework.Settings.Section.CacheStatistics>
+  <RimAI.Framework.Settings.Section.ConnectionTesting>接続テスト</RimAI.Framework.Settings.Section.ConnectionTesting>
+  <RimAI.Framework.Settings.Section.EmbeddingConfiguration>テキスト埋め込み設定</RimAI.Framework.Settings.Section.EmbeddingConfiguration>
+  <RimAI.Framework.Settings.Section.EmbeddingInformation>テキスト埋め込み情報</RimAI.Framework.Settings.Section.EmbeddingInformation>
+  <RimAI.Framework.Settings.Section.MemoryManagement>メモリ管理</RimAI.Framework.Settings.Section.MemoryManagement>
+  <RimAI.Framework.Settings.Section.NetworkTimeout>ネットワークとタイムアウト設定</RimAI.Framework.Settings.Section.NetworkTimeout>
+  <RimAI.Framework.Settings.Section.PerformancePresets>パフォーマンスプリセット</RimAI.Framework.Settings.Section.PerformancePresets>
+  <RimAI.Framework.Settings.Section.RequestSettings>リクエスト設定</RimAI.Framework.Settings.Section.RequestSettings>
+  <!-- Tab Names -->
+  <RimAI.Framework.Settings.Tab.Basic>基本</RimAI.Framework.Settings.Tab.Basic>
+  <RimAI.Framework.Settings.Tab.Cache>キャッシュ</RimAI.Framework.Settings.Tab.Cache>
+  <RimAI.Framework.Settings.Tab.Debug>デバッグ</RimAI.Framework.Settings.Tab.Debug>
+  <RimAI.Framework.Settings.Tab.Diagnostics>診断</RimAI.Framework.Settings.Tab.Diagnostics>
+  <RimAI.Framework.Settings.Tab.Embedding>埋め込み</RimAI.Framework.Settings.Tab.Embedding>
+  <RimAI.Framework.Settings.Tab.Network>ネットワーク</RimAI.Framework.Settings.Tab.Network>
+  <RimAI.Framework.Settings.Tab.Performance>パフォーマンス</RimAI.Framework.Settings.Tab.Performance>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.Temperature>創造性：{0:F1}（0.0 = 正確、2.0 = 創造的）</RimAI.Framework.Settings.Temperature>
+  <RimAI.Framework.Settings.TestConnection>接続をテスト</RimAI.Framework.Settings.TestConnection>
+  <RimAI.Framework.Settings.TestConnectionStatus.Connecting>APIに接続中...</RimAI.Framework.Settings.TestConnectionStatus.Connecting>
+  <RimAI.Framework.Settings.TestConnectionStatus.Validating>設定を検証中...</RimAI.Framework.Settings.TestConnectionStatus.Validating>
+  <RimAI.Framework.Settings.TestingConnection>接続をテスト中...</RimAI.Framework.Settings.TestingConnection>
+  <RimAI.Framework.Settings.Timeout>タイムアウト（秒）：{0}</RimAI.Framework.Settings.Timeout>
+  <!-- Settings Category -->
+  <RimAI.Framework.Settings.WindowTitle>RimAI Framework v3.0 設定</RimAI.Framework.Settings.WindowTitle>
 
 </LanguageData>

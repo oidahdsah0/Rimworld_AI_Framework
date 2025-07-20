@@ -91,13 +91,13 @@ namespace RimAI.Framework.Core
             // Initialize tabs - 整合所有功能标签，不再需要分离的高级设置窗口
             tabs = new TabRecord[]
             {
-                new TabRecord("Basic", () => currentTab = 0, () => currentTab == 0),
-                new TabRecord("Performance", () => currentTab = 1, () => currentTab == 1),
-                new TabRecord("Cache", () => currentTab = 2, () => currentTab == 2),
-                new TabRecord("Network", () => currentTab = 3, () => currentTab == 3),
-                new TabRecord("Embedding", () => currentTab = 4, () => currentTab == 4),
-                new TabRecord("Debug", () => currentTab = 5, () => currentTab == 5),
-                new TabRecord("Diagnostics", () => currentTab = 6, () => currentTab == 6)
+                new TabRecord("RimAI.Framework.Settings.Tab.Basic".Translate(), () => currentTab = 0, () => currentTab == 0),
+                new TabRecord("RimAI.Framework.Settings.Tab.Performance".Translate(), () => currentTab = 1, () => currentTab == 1),
+                new TabRecord("RimAI.Framework.Settings.Tab.Cache".Translate(), () => currentTab = 2, () => currentTab == 2),
+                new TabRecord("RimAI.Framework.Settings.Tab.Network".Translate(), () => currentTab = 3, () => currentTab == 3),
+                new TabRecord("RimAI.Framework.Settings.Tab.Embedding".Translate(), () => currentTab = 4, () => currentTab == 4),
+                new TabRecord("RimAI.Framework.Settings.Tab.Debug".Translate(), () => currentTab = 5, () => currentTab == 5),
+                new TabRecord("RimAI.Framework.Settings.Tab.Diagnostics".Translate(), () => currentTab = 6, () => currentTab == 6)
             };
         }
 
@@ -105,7 +105,7 @@ namespace RimAI.Framework.Core
         {
             // Window title - 给标题更多空间，再向下移动20像素
             Text.Font = GameFont.Medium;
-            Widgets.Label(new Rect(0f, 5f, inRect.width, 35f), "RimAI Framework v3.0 Settings");
+            Widgets.Label(new Rect(0f, 5f, inRect.width, 35f), "RimAI.Framework.Settings.WindowTitle".Translate());
             Text.Font = GameFont.Small;
 
             // Tab bar - 再向下移动20像素，避免挡住标题
@@ -157,101 +157,101 @@ namespace RimAI.Framework.Core
         private void DrawBasicTab(Listing_Standard listing)
         {
             // API Configuration
-            DrawSectionHeader(listing, "API Configuration");
+            DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.APIConfiguration".Translate());
             
-            listing.Label("API Key:");
+            listing.Label("RimAI.Framework.Settings.APIKey".Translate());
             settings.apiKey = listing.TextEntry(settings.apiKey);
             
-            listing.Label("API Endpoint:");
+            listing.Label("RimAI.Framework.Settings.APIEndpoint".Translate());
             settings.apiEndpoint = listing.TextEntry(settings.apiEndpoint);
             
-            listing.Label("Model Name:");
+            listing.Label("RimAI.Framework.Settings.ModelName".Translate());
             settings.modelName = listing.TextEntry(settings.modelName);
 
             listing.Gap(12f);
 
             // Basic Options
-            DrawSectionHeader(listing, "Basic Options");
+            DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.BasicOptions".Translate());
             
-            listing.CheckboxLabeled("Enable Streaming", ref settings.enableStreaming, 
-                "Enable streaming responses for real-time updates");
+            listing.CheckboxLabeled("RimAI.Framework.Settings.EnableStreaming".Translate(), ref settings.enableStreaming, 
+                "RimAI.Framework.Settings.EnableStreaming.Tooltip".Translate());
             
             listing.Gap(6f);
-            listing.Label($"Temperature: {settings.temperature:F1} (0.0 = Deterministic, 2.0 = Creative)");
+            listing.Label("RimAI.Framework.Settings.Temperature".Translate(settings.temperature.ToString("F1")));
             settings.temperature = (float)Math.Round(listing.Slider(settings.temperature, 0.0f, 2.0f), 1);
             
             listing.Gap(6f);
-            listing.Label($"Max Tokens: {settings.maxTokens}");
+            listing.Label("RimAI.Framework.Settings.MaxTokens".Translate(settings.maxTokens.ToString()));
             settings.maxTokens = (int)listing.Slider(settings.maxTokens, 50, 4000);
         }
 
         private void DrawPerformanceTab(Listing_Standard listing)
         {
             // Performance Presets
-            DrawSectionHeader(listing, "Performance Presets");
+            DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.PerformancePresets".Translate());
             
             var presets = RimAISettingsHelper.GetPresets();
             foreach (var preset in presets)
             {
-                if (listing.ButtonText($"Apply {preset.Key} Preset"))
+                if (listing.ButtonText("RimAI.Framework.Settings.ApplyPreset".Translate(preset.Key)))
                 {
                     RimAISettingsHelper.ApplyPreset(settings, preset.Key);
-                    Messages.Message($"{preset.Key} preset applied", MessageTypeDefOf.PositiveEvent);
+                    Messages.Message("RimAI.Framework.Messages.PresetApplied".Translate(preset.Key), MessageTypeDefOf.PositiveEvent);
                 }
             }
 
             listing.Gap(12f);
-            DrawSectionHeader(listing, "Request Settings");
+            DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.RequestSettings".Translate());
             
-            listing.Label($"Timeout (seconds): {settings.timeoutSeconds}");
+            listing.Label("RimAI.Framework.Settings.Timeout".Translate(settings.timeoutSeconds.ToString()));
             settings.timeoutSeconds = (int)listing.Slider(settings.timeoutSeconds, 5, 120);
             
-            listing.Label($"Retry Count: {settings.retryCount}");
+            listing.Label("RimAI.Framework.Settings.RetryCount".Translate(settings.retryCount.ToString()));
             settings.retryCount = (int)listing.Slider(settings.retryCount, 1, 10);
             
-            listing.Label($"Max Concurrent Requests: {settings.maxConcurrentRequests}");
+            listing.Label("RimAI.Framework.Settings.MaxConcurrentRequests".Translate(settings.maxConcurrentRequests.ToString()));
             settings.maxConcurrentRequests = (int)listing.Slider(settings.maxConcurrentRequests, 1, 20);
 
             listing.Gap(12f);
-            DrawSectionHeader(listing, "Batch Processing");
+            DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.BatchProcessing".Translate());
             
-            listing.Label($"Batch Size: {settings.batchSize}");
+            listing.Label("RimAI.Framework.Settings.BatchSize".Translate(settings.batchSize.ToString()));
             settings.batchSize = (int)listing.Slider(settings.batchSize, 1, 20);
             
-            listing.Label($"Batch Timeout (seconds): {settings.batchTimeoutSeconds}");
+            listing.Label("RimAI.Framework.Settings.BatchTimeout".Translate(settings.batchTimeoutSeconds.ToString()));
             settings.batchTimeoutSeconds = (int)listing.Slider(settings.batchTimeoutSeconds, 1, 10);
 
             listing.Gap(12f);
-            DrawSectionHeader(listing, "Memory Management");
+            DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.MemoryManagement".Translate());
             
-            listing.CheckboxLabeled("Enable Memory Monitoring", ref settings.enableMemoryMonitoring,
-                "Monitor memory usage and trigger automatic cleanup");
+            listing.CheckboxLabeled("RimAI.Framework.Settings.EnableMemoryMonitoring".Translate(), ref settings.enableMemoryMonitoring,
+                "RimAI.Framework.Settings.EnableMemoryMonitoring.Tooltip".Translate());
             
             if (settings.enableMemoryMonitoring)
             {
-                listing.Label($"Memory Threshold (MB): {settings.memoryThresholdMB}");
+                listing.Label("RimAI.Framework.Settings.MemoryThreshold".Translate(settings.memoryThresholdMB.ToString()));
                 settings.memoryThresholdMB = (int)listing.Slider(settings.memoryThresholdMB, 50, 500);
             }
         }
 
         private void DrawCacheTab(Listing_Standard listing)
         {
-            DrawSectionHeader(listing, "Cache Configuration");
+            DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.CacheConfiguration".Translate());
             
-            listing.CheckboxLabeled("Enable Caching", ref settings.enableCaching,
-                "Cache responses for identical requests to improve performance");
+            listing.CheckboxLabeled("RimAI.Framework.Settings.EnableCaching".Translate(), ref settings.enableCaching,
+                "RimAI.Framework.Settings.EnableCaching.Tooltip".Translate());
             
             if (settings.enableCaching)
             {
-                listing.Label($"Cache Size (entries): {settings.cacheSize}");
+                listing.Label("RimAI.Framework.Settings.CacheSize".Translate(settings.cacheSize.ToString()));
                 settings.cacheSize = (int)listing.Slider(settings.cacheSize, 100, 5000);
                 
-                listing.Label($"Cache TTL (minutes): {settings.cacheTtlMinutes}");
+                listing.Label("RimAI.Framework.Settings.CacheTTL".Translate(settings.cacheTtlMinutes.ToString()));
                 settings.cacheTtlMinutes = (int)listing.Slider(settings.cacheTtlMinutes, 5, 180);
 
                 // Cache statistics
                 listing.Gap(12f);
-                DrawSectionHeader(listing, "Cache Statistics");
+                DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.CacheStatistics".Translate());
                 
                 try
                 {
@@ -262,19 +262,19 @@ namespace RimAI.Framework.Core
                     var cacheMisses = stats.ContainsKey("CacheMisses") ? Convert.ToInt64(stats["CacheMisses"]) : 0;
                     var cacheHitRate = stats.ContainsKey("CacheHitRate") ? Convert.ToDouble(stats["CacheHitRate"]) : 0.0;
                     
-                    listing.Label($"Cache Hits: {cacheHits}");
-                    listing.Label($"Cache Misses: {cacheMisses}");
-                    listing.Label($"Cache Hit Rate: {cacheHitRate:P2}");
+                    listing.Label("RimAI.Framework.Settings.CacheHits".Translate(cacheHits.ToString()));
+                    listing.Label("RimAI.Framework.Settings.CacheMisses".Translate(cacheMisses.ToString()));
+                    listing.Label("RimAI.Framework.Settings.CacheHitRate".Translate(cacheHitRate.ToString("P2")));
                     
-                    if (listing.ButtonText("Clear Cache"))
+                    if (listing.ButtonText("RimAI.Framework.Settings.ClearCache".Translate()))
                     {
                         RimAIAPI.ClearCache();
-                        Messages.Message("Cache cleared successfully", MessageTypeDefOf.PositiveEvent);
+                        Messages.Message("RimAI.Framework.Messages.CacheCleared".Translate(), MessageTypeDefOf.PositiveEvent);
                     }
                 }
                 catch (Exception ex)
                 {
-                    listing.Label($"Unable to retrieve cache stats: {ex.Message}");
+                    listing.Label("RimAI.Framework.Messages.UnableToRetrieveCacheStats".Translate(ex.Message));
                 }
             }
         }
@@ -357,44 +357,44 @@ namespace RimAI.Framework.Core
 
         private void DrawNetworkTab(Listing_Standard listing)
         {
-            DrawSectionHeader(listing, "Network & Timeout Settings");
+            DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.NetworkTimeout".Translate());
             
-            listing.Label($"Request Timeout (seconds): {settings.timeoutSeconds}");
+            listing.Label("RimAI.Framework.Settings.RequestTimeout".Translate(settings.timeoutSeconds.ToString()));
             settings.timeoutSeconds = (int)listing.Slider(settings.timeoutSeconds, 5, 300);
             
-            listing.Label($"Retry Count: {settings.retryCount}");
+            listing.Label("RimAI.Framework.Settings.RetryCount".Translate(settings.retryCount.ToString()));
             settings.retryCount = (int)listing.Slider(settings.retryCount, 1, 10);
             
             listing.Gap(6f);
-            listing.Label("⏰ Longer timeouts allow for slower responses but may block the game");
+            listing.Label("RimAI.Framework.Info.LongerTimeoutsSlowerResponses".Translate());
 
             // 批处理设置
             listing.Gap(12f);
-            DrawSectionHeader(listing, "Batch Processing");
+            DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.BatchProcessing".Translate());
             
-            listing.Label($"Batch Size: {settings.batchSize}");
+            listing.Label("RimAI.Framework.Settings.BatchSize".Translate(settings.batchSize.ToString()));
             settings.batchSize = (int)listing.Slider(settings.batchSize, 1, 20);
             
-            listing.Label($"Batch Timeout (seconds): {settings.batchTimeoutSeconds}");
+            listing.Label("RimAI.Framework.Settings.BatchTimeout".Translate(settings.batchTimeoutSeconds.ToString()));
             settings.batchTimeoutSeconds = (int)listing.Slider(settings.batchTimeoutSeconds, 1, 10);
             
             listing.Gap(6f);
-            listing.Label("📦 Larger batches are more efficient but use more memory");
+            listing.Label("RimAI.Framework.Info.LargerBatchesMoreEfficient".Translate());
 
             // 测试连接功能
             listing.Gap(12f);
-            DrawSectionHeader(listing, "Connection Testing");
+            DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.ConnectionTesting".Translate());
             
             if (!isTestingConnection)
             {
-                if (listing.ButtonText("Test Connection"))
+                if (listing.ButtonText("RimAI.Framework.Settings.TestConnection".Translate()))
                 {
                     TestConnection();
                 }
             }
             else
             {
-                listing.Label("Testing connection...");
+                listing.Label("RimAI.Framework.Settings.TestingConnection".Translate());
             }
             
             // 显示测试结果
@@ -408,38 +408,38 @@ namespace RimAI.Framework.Core
 
         private void DrawEmbeddingTab(Listing_Standard listing)
         {
-            DrawSectionHeader(listing, "Embedding Configuration");
+            DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.EmbeddingConfiguration".Translate());
             
-            listing.CheckboxLabeled("Enable Embeddings", ref settings.enableEmbeddings,
-                "Enable embedding functionality for advanced AI features");
+            listing.CheckboxLabeled("RimAI.Framework.Settings.EnableEmbeddings".Translate(), ref settings.enableEmbeddings,
+                "RimAI.Framework.Settings.EnableEmbeddings.Tooltip".Translate());
             
             if (settings.enableEmbeddings)
             {
                 listing.Gap(6f);
-                listing.Label("Embedding API Key (leave empty to use main API key):");
+                listing.Label("RimAI.Framework.Settings.EmbeddingAPIKey".Translate());
                 settings.embeddingApiKey = listing.TextEntry(settings.embeddingApiKey);
                 
-                listing.Label("Embedding Endpoint:");
+                listing.Label("RimAI.Framework.Settings.EmbeddingEndpoint".Translate());
                 settings.embeddingEndpoint = listing.TextEntry(settings.embeddingEndpoint);
                 
-                listing.Label("Embedding Model:");
+                listing.Label("RimAI.Framework.Settings.EmbeddingModel".Translate());
                 settings.embeddingModelName = listing.TextEntry(settings.embeddingModelName);
                 
                 listing.Gap(6f);
-                listing.Label("🔗 Embeddings enable semantic search and similarity matching");
+                listing.Label("RimAI.Framework.Info.EmbeddingsForSimilarity".Translate());
             }
             else
             {
                 listing.Gap(6f);
-                listing.Label("Enable embeddings to access configuration options.");
-                listing.Label("Embeddings allow for advanced AI features like semantic search.");
+                listing.Label("RimAI.Framework.Info.EnableEmbeddingsForConfig".Translate());
+                listing.Label("RimAI.Framework.Info.EmbeddingsAllowAdvanced".Translate());
             }
 
             listing.Gap(12f);
-            DrawSectionHeader(listing, "Embedding Information");
-            listing.Label("📊 Embeddings convert text into numerical vectors for AI processing");
-            listing.Label("🎯 Useful for similarity matching, categorization, and semantic search");
-            listing.Label("💡 Requires additional API calls and will increase usage costs");
+            DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.EmbeddingInformation".Translate());
+            listing.Label("RimAI.Framework.Info.EmbeddingsConvertText".Translate());
+            listing.Label("RimAI.Framework.Info.EmbeddingsUseful".Translate());
+            listing.Label("RimAI.Framework.Info.EmbeddingsIncreasesCost".Translate());
         }
 
         private void DrawDebugTab(Listing_Standard listing)
@@ -552,17 +552,17 @@ namespace RimAI.Framework.Core
             float buttonWidth = 100f;
             float spacing = 10f;
             
-            if (Widgets.ButtonText(new Rect(rect.x, rect.y, buttonWidth, rect.height), "Apply"))
+            if (Widgets.ButtonText(new Rect(rect.x, rect.y, buttonWidth, rect.height), "RimAI.Framework.Settings.Apply".Translate()))
             {
                 ApplySettings();
             }
             
-            if (Widgets.ButtonText(new Rect(rect.x + buttonWidth + spacing, rect.y, buttonWidth, rect.height), "Reset"))
+            if (Widgets.ButtonText(new Rect(rect.x + buttonWidth + spacing, rect.y, buttonWidth, rect.height), "RimAI.Framework.Settings.Reset".Translate()))
             {
                 ResetToDefaults();
             }
             
-            if (Widgets.ButtonText(new Rect(rect.xMax - buttonWidth, rect.y, buttonWidth, rect.height), "Close"))
+            if (Widgets.ButtonText(new Rect(rect.xMax - buttonWidth, rect.y, buttonWidth, rect.height), "RimAI.Framework.Settings.Close".Translate()))
             {
                 Close();
             }
@@ -589,12 +589,12 @@ namespace RimAI.Framework.Core
             {
                 // Refresh any systems that depend on settings
                 // This would typically involve notifying the configuration system
-                Messages.Message("Settings applied successfully", MessageTypeDefOf.PositiveEvent);
+                Messages.Message("RimAI.Framework.Messages.SettingsApplied".Translate(), MessageTypeDefOf.PositiveEvent);
             }
             catch (Exception ex)
             {
                 Log.Error($"Failed to apply settings: {ex.Message}");
-                Messages.Message($"Failed to apply settings: {ex.Message}", MessageTypeDefOf.RejectInput);
+                Messages.Message("RimAI.Framework.Messages.FailedToApplySettings".Translate(ex.Message), MessageTypeDefOf.RejectInput);
             }
         }
 

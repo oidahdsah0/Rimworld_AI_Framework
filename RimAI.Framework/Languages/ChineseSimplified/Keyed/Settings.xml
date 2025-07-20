@@ -1,48 +1,95 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
-  <!-- Settings Category -->
-  <RimAI.Framework.Settings.Category>RimAI 框架</RimAI.Framework.Settings.Category>
-
-  <!-- Titles -->
-  <RimAI.Framework.Settings.ChatCompletion.Title>聊天设置</RimAI.Framework.Settings.ChatCompletion.Title>
-  <RimAI.Framework.Settings.Embeddings.Title>嵌入设置</RimAI.Framework.Settings.Embeddings.Title>
-
-  <!-- Chat Completion -->
-  <RimAI.Framework.Settings.ChatCompletion.APIKey>API 密钥：</RimAI.Framework.Settings.ChatCompletion.APIKey>
-  <RimAI.Framework.Settings.ChatCompletion.EndpointURL>端点 URL：</RimAI.Framework.Settings.ChatCompletion.EndpointURL>
-  <RimAI.Framework.Settings.ChatCompletion.ModelName>大语言模型名称：</RimAI.Framework.Settings.ChatCompletion.ModelName>
-  <RimAI.Framework.Settings.ChatCompletion.Temperature>温度</RimAI.Framework.Settings.ChatCompletion.Temperature>
-  <RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip>控制AI响应的创造性。范围：0.0（确定性）到2.0（非常随机）。推荐：0.0-1.0。</RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip>
-  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming>启用流式输出</RimAI.Framework.Settings.ChatCompletion.EnableStreaming>
-  <RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>启用以逐字接收响应，获得更互动的体验。</RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip>
-
-  <!-- Embeddings -->
-  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings>启用嵌入功能</RimAI.Framework.Settings.Embeddings.EnableEmbeddings>
-  <RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>启用以使用嵌入功能进行上下文检索。</RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip>
-  <RimAI.Framework.Settings.Embeddings.APIKey>嵌入 API 密钥（可选，如果为空则使用主密钥）：</RimAI.Framework.Settings.Embeddings.APIKey>
-  <RimAI.Framework.Settings.Embeddings.EndpointURL>嵌入模型的端点 URL：</RimAI.Framework.Settings.Embeddings.EndpointURL>
-  <RimAI.Framework.Settings.Embeddings.ModelName>嵌入模型名称：</RimAI.Framework.Settings.Embeddings.ModelName>
-
-  <!-- Buttons -->
-  <RimAI.Framework.Settings.ResetButton>重置为默认值</RimAI.Framework.Settings.ResetButton>
-  <RimAI.Framework.Settings.TestConnectionButton>测试连接</RimAI.Framework.Settings.TestConnectionButton>
-
-  <!-- Status Messages -->
-  <RimAI.Framework.Settings.TestingStatus>测试中...</RimAI.Framework.Settings.TestingStatus>
-  <RimAI.Framework.Settings.StreamingEnabled>流式传输已启用：GetChatCompletionAsync 将在内部使用流式传输以提高响应速度</RimAI.Framework.Settings.StreamingEnabled>
-  <RimAI.Framework.Settings.StreamingDisabled>流式传输已禁用：使用传统的请求-响应模式</RimAI.Framework.Settings.StreamingDisabled>
-
-  <!-- Test Connection Status Messages -->
-  <RimAI.Framework.Settings.TestConnectionStatus.Initializing>初始化中...</RimAI.Framework.Settings.TestConnectionStatus.Initializing>
-  <RimAI.Framework.Settings.TestConnectionStatus.Validating>验证设置中...</RimAI.Framework.Settings.TestConnectionStatus.Validating>
-  <RimAI.Framework.Settings.TestConnectionStatus.Connecting>连接API中...</RimAI.Framework.Settings.TestConnectionStatus.Connecting>
-
-  <!-- In-Game Messages -->
-  <RimAI.Framework.Messages.TestStarting>RimAI：开始连接测试...</RimAI.Framework.Messages.TestStarting>
-  <RimAI.Framework.Messages.SendingRequest>RimAI：正在向API发送请求...</RimAI.Framework.Messages.SendingRequest>
-  <RimAI.Framework.Messages.TestSuccess>RimAI：连接成功！</RimAI.Framework.Messages.TestSuccess>
-  <RimAI.Framework.Messages.TestFailed>RimAI：连接失败！状态码：{0}，原因：{1}</RimAI.Framework.Messages.TestFailed>
+  <!-- Informational Labels -->
+  <RimAI.Framework.Info.EmbeddingsAllowAdvanced>文本向量化 (Embedding) 允许高级AI功能，如语义搜索。</RimAI.Framework.Info.EmbeddingsAllowAdvanced>
+  <RimAI.Framework.Info.EmbeddingsConvertText>📊 文本向量化将文本转换为数值向量用于AI处理</RimAI.Framework.Info.EmbeddingsConvertText>
+  <RimAI.Framework.Info.EmbeddingsForSimilarity>🔗 文本向量化 (Embedding) 启用语义搜索和相似性匹配</RimAI.Framework.Info.EmbeddingsForSimilarity>
+  <RimAI.Framework.Info.EmbeddingsIncreasesCost>💡 需要额外的API调用，将增加使用成本</RimAI.Framework.Info.EmbeddingsIncreasesCost>
+  <RimAI.Framework.Info.EmbeddingsUseful>🎯 适用于相似性匹配、分类和语义搜索</RimAI.Framework.Info.EmbeddingsUseful>
+  <RimAI.Framework.Info.EnableEmbeddingsForConfig>启用文本向量化 (Embedding) 以访问配置选项。</RimAI.Framework.Info.EnableEmbeddingsForConfig>
+  <RimAI.Framework.Info.LargerBatchesMoreEfficient>📦 较大的批处理更高效但使用更多内存</RimAI.Framework.Info.LargerBatchesMoreEfficient>
+  <RimAI.Framework.Info.LongerTimeoutsSlowerResponses>⏰ 较长的超时允许较慢的响应但可能阻塞游戏</RimAI.Framework.Info.LongerTimeoutsSlowerResponses>
+  <!-- Messages -->
+  <RimAI.Framework.Messages.CacheCleared>缓存清理成功</RimAI.Framework.Messages.CacheCleared>
+  <RimAI.Framework.Messages.FailedToApplySettings>设置保存失败：{0}</RimAI.Framework.Messages.FailedToApplySettings>
+  <RimAI.Framework.Messages.PresetApplied>已应用 {0} 预设配置</RimAI.Framework.Messages.PresetApplied>
+  <RimAI.Framework.Messages.SettingsApplied>设置保存成功</RimAI.Framework.Messages.SettingsApplied>
   <RimAI.Framework.Messages.TestError>RimAI：连接时发生错误：{0}</RimAI.Framework.Messages.TestError>
+  <RimAI.Framework.Messages.TestFailed>RimAI：连接失败！状态码：{0}，原因：{1}</RimAI.Framework.Messages.TestFailed>
+  <RimAI.Framework.Messages.TestStarting>RimAI：开始连接测试...</RimAI.Framework.Messages.TestStarting>
+  <RimAI.Framework.Messages.TestSuccess>RimAI：连接成功！</RimAI.Framework.Messages.TestSuccess>
+  <RimAI.Framework.Messages.UnableToRetrieveCacheStats>无法获取缓存统计：{0}</RimAI.Framework.Messages.UnableToRetrieveCacheStats>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.APIEndpoint>服务器地址 (API URL)：</RimAI.Framework.Settings.APIEndpoint>
+  <RimAI.Framework.Settings.APIKey>API 密钥 (API Key)：</RimAI.Framework.Settings.APIKey>
+  <!-- Bottom Buttons -->
+  <RimAI.Framework.Settings.Apply>应用</RimAI.Framework.Settings.Apply>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.ApplyPreset>应用 {0} 预设</RimAI.Framework.Settings.ApplyPreset>
+  <RimAI.Framework.Settings.BatchSize>批量处理大小：{0}</RimAI.Framework.Settings.BatchSize>
+  <RimAI.Framework.Settings.BatchTimeout>批量等待时间 (秒)：{0}</RimAI.Framework.Settings.BatchTimeout>
+  <RimAI.Framework.Settings.CacheHitRate>缓存命中率：{0:P2}</RimAI.Framework.Settings.CacheHitRate>
+  <RimAI.Framework.Settings.CacheHits>缓存命中：{0}</RimAI.Framework.Settings.CacheHits>
+  <RimAI.Framework.Settings.CacheMisses>缓存未命中：{0}</RimAI.Framework.Settings.CacheMisses>
+  <RimAI.Framework.Settings.CacheSize>缓存容量 (条目数)：{0}</RimAI.Framework.Settings.CacheSize>
+  <RimAI.Framework.Settings.CacheTTL>缓存保存时间 (分钟)：{0}</RimAI.Framework.Settings.CacheTTL>
+  <!-- Settings Category -->
+  <RimAI.Framework.Settings.Category>RimAI Framework</RimAI.Framework.Settings.Category>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.ClearCache>清空缓存</RimAI.Framework.Settings.ClearCache>
+  <!-- Bottom Buttons -->
+  <RimAI.Framework.Settings.Close>关闭</RimAI.Framework.Settings.Close>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.EmbeddingAPIKey>文本向量化密钥：</RimAI.Framework.Settings.EmbeddingAPIKey>
+  <RimAI.Framework.Settings.EmbeddingEndpoint>文本向量化服务器 (Embedding URL)：</RimAI.Framework.Settings.EmbeddingEndpoint>
+  <RimAI.Framework.Settings.EmbeddingModel>文本向量化模型 (Embedding Model)：</RimAI.Framework.Settings.EmbeddingModel>
+  <RimAI.Framework.Settings.EnableCaching>启用智能缓存</RimAI.Framework.Settings.EnableCaching>
+  <RimAI.Framework.Settings.EnableCaching.Tooltip>缓存相同问题的回答，提高响应速度</RimAI.Framework.Settings.EnableCaching.Tooltip>
+  <RimAI.Framework.Settings.EnableEmbeddings>启用文本向量化功能 (Embedding)</RimAI.Framework.Settings.EnableEmbeddings>
+  <RimAI.Framework.Settings.EnableEmbeddings.Tooltip>启用文本向量化功能，支持语义理解等高级AI功能</RimAI.Framework.Settings.EnableEmbeddings.Tooltip>
+  <RimAI.Framework.Settings.EnableMemoryMonitoring>启用内存监控</RimAI.Framework.Settings.EnableMemoryMonitoring>
+  <RimAI.Framework.Settings.EnableMemoryMonitoring.Tooltip>监控内存使用情况，自动清理多余数据</RimAI.Framework.Settings.EnableMemoryMonitoring.Tooltip>
+  <RimAI.Framework.Settings.EnableStreaming>启用实时回复</RimAI.Framework.Settings.EnableStreaming>
+  <RimAI.Framework.Settings.EnableStreaming.Tooltip>启用实时回复功能，AI 会边生成边显示回复内容</RimAI.Framework.Settings.EnableStreaming.Tooltip>
+  <RimAI.Framework.Settings.MaxConcurrentRequests>同时处理数量：{0}</RimAI.Framework.Settings.MaxConcurrentRequests>
+  <RimAI.Framework.Settings.MaxTokens>最大字数限制：{0}</RimAI.Framework.Settings.MaxTokens>
+  <RimAI.Framework.Settings.MemoryThreshold>内存清理阈值 (MB)：{0}</RimAI.Framework.Settings.MemoryThreshold>
+  <RimAI.Framework.Settings.ModelName>AI 模型：</RimAI.Framework.Settings.ModelName>
+  <RimAI.Framework.Settings.RequestTimeout>网络等待时间 (秒)：{0}</RimAI.Framework.Settings.RequestTimeout>
+  <!-- Bottom Buttons -->
+  <RimAI.Framework.Settings.Reset>重置</RimAI.Framework.Settings.Reset>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.RetryCount>失败重试次数：{0}</RimAI.Framework.Settings.RetryCount>
+  <!-- Section Headers -->
+  <RimAI.Framework.Settings.Section.APIConfiguration>API 配置</RimAI.Framework.Settings.Section.APIConfiguration>
+  <RimAI.Framework.Settings.Section.BasicOptions>基本选项</RimAI.Framework.Settings.Section.BasicOptions>
+  <RimAI.Framework.Settings.Section.BatchProcessing>批处理</RimAI.Framework.Settings.Section.BatchProcessing>
+  <RimAI.Framework.Settings.Section.CacheConfiguration>缓存配置</RimAI.Framework.Settings.Section.CacheConfiguration>
+  <RimAI.Framework.Settings.Section.CacheStatistics>缓存统计</RimAI.Framework.Settings.Section.CacheStatistics>
+  <RimAI.Framework.Settings.Section.ConnectionTesting>连接测试</RimAI.Framework.Settings.Section.ConnectionTesting>
+  <RimAI.Framework.Settings.Section.EmbeddingConfiguration>文本向量化配置 (Embedding)</RimAI.Framework.Settings.Section.EmbeddingConfiguration>
+  <RimAI.Framework.Settings.Section.EmbeddingInformation>文本向量化信息 (Embedding)</RimAI.Framework.Settings.Section.EmbeddingInformation>
+  <RimAI.Framework.Settings.Section.MemoryManagement>内存管理</RimAI.Framework.Settings.Section.MemoryManagement>
+  <RimAI.Framework.Settings.Section.NetworkTimeout>网络和超时设置</RimAI.Framework.Settings.Section.NetworkTimeout>
+  <RimAI.Framework.Settings.Section.PerformancePresets>性能预设</RimAI.Framework.Settings.Section.PerformancePresets>
+  <RimAI.Framework.Settings.Section.RequestSettings>请求设置</RimAI.Framework.Settings.Section.RequestSettings>
+  <!-- Tab Names -->
+  <RimAI.Framework.Settings.Tab.Basic>基础</RimAI.Framework.Settings.Tab.Basic>
+  <RimAI.Framework.Settings.Tab.Cache>缓存</RimAI.Framework.Settings.Tab.Cache>
+  <RimAI.Framework.Settings.Tab.Debug>调试</RimAI.Framework.Settings.Tab.Debug>
+  <RimAI.Framework.Settings.Tab.Diagnostics>诊断</RimAI.Framework.Settings.Tab.Diagnostics>
+  <RimAI.Framework.Settings.Tab.Embedding>文本向量化 (Embedding)</RimAI.Framework.Settings.Tab.Embedding>
+  <RimAI.Framework.Settings.Tab.Network>网络</RimAI.Framework.Settings.Tab.Network>
+  <RimAI.Framework.Settings.Tab.Performance>性能</RimAI.Framework.Settings.Tab.Performance>
+  <!-- Settings -->
+  <RimAI.Framework.Settings.Temperature>创造性：{0:F1}（0.0 = 严谨，2.0 = 创意）</RimAI.Framework.Settings.Temperature>
+  <RimAI.Framework.Settings.TestConnection>测试连接</RimAI.Framework.Settings.TestConnection>
+  <RimAI.Framework.Settings.TestConnectionStatus.Connecting>连接API中...</RimAI.Framework.Settings.TestConnectionStatus.Connecting>
+  <RimAI.Framework.Settings.TestConnectionStatus.Validating>验证设置中...</RimAI.Framework.Settings.TestConnectionStatus.Validating>
+  <RimAI.Framework.Settings.TestingConnection>正在测试连接...</RimAI.Framework.Settings.TestingConnection>
+  <RimAI.Framework.Settings.Timeout>等待时间 (秒)：{0}</RimAI.Framework.Settings.Timeout>
+  <!-- Settings Category -->
+  <RimAI.Framework.Settings.WindowTitle>RimAI Framework v3.0 设置</RimAI.Framework.Settings.WindowTitle>
 
 </LanguageData>
