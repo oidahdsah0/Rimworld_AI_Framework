@@ -1,3 +1,4 @@
+using System;
 using Verse;
 
 namespace RimAI.Framework.Core
@@ -141,8 +142,24 @@ namespace RimAI.Framework.Core
                 if (string.IsNullOrWhiteSpace(apiEndpoint))
                     return "";
                 
-                string baseUrl = apiEndpoint.TrimEnd('/');
-                return $"{baseUrl}/chat/completions";
+                // 清理端点URL
+                var endpoint = apiEndpoint.Trim().TrimEnd('/');
+                
+                // 如果已经包含完整的API路径，直接返回
+                if (endpoint.EndsWith("/chat/completions", StringComparison.OrdinalIgnoreCase) ||
+                    endpoint.EndsWith("/completions", StringComparison.OrdinalIgnoreCase))
+                {
+                    return endpoint;
+                }
+                
+                // 如果是基础的v1端点，自动补全 /chat/completions
+                if (endpoint.EndsWith("/v1", StringComparison.OrdinalIgnoreCase))
+                {
+                    return endpoint + "/chat/completions";
+                }
+                
+                // 对于其他情况（可能是自定义端点），不做自动补全，直接返回
+                return endpoint;
             }
         }
 

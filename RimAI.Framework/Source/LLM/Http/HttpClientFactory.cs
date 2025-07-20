@@ -289,35 +289,85 @@ namespace RimAI.Framework.LLM.Http
             
             try
             {
-                _handler = new HttpClientHandler();
-                
-                // 尝试配置SSL验证绕过
+                // 尝试使用自定义HttpClientHandler - 但要安全地处理不支持的功能
                 try
                 {
-                    _handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
+                    _handler = new HttpClientHandler();
+                    
+                    // 安全地尝试配置各项功能，捕获NotImplementedException
+                    try
+                    {
+                        _handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
+                    }
+                    catch (NotImplementedException)
+                    {
+                        Log.Message("[RimAI] SSL validation bypass not supported on this platform");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning($"[RimAI] Could not configure SSL validation bypass: {ex.Message}");
+                    }
+                    
+                    try
+                    {
+                        _handler.MaxConnectionsPerServer = 10;
+                    }
+                    catch (NotImplementedException)
+                    {
+                        Log.Message("[RimAI] MaxConnectionsPerServer not supported on this platform");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning($"[RimAI] Could not configure MaxConnectionsPerServer: {ex.Message}");
+                    }
+                    
+                    try
+                    {
+                        _handler.UseProxy = false;
+                    }
+                    catch (NotImplementedException)
+                    {
+                        Log.Message("[RimAI] Proxy configuration not supported on this platform");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning($"[RimAI] Could not configure proxy settings: {ex.Message}");
+                    }
+                    
+                    Client = new HttpClient(_handler);
                 }
-                catch (Exception ex)
+                catch (NotImplementedException ex)
                 {
-                    Log.Warning($"[RimAI] Could not configure SSL validation bypass: {ex.Message}");
+                    Log.Warning($"[RimAI] HttpClientHandler not fully supported on this platform: {ex.Message}");
+                    // 回退到基本HttpClient
+                    _handler?.Dispose();
+                    _handler = null;
+                    Client = new HttpClient();
                 }
                 
-                // 连接池配置
-                _handler.MaxConnectionsPerServer = 10;
-                _handler.UseProxy = false;
-                
-                Client = new HttpClient(_handler);
                 ConfigureClient(timeoutSeconds);
                 
-                Log.Message($"[RimAI] ManagedHttpClient created with {timeoutSeconds}s timeout");
+                Log.Message($"[RimAI] ManagedHttpClient created successfully with {timeoutSeconds}s timeout");
             }
             catch (Exception ex)
             {
                 Log.Error($"[RimAI] Failed to create ManagedHttpClient with custom handler: {ex.Message}");
                 
-                // 回退到默认配置
-                _handler?.Dispose();
-                Client = new HttpClient();
-                ConfigureClient(timeoutSeconds);
+                // 完全回退到基本配置 - 最后的安全措施
+                try
+                {
+                    _handler?.Dispose();
+                    _handler = null;
+                    Client?.Dispose();
+                    Client = new HttpClient();
+                    ConfigureClient(timeoutSeconds);
+                    Log.Message("[RimAI] Successfully created basic HttpClient as fallback");
+                }
+                catch (Exception fallbackEx)
+                {
+                    Log.Error($"[RimAI] Even fallback HttpClient creation failed: {fallbackEx.Message}");
+                    throw; // 这时候真的有大问题了
+                }
             }
         }
         
@@ -334,7 +384,7 @@ namespace RimAI.Framework.LLM.Http
                 // 禁用连接复用的keep-alive以避免某些网络问题
                 Client.DefaultRequestHeaders.ConnectionClose = false;
                 
-                Log.Message("[RimAI] HttpClient configured successfully");
+                Log.Message($"[RimAI] HttpClient configured successfully with timeout: {timeoutSeconds} seconds ({timeoutSeconds * 1000}ms)");
             }
             catch (Exception ex)
             {

@@ -21,8 +21,11 @@ namespace RimAI.Framework.Core
                 var config = RimAIConfiguration.Instance;
                 if (config == null) return;
 
-                // API Settings
-                config.Set("api.key", settings.apiKey ?? "");
+                // API Settings - 只有在API key不为空时才同步，避免覆盖为空值
+                if (!string.IsNullOrEmpty(settings.apiKey))
+                {
+                    config.Set("api.key", settings.apiKey);
+                }
                 config.Set("api.endpoint", settings.apiEndpoint ?? "https://api.openai.com/v1");
                 config.Set("api.model", settings.modelName ?? "gpt-4o");
                 config.Set("api.temperature", settings.temperature);
@@ -33,11 +36,13 @@ namespace RimAI.Framework.Core
                 config.Set("performance.timeoutSeconds", settings.timeoutSeconds);
                 config.Set("performance.retryCount", settings.retryCount);
                 config.Set("performance.maxConcurrentRequests", settings.maxConcurrentRequests);
+                config.Set("performance.connectionTimeoutMinutes", 30); // 添加连接超时配置
 
                 // Cache Settings
                 config.Set("cache.enabled", settings.enableCaching);
                 config.Set("cache.size", settings.cacheSize);
                 config.Set("cache.ttlMinutes", settings.cacheTtlMinutes);
+                config.Set("cache.defaultExpirationMinutes", settings.cacheTtlMinutes); // 添加缺失的配置项
 
                 // Batch Settings
                 config.Set("batch.size", settings.batchSize);
@@ -53,9 +58,12 @@ namespace RimAI.Framework.Core
                 config.Set("health.enableMemoryMonitoring", settings.enableMemoryMonitoring);
                 config.Set("health.memoryThresholdMB", settings.memoryThresholdMB);
 
-                // Embedding Settings
+                // Embedding Settings - 只有在embedding API key不为空时才同步
                 config.Set("embedding.enabled", settings.enableEmbeddings);
-                config.Set("embedding.key", settings.embeddingApiKey ?? "");
+                if (!string.IsNullOrEmpty(settings.embeddingApiKey))
+                {
+                    config.Set("embedding.key", settings.embeddingApiKey);
+                }
                 config.Set("embedding.endpoint", settings.embeddingEndpoint ?? "https://api.openai.com/v1");
                 config.Set("embedding.model", settings.embeddingModelName ?? "text-embedding-3-small");
 

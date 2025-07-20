@@ -31,47 +31,93 @@ namespace RimAI.Framework.LLM.Services
 
         #region Configuration Priority Methods
         /// <summary>
-        /// 获取API端点 - 优先级：配置系统 > 设置对象 > 默认值
+        /// 获取API端点 - 优先级：设置对象 > 配置系统 > 默认值
         /// </summary>
         private string GetApiEndpoint()
         {
             try
             {
-                var config = RimAIConfiguration.Instance;
-                var configEndpoint = config?.Get<string>("api.endpoint");
-                if (!string.IsNullOrEmpty(configEndpoint))
-                    return configEndpoint;
+                // 优先使用RimAISettings中的端点（用户在游戏中设置的）
+                string baseEndpoint = _settings?.apiEndpoint;
                 
-                return _settings?.apiEndpoint ?? "https://api.openai.com/v1/chat/completions";
+                // 如果RimAISettings中没有设置，则检查配置系统
+                if (string.IsNullOrEmpty(baseEndpoint))
+                {
+                    var config = RimAIConfiguration.Instance;
+                    baseEndpoint = config?.Get<string>("api.endpoint");
+                }
+                
+                // 如果没有配置，使用默认值
+                if (string.IsNullOrEmpty(baseEndpoint))
+                {
+                    return "https://api.openai.com/v1/chat/completions";
+                }
+                
+                // 统一使用 RimAISettings 的 ChatCompletionsEndpoint 属性来处理URL补全
+                var tempSettings = new RimAISettings { apiEndpoint = baseEndpoint };
+                return tempSettings.ChatCompletionsEndpoint;
             }
-            catch
+            catch (Exception ex)
             {
-                return _settings?.apiEndpoint ?? "https://api.openai.com/v1/chat/completions";
+                RimAI.Framework.Core.RimAILogger.Error("Error getting API endpoint: {0}", ex.Message);
+                return "https://api.openai.com/v1/chat/completions";
             }
         }
 
         /// <summary>
-        /// 获取API密钥 - 优先级：配置系统 > 设置对象 > 空值
+        /// 获取API密钥 - 优先级：设置对象 > 配置系统 > null（绝不返回空字符串作为默认值）
         /// </summary>
         private string GetApiKey()
         {
             try
             {
+                // 优先使用RimAISettings中的API key（用户在游戏中设置的）
+                if (!string.IsNullOrEmpty(_settings?.apiKey))
+                    return _settings.apiKey;
+                
+                // 然后检查配置系统
                 var config = RimAIConfiguration.Instance;
                 var configKey = config?.Get<string>("api.key");
                 if (!string.IsNullOrEmpty(configKey))
                     return configKey;
                 
-                return _settings?.apiKey ?? string.Empty;
+                // 绝不返回空字符串作为默认值，返回null表示未配置
+                return null;
             }
             catch
             {
-                return _settings?.apiKey ?? string.Empty;
+                return _settings?.apiKey; // 即使出错也不返回空字符串默认值
             }
         }
 
         /// <summary>
-        /// 应用全局默认值到请求 - 只在未指定时应用
+        /// 获取模型名称 - 优先级：用户设置 > 配置系统 > 默认值
+        /// </summary>
+        private string GetModelName()
+        {
+            try
+            {
+                // 1. 最高优先级：用户在游戏设置中的配置
+                if (!string.IsNullOrEmpty(_settings?.modelName))
+                    return _settings.modelName;
+                
+                // 2. 次优先级：配置系统
+                var config = RimAIConfiguration.Instance;
+                var configModel = config?.Get<string>("api.model");
+                if (!string.IsNullOrEmpty(configModel))
+                    return configModel;
+                
+                // 3. 默认值
+                return "gpt-4o";
+            }
+            catch
+            {
+                return _settings?.modelName ?? "gpt-4o";
+            }
+        }
+
+        /// <summary>
+        /// 应用全局默认值到请求 - 只在未指定时应用，优先级：用户设置 > 配置系统 > 默认值
         /// </summary>
         private void ApplyGlobalDefaults(UnifiedLLMRequest request)
         {
@@ -85,29 +131,30 @@ namespace RimAI.Framework.LLM.Services
                     request.Options = new LLMRequestOptions();
                 }
                 
-                // 应用API默认值
+                // 应用温度设置 - 优先级：用户设置 > 配置系统 > 默认值
                 if (!request.Options.Temperature.HasValue)
                 {
-                    var defaultTemp = config?.Get<float?>("api.temperature") ?? _settings?.temperature ?? 0.7f;
+                    var defaultTemp = _settings?.temperature ?? config?.Get<float?>("api.temperature") ?? 0.7f;
                     request.Options.Temperature = defaultTemp;
                 }
                 
+                // 应用最大令牌数 - 优先级：用户设置 > 配置系统 > 默认值
                 if (!request.Options.MaxTokens.HasValue)
                 {
-                    var defaultTokens = config?.Get<int?>("api.maxTokens") ?? _settings?.maxTokens ?? 1000;
+                    var defaultTokens = _settings?.maxTokens ?? config?.Get<int?>("api.maxTokens") ?? 1000;
                     request.Options.MaxTokens = defaultTokens;
                 }
                 
+                // 应用模型名称 - 使用专门的获取方法
                 if (string.IsNullOrEmpty(request.Options.Model))
                 {
-                    var defaultModel = config?.Get<string>("api.model") ?? _settings?.modelName ?? "gpt-4o";
-                    request.Options.Model = defaultModel;
+                    request.Options.Model = GetModelName();
                 }
                 
-                // 应用流式设置（只在没有明确设置时应用）
+                // 应用流式设置 - 优先级：用户设置 > 配置系统 > 默认值
                 if (!request.Options.HasExplicitStreamingSetting)
                 {
-                    var defaultStreaming = config?.Get<bool?>("api.enableStreaming") ?? _settings?.enableStreaming ?? false;
+                    var defaultStreaming = _settings?.enableStreaming ?? config?.Get<bool?>("api.enableStreaming") ?? false;
                     request.Options.EnableStreaming = defaultStreaming;
                 }
             }
@@ -128,13 +175,30 @@ namespace RimAI.Framework.LLM.Services
 
             try
             {
-                // 应用全局默认值 - CRITICAL FIX
+                // 添加详细的调试日志
+                RimAI.Framework.Core.RimAILogger.Debug("=== LLM Request Debug Info ===");
+                RimAI.Framework.Core.RimAILogger.Debug($"Settings API Key: {(!string.IsNullOrEmpty(_settings?.apiKey) ? $"Set (length: {_settings.apiKey.Length})" : "Not Set")}");
+                RimAI.Framework.Core.RimAILogger.Debug($"Settings Endpoint: {_settings?.apiEndpoint ?? "Not Set"}");
+                RimAI.Framework.Core.RimAILogger.Debug($"Settings Model: {_settings?.modelName ?? "Not Set"}");
+                RimAI.Framework.Core.RimAILogger.Debug($"Settings Temperature: {_settings?.temperature ?? -1}");
+                RimAI.Framework.Core.RimAILogger.Debug($"Settings MaxTokens: {_settings?.maxTokens ?? -1}");
+                
+                // 应用全局默认值
                 ApplyGlobalDefaults(request);
+                
+                // 记录最终使用的值
+                RimAI.Framework.Core.RimAILogger.Debug($"Final API Key: {(!string.IsNullOrEmpty(GetApiKey()) ? $"Set (length: {GetApiKey().Length})" : "Not Set")}");
+                RimAI.Framework.Core.RimAILogger.Debug($"Final Endpoint: {GetApiEndpoint()}");
+                RimAI.Framework.Core.RimAILogger.Debug($"Final Model: {request.Options?.Model ?? "Not Set"}");
+                RimAI.Framework.Core.RimAILogger.Debug($"Final Temperature: {request.Options?.Temperature ?? -1}");
+                RimAI.Framework.Core.RimAILogger.Debug($"Final MaxTokens: {request.Options?.MaxTokens ?? -1}");
+                RimAI.Framework.Core.RimAILogger.Debug("==============================");
                 
                 // Validate request
                 var validationResult = ValidateRequest(request);
                 if (!validationResult.IsValid)
                 {
+                    RimAI.Framework.Core.RimAILogger.Error($"Request validation failed: {validationResult.Error}");
                     return LLMResponse.Failed(validationResult.Error, request.RequestId)
                         .WithMetadata("validation_error", true);
                 }
@@ -292,8 +356,11 @@ namespace RimAI.Framework.LLM.Services
         private object BuildRequestBody(UnifiedLLMRequest request, bool streaming)
         {
             var options = request.Options ?? new LLMRequestOptions();
-            var temperature = options.Temperature ?? _settings.temperature;
-            var model = options.Model ?? _settings.modelName;
+            
+            // 使用ApplyGlobalDefaults已经设置好的值，不再重复获取
+            // 如果options中没有值，使用统一的获取方法确保正确的优先级
+            var temperature = options.Temperature ?? _settings?.temperature ?? 0.7f;
+            var model = options.Model ?? GetModelName(); // 使用统一的获取方法
 
             var body = new Dictionary<string, object>
             {
@@ -355,12 +422,15 @@ namespace RimAI.Framework.LLM.Services
                 return (false, "Prompt exceeds maximum length");
             }
 
-            if (string.IsNullOrEmpty(_settings.apiKey))
+            // 使用配置优先级方法获取API key和endpoint
+            var apiKey = GetApiKey();
+            if (string.IsNullOrEmpty(apiKey))
             {
                 return (false, "API Key is not configured");
             }
 
-            if (string.IsNullOrEmpty(_settings.apiEndpoint))
+            var apiEndpoint = GetApiEndpoint();
+            if (string.IsNullOrEmpty(apiEndpoint))
             {
                 return (false, "API Endpoint is not configured");
             }
@@ -398,6 +468,11 @@ namespace RimAI.Framework.LLM.Services
         {
             try
             {
+                // 详细日志记录 - 帮助诊断连接问题
+                Log.Message($"[RimAI] Sending HTTP request to: {endpoint}");
+                Log.Message($"[RimAI] API Key configured: {!string.IsNullOrEmpty(apiKey)}");
+                Log.Message($"[RimAI] Request body length: {jsonBody?.Length ?? 0}");
+
                 using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
                 request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
@@ -408,21 +483,51 @@ namespace RimAI.Framework.LLM.Services
                     request.Headers.TryAddWithoutValidation(header.Key, header.Value.ToString());
                 }
 
+                Log.Message("[RimAI] Sending HTTP request...");
                 using var response = await _httpClient.SendAsync(request, cancellationToken);
                 var responseBody = await response.Content.ReadAsStringAsync();
                 
+                Log.Message($"[RimAI] HTTP response received. Status: {response.StatusCode}");
+                Log.Message($"[RimAI] Response body length: {responseBody?.Length ?? 0}");
+                
                 if (response.IsSuccessStatusCode)
                 {
+                    Log.Message("[RimAI] HTTP request successful");
                     return (true, (int)response.StatusCode, responseBody, null);
                 }
                 else
                 {
+                    Log.Warning($"[RimAI] HTTP request failed. Status: {response.StatusCode}, Response: {responseBody}");
                     return (false, (int)response.StatusCode, null, responseBody);
                 }
             }
+            catch (TaskCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // 用户取消请求，这是正常行为，不应该记录为错误
+                Log.Message("[RimAI] HTTP request was cancelled by user");
+                return (false, 0, null, "Request was cancelled");
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // 用户取消请求，这是正常行为，不应该记录为错误
+                Log.Message("[RimAI] HTTP request was cancelled by user");
+                return (false, 0, null, "Request was cancelled");
+            }
+            catch (TaskCanceledException)
+            {
+                // 超时取消
+                Log.Warning("[RimAI] HTTP request task timed out");
+                return (false, 0, null, "Request timed out");
+            }
+            catch (OperationCanceledException)
+            {
+                // 超时取消
+                Log.Warning("[RimAI] HTTP request timed out");
+                return (false, 0, null, "Request timed out");
+            }
             catch (Exception ex)
             {
-                Log.Error($"RimAI Framework: HTTP request exception: {ex}");
+                Log.Error($"[RimAI] HTTP request exception: {ex.Message}");
                 return (false, 0, null, ex.Message);
             }
         }

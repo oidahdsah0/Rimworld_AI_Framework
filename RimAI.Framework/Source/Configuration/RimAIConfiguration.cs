@@ -81,9 +81,9 @@ namespace RimAI.Framework.Configuration
         {
             _settings = new Dictionary<string, object>();
             
-            // 确定配置文件路径
+            // 确定配置文件路径 - 放在MOD目录内
             var modPath = Path.GetDirectoryName(typeof(RimAIConfiguration).Assembly.Location);
-            var configDir = Path.Combine(modPath, "..", "..", "Config");
+            var configDir = Path.Combine(modPath, "..", "Config");
             Directory.CreateDirectory(configDir);
             
             _configFilePath = Path.Combine(configDir, "RimAI_Settings.json");
@@ -127,8 +127,8 @@ namespace RimAI.Framework.Configuration
         {
             var defaults = new Dictionary<string, object>
             {
-                // API配置 - 对应RimAISettings
-                ["api.key"] = "",
+                // API配置 - API key不设置默认值！
+                // ["api.key"] = "", // 移除默认值，确保API key必须由用户提供
                 ["api.endpoint"] = "https://api.openai.com/v1",
                 ["api.model"] = "gpt-4o",
                 ["api.temperature"] = 0.7f,
@@ -159,9 +159,9 @@ namespace RimAI.Framework.Configuration
                 ["health.enableMemoryMonitoring"] = true,
                 ["health.memoryThresholdMB"] = 100,
                 
-                // 嵌入设置
+                // 嵌入设置 - embedding key也不设置默认值
                 ["embedding.enabled"] = false,
-                ["embedding.key"] = "",
+                // ["embedding.key"] = "", // 移除默认值，如果需要embedding key必须由用户提供
                 ["embedding.endpoint"] = "https://api.openai.com/v1",
                 ["embedding.model"] = "text-embedding-3-small",
                 

@@ -95,13 +95,17 @@ namespace RimAI.Framework.LLM
                 }
                 
                 // Initialize dependencies with improved resource management
-                var httpTimeoutMs = _configuration.Get<int>("Http.Timeout", 30000);
-                _httpClient = HttpClientFactory.GetClient(httpTimeoutMs / 1000); // 转换为秒
+                var httpTimeoutSeconds = _configuration.Get<int>("performance.timeoutSeconds", 30); 
+                // 为测试连接使用更长的超时时间，确保有足够时间完成网络请求
+                var httpClientTimeoutSeconds = Math.Max(httpTimeoutSeconds, 45); // 至少45秒
+                _httpClient = HttpClientFactory.GetClient(httpClientTimeoutSeconds);
                 _settingsManager = new SettingsManager();
+                
+                Info("LLMManager HttpClient timeout set to {0} seconds", httpClientTimeoutSeconds);
                 
                 // 生成连接ID并注册到连接池
                 _connectionId = $"LLMManager-{Guid.NewGuid():N}";
-                var connectionTimeout = TimeSpan.FromMilliseconds(_configuration.Get<int>("Http.ConnectionTimeout", 1800000)); // 30分钟默认
+                var connectionTimeout = TimeSpan.FromMinutes(_configuration.Get<int>("performance.connectionTimeoutMinutes", 30)); // 30分钟默认
                 ConnectionPoolManager.Instance.RegisterConnection(
                     _connectionId, 
                     "LLMManager", 
@@ -109,9 +113,10 @@ namespace RimAI.Framework.LLM
                     connectionTimeout
                 );
                 
-                // Create unified executor with settings from configuration
-                var settings = CreateSettingsFromConfiguration();
-                _executor = new LLMExecutor(_httpClient, settings);
+                // Create unified executor with settings from the actual mod settings
+                // 优先使用用户在游戏中设置的实际设置，而不是配置系统中的值
+                var actualSettings = _settingsManager.GetSettings();
+                _executor = new LLMExecutor(_httpClient, actualSettings);
                 
                 // 初始化统计信息
                 _totalRequests = 0;
@@ -158,8 +163,8 @@ namespace RimAI.Framework.LLM
         {
             var settings = new RimAISettings
             {
-                // API配置从配置系统读取
-                apiKey = _configuration.Get<string>("api.key", ""),
+                // API配置从配置系统读取 - API key不提供默认值！
+                apiKey = _configuration.Get<string>("api.key"), // 不提供默认值，如果配置中没有就是null
                 apiEndpoint = _configuration.Get<string>("api.endpoint", "https://api.openai.com/v1"),
                 modelName = _configuration.Get<string>("api.model", "gpt-4o"),
                 temperature = _configuration.Get<float>("api.temperature", 0.7f),
@@ -190,9 +195,9 @@ namespace RimAI.Framework.LLM
                 enableMemoryMonitoring = _configuration.Get<bool>("health.enableMemoryMonitoring", true),
                 memoryThresholdMB = _configuration.Get<int>("health.memoryThresholdMB", 100),
                 
-                // 嵌入配置
+                // 嵌入配置 - embedding key也不提供默认值
                 enableEmbeddings = _configuration.Get<bool>("embedding.enabled", false),
-                embeddingApiKey = _configuration.Get<string>("embedding.key", ""),
+                embeddingApiKey = _configuration.Get<string>("embedding.key"), // 不提供默认值
                 embeddingEndpoint = _configuration.Get<string>("embedding.endpoint", "https://api.openai.com/v1"),
                 embeddingModelName = _configuration.Get<string>("embedding.model", "text-embedding-3-small")
             };
@@ -215,58 +220,79 @@ namespace RimAI.Framework.LLM
         {
             if (_disposed)
             {
-                Warning("LLMManager is disposed, cannot send message");
+                Debug("SendMessage called on disposed LLMManager");
                 return null;
             }
             
             if (!ValidateRequest(prompt)) 
             {
-                Interlocked.Increment(ref _failedRequests);
-                Interlocked.Increment(ref _totalRequests);
+                // 不增加失败计数，因为这是验证失败，不是请求失败
                 return null;
             }
             
-            // 创建与生命周期管理器集成的取消令牌
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken,
-                LifecycleManager.Instance.ApplicationToken
-            );
+            // 只有真正发起请求时才增加计数
+            Interlocked.Increment(ref _totalRequests);
             
             // 从配置获取超时时间
-            var timeoutMs = _configuration.Get<int>("Http.Timeout", 30000);
+            var timeoutMs = _configuration.Get<int>("performance.timeoutSeconds", 30) * 1000; // 转换为毫秒
+            Debug("Base timeout from config: {0}ms ({1}s)", timeoutMs, timeoutMs / 1000);
+            
             if (options?.AdditionalParameters?.ContainsKey("timeout_seconds") == true)
             {
                 if (options.AdditionalParameters["timeout_seconds"] is int customTimeout)
                 {
                     timeoutMs = customTimeout * 1000;
+                    Debug("Custom timeout override: {0}ms ({1}s)", timeoutMs, customTimeout);
                 }
             }
-            cts.CancelAfter(TimeSpan.FromMilliseconds(timeoutMs));
 
-            // 检查是否应该使用缓存
-            var cacheEnabled = _configuration.Get<bool>("cache.enabled", true);
-            var shouldCache = cacheEnabled && _responseCache != null && ShouldCacheRequest(options);
+            // 创建与生命周期管理器集成的取消令牌，但不使用using语句
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken,
+                LifecycleManager.Instance.ApplicationToken
+            );
             
-            if (shouldCache)
+            try
             {
-                // 生成缓存键
-                var cacheKey = GenerateCacheKey(prompt, options);
-                var cacheExpiration = TimeSpan.FromMilliseconds(_configuration.Get<int>("Cache.DefaultExpiration", 1800000)); // 30分钟
+                Debug("Setting CancellationToken timeout to {0}ms", timeoutMs);
+                cts.CancelAfter(TimeSpan.FromMilliseconds(timeoutMs));
+
+                // 检查是否应该使用缓存
+                var cacheEnabled = _configuration.Get<bool>("cache.enabled", true);
+                var shouldCache = cacheEnabled && _responseCache != null && ShouldCacheRequest(options);
                 
-                Debug("Attempting to use cache for request");
-                
-                // 使用缓存的异步工厂方法
-                return await _responseCache.GetOrAddAsync(
-                    cacheKey,
-                    async () => await ExecuteRequestInternal(prompt, options, cts.Token),
-                    cacheExpiration,
-                    cts.Token
-                );
+                if (shouldCache)
+                {
+                    // 生成缓存键
+                    var cacheKey = GenerateCacheKey(prompt, options);
+                    var cacheExpiration = TimeSpan.FromMinutes(_configuration.Get<int>("cache.defaultExpirationMinutes", 30)); // 使用分钟单位
+                    
+                    Debug("Attempting to use cache for request");
+                    
+                    // 使用缓存的异步工厂方法
+                    return await _responseCache.GetOrAddAsync(
+                        cacheKey,
+                        async () => await ExecuteRequestInternal(prompt, options, cts.Token),
+                        cacheExpiration,
+                        cts.Token
+                    );
+                }
+                else
+                {
+                    // 直接执行请求
+                    return await ExecuteRequestInternal(prompt, options, cts.Token);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // 直接执行请求
-                return await ExecuteRequestInternal(prompt, options, cts.Token);
+                Error("HTTP request exception: {0}", ex);
+                Interlocked.Increment(ref _failedRequests);
+                return null;
+            }
+            finally
+            {
+                // 确保 CancellationTokenSource 被正确释放
+                cts?.Dispose();
             }
         }
 
@@ -317,16 +343,18 @@ namespace RimAI.Framework.LLM
         {
             if (_disposed)
             {
-                Warning("LLMManager is disposed, cannot send streaming message");
+                Debug("SendStreamingMessage called on disposed LLMManager");
                 return null;
             }
             
             if (!ValidateRequest(prompt))
             {
-                Interlocked.Increment(ref _failedRequests);
-                Interlocked.Increment(ref _totalRequests);
+                // 不增加失败计数，因为这是验证失败，不是请求失败
                 return null;
             }
+
+            // 只有真正发起请求时才增加计数
+            Interlocked.Increment(ref _totalRequests);
 
             // 流式请求不使用缓存
             var streamingOptions = options ?? new LLMRequestOptions();
@@ -337,7 +365,7 @@ namespace RimAI.Framework.LLM
                 LifecycleManager.Instance.ApplicationToken
             );
 
-            var timeoutMs = _configuration.Get<int>("Http.Timeout", 30000);
+            var timeoutMs = _configuration.Get<int>("performance.timeoutSeconds", 30) * 1000; // 转换为毫秒
             cts.CancelAfter(TimeSpan.FromMilliseconds(timeoutMs));
 
             return await ExecuteRequestInternal(prompt, streamingOptions, cts.Token, onChunkReceived);
@@ -368,9 +396,9 @@ namespace RimAI.Framework.LLM
         }
 
         /// <summary>
-        /// Test API connection
+        /// Test API connection with enhanced diagnostics
         /// </summary>
-        public async Task<(bool success, string message)> TestConnectionAsync()
+        public async Task<(bool success, string message)> TestConnectionAsync(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -379,39 +407,91 @@ namespace RimAI.Framework.LLM
                     return (false, "LLMManager is disposed");
                 }
 
-                var settings = _settingsManager.GetSettings();
-                if (string.IsNullOrEmpty(settings?.apiKey))
+                // UI层检查：优先检查用户实际设置的API key
+                var userSettings = _settingsManager.GetSettings();
+                if (string.IsNullOrEmpty(userSettings?.apiKey))
                 {
-                    return (false, "API key is not configured");
+                    // UI层友好提示，不记录错误
+                    Debug("TestConnection: User has not configured API key");
+                    return (false, "Please enter your API key in the settings before testing the connection.");
                 }
 
-                // 发送一个简单的测试请求
-                var testPrompt = "Hello";
+                // 详细诊断信息（只在Debug模式下记录）
+                Debug("=== Connection Test Diagnostics ===");
+                Debug("User API key configured (length: {0})", userSettings.apiKey.Length);
+                Debug("User API endpoint: {0}", userSettings.apiEndpoint ?? "default");
+                Debug("User model: {0}", userSettings.modelName ?? "default");
+                
+                // 记录完整的诊断信息用于调试
+                var diagnosticInfo = new StringBuilder();
+                diagnosticInfo.AppendLine("Connection test starting...");
+                diagnosticInfo.AppendLine($"✅ API key configured (length: {userSettings.apiKey.Length})");
+                diagnosticInfo.AppendLine($"✅ API endpoint: {userSettings.apiEndpoint ?? "https://api.openai.com/v1"}");
+                diagnosticInfo.AppendLine($"✅ Model: {userSettings.modelName ?? "gpt-4o"}");
+                
+                // 检查HttpClient状态
+                if (_httpClient == null)
+                {
+                    diagnosticInfo.AppendLine("❌ HttpClient is null");
+                    return (false, "HttpClient not initialized. Please restart the game.");
+                }
+                diagnosticInfo.AppendLine("✅ HttpClient initialized");
+                
+                Debug("Connection test diagnostics:\n{0}", diagnosticInfo.ToString());
+
+                // 发送测试请求 - 直接调用内部方法绕过缓存
+                Info("Starting connection test...");
+                // 使用带时间戳的唯一测试提示，确保不会命中缓存
+                var testPrompt = $"Say 'test' - {DateTime.UtcNow.Ticks}";
                 var testOptions = new LLMRequestOptions
                 {
                     Temperature = 0.1,
-                    MaxTokens = 10
+                    MaxTokens = 5,
+                    AdditionalParameters = new Dictionary<string, object>
+                    {
+                        ["timeout_seconds"] = 30,
+                        ["test_connection"] = true // 标记为测试连接，确保不使用缓存
+                    }
                 };
-
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // 10秒超时
-                var result = await SendMessageAsync(testPrompt, testOptions, cts.Token);
-
+                
+                var startTime = DateTime.UtcNow;
+                // 重要：直接调用 ExecuteRequestInternal 绕过所有缓存
+                var result = await ExecuteRequestInternal(testPrompt, testOptions, cancellationToken);
+                var elapsed = DateTime.UtcNow - startTime;
+                
                 if (!string.IsNullOrEmpty(result))
                 {
+                    Info("Connection test successful in {0}ms", elapsed.TotalMilliseconds);
                     return (true, "Connection test successful");
                 }
                 else
                 {
-                    return (false, "No response received from API");
+                    // 这不是错误，只是测试失败
+                    Warning("Connection test failed: No response received");
+                    return (false, "No response received from API. Please check your API key and endpoint.");
                 }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                Debug("Connection test was cancelled");
+                return (false, "Connection test was cancelled");
             }
             catch (OperationCanceledException)
             {
-                return (false, "Connection test timed out");
+                Warning("Connection test timed out");
+                return (false, "Connection test timed out. Please check your network connection.");
+            }
+            catch (HttpRequestException ex)
+            {
+                // 网络错误才使用Error级别
+                Error("Connection test network error: {0}", ex.Message);
+                return (false, $"Network error: {ex.Message}");
             }
             catch (Exception ex)
             {
-                return (false, $"Connection test failed: {ex.Message}");
+                // 未预期的错误使用Error级别
+                Error("Connection test unexpected error: {0}", ex);
+                return (false, $"Unexpected error: {ex.Message}");
             }
         }
 
@@ -603,7 +683,7 @@ namespace RimAI.Framework.LLM
             var settings = _settingsManager.GetSettings();
             if (string.IsNullOrEmpty(settings?.apiKey))
             {
-                Error("API key is not configured. Please check mod settings.");
+                Debug("API key is not configured. Request will be rejected.");
                 return false;
             }
 

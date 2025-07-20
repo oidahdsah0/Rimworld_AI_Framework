@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
 using RimWorld;
@@ -29,6 +30,11 @@ namespace RimAI.Framework.Core
         private string diagnosticsResult = "";
         private Color diagnosticsColor = Color.white;
         private bool isDiagnosticRunning = false;
+        
+        // 测试连接状态 (moved from advanced window)
+        private bool isTestingConnection = false;
+        private string testResult = "";
+        private Color testResultColor = Color.white;
         
         // Presets
         private static readonly Dictionary<string, Action<RimAISettings>> presets = new Dictionary<string, Action<RimAISettings>>
@@ -65,7 +71,7 @@ namespace RimAI.Framework.Core
             }
         };
 
-        public override Vector2 InitialSize => new Vector2(800f, 600f);
+        public override Vector2 InitialSize => new Vector2(1100f, 800f);
 
         public RimAISettingsWindow(RimAISettings settings, RimAIMod mod)
         {
@@ -78,30 +84,36 @@ namespace RimAI.Framework.Core
             closeOnClickedOutside = false;
             absorbInputAroundWindow = true;
             
-            // Initialize tabs
+            // 窗口配置 - 整合所有功能到一个窗口
+            this.draggable = true;
+            this.resizeable = false;
+            
+            // Initialize tabs - 整合所有功能标签，不再需要分离的高级设置窗口
             tabs = new TabRecord[]
             {
                 new TabRecord("Basic", () => currentTab = 0, () => currentTab == 0),
                 new TabRecord("Performance", () => currentTab = 1, () => currentTab == 1),
                 new TabRecord("Cache", () => currentTab = 2, () => currentTab == 2),
-                new TabRecord("Diagnostics", () => currentTab = 3, () => currentTab == 3),
-                new TabRecord("Advanced", () => currentTab = 4, () => currentTab == 4)
+                new TabRecord("Network", () => currentTab = 3, () => currentTab == 3),
+                new TabRecord("Embedding", () => currentTab = 4, () => currentTab == 4),
+                new TabRecord("Debug", () => currentTab = 5, () => currentTab == 5),
+                new TabRecord("Diagnostics", () => currentTab = 6, () => currentTab == 6)
             };
         }
 
         public override void DoWindowContents(Rect inRect)
         {
-            // Window title
+            // Window title - 给标题更多空间，再向下移动20像素
             Text.Font = GameFont.Medium;
-            Widgets.Label(new Rect(0f, 0f, inRect.width, 35f), "RimAI Framework v3.0 Settings");
+            Widgets.Label(new Rect(0f, 5f, inRect.width, 35f), "RimAI Framework v3.0 Settings");
             Text.Font = GameFont.Small;
 
-            // Tab bar
-            Rect tabRect = new Rect(0f, 35f, inRect.width, 30f);
+            // Tab bar - 再向下移动20像素，避免挡住标题
+            Rect tabRect = new Rect(0f, 85f, inRect.width, 30f);
             TabDrawer.DrawTabs<TabRecord>(tabRect, tabs.ToList());
 
-            // Content area with scrolling
-            Rect contentRect = new Rect(0f, 70f, inRect.width, inRect.height - 110f);
+            // Content area with scrolling - 相应调整位置，再向下移动20像素
+            Rect contentRect = new Rect(0f, 120f, inRect.width, inRect.height - 160f);
             Rect scrollRect = new Rect(0f, 0f, contentRect.width - 16f, GetContentHeight());
             
             Widgets.BeginScrollView(contentRect, ref scrollPosition, scrollRect);
@@ -114,8 +126,10 @@ namespace RimAI.Framework.Core
                 case 0: DrawBasicTab(listing); break;
                 case 1: DrawPerformanceTab(listing); break;
                 case 2: DrawCacheTab(listing); break;
-                case 3: DrawDiagnosticsTab(listing); break;
-                case 4: DrawAdvancedTab(listing); break;
+                case 3: DrawNetworkTab(listing); break;
+                case 4: DrawEmbeddingTab(listing); break;
+                case 5: DrawDebugTab(listing); break;
+                case 6: DrawDiagnosticsTab(listing); break;
             }
 
             listing.End();
@@ -169,28 +183,6 @@ namespace RimAI.Framework.Core
             listing.Gap(6f);
             listing.Label($"Max Tokens: {settings.maxTokens}");
             settings.maxTokens = (int)listing.Slider(settings.maxTokens, 50, 4000);
-
-            // Preset configurations
-            listing.Gap(12f);
-            DrawSectionHeader(listing, "Quick Presets");
-            
-            Rect presetRect = listing.GetRect(30f);
-            float presetWidth = presetRect.width / 3f;
-            
-            if (Widgets.ButtonText(new Rect(presetRect.x, presetRect.y, presetWidth - 5f, presetRect.height), "Performance"))
-            {
-                presets["Performance"](settings);
-            }
-            
-            if (Widgets.ButtonText(new Rect(presetRect.x + presetWidth, presetRect.y, presetWidth - 5f, presetRect.height), "Quality"))
-            {
-                presets["Quality"](settings);
-            }
-            
-            if (Widgets.ButtonText(new Rect(presetRect.x + presetWidth * 2, presetRect.y, presetWidth, presetRect.height), "Balanced"))
-            {
-                presets["Balanced"](settings);
-            }
         }
 
         private void DrawPerformanceTab(Listing_Standard listing)
@@ -363,15 +355,67 @@ namespace RimAI.Framework.Core
             }
         }
 
-        private void DrawAdvancedTab(Listing_Standard listing)
+        private void DrawNetworkTab(Listing_Standard listing)
         {
-            DrawSectionHeader(listing, "Embedding Settings");
+            DrawSectionHeader(listing, "Network & Timeout Settings");
+            
+            listing.Label($"Request Timeout (seconds): {settings.timeoutSeconds}");
+            settings.timeoutSeconds = (int)listing.Slider(settings.timeoutSeconds, 5, 300);
+            
+            listing.Label($"Retry Count: {settings.retryCount}");
+            settings.retryCount = (int)listing.Slider(settings.retryCount, 1, 10);
+            
+            listing.Gap(6f);
+            listing.Label("⏰ Longer timeouts allow for slower responses but may block the game");
+
+            // 批处理设置
+            listing.Gap(12f);
+            DrawSectionHeader(listing, "Batch Processing");
+            
+            listing.Label($"Batch Size: {settings.batchSize}");
+            settings.batchSize = (int)listing.Slider(settings.batchSize, 1, 20);
+            
+            listing.Label($"Batch Timeout (seconds): {settings.batchTimeoutSeconds}");
+            settings.batchTimeoutSeconds = (int)listing.Slider(settings.batchTimeoutSeconds, 1, 10);
+            
+            listing.Gap(6f);
+            listing.Label("📦 Larger batches are more efficient but use more memory");
+
+            // 测试连接功能
+            listing.Gap(12f);
+            DrawSectionHeader(listing, "Connection Testing");
+            
+            if (!isTestingConnection)
+            {
+                if (listing.ButtonText("Test Connection"))
+                {
+                    TestConnection();
+                }
+            }
+            else
+            {
+                listing.Label("Testing connection...");
+            }
+            
+            // 显示测试结果
+            if (!string.IsNullOrEmpty(testResult))
+            {
+                GUI.color = testResultColor;
+                listing.Label(testResult);
+                GUI.color = Color.white;
+            }
+        }
+
+        private void DrawEmbeddingTab(Listing_Standard listing)
+        {
+            DrawSectionHeader(listing, "Embedding Configuration");
             
             listing.CheckboxLabeled("Enable Embeddings", ref settings.enableEmbeddings,
                 "Enable embedding functionality for advanced AI features");
             
             if (settings.enableEmbeddings)
             {
+                listing.Gap(6f);
                 listing.Label("Embedding API Key (leave empty to use main API key):");
                 settings.embeddingApiKey = listing.TextEntry(settings.embeddingApiKey);
                 
@@ -380,6 +424,80 @@ namespace RimAI.Framework.Core
                 
                 listing.Label("Embedding Model:");
                 settings.embeddingModelName = listing.TextEntry(settings.embeddingModelName);
+                
+                listing.Gap(6f);
+                listing.Label("🔗 Embeddings enable semantic search and similarity matching");
+            }
+            else
+            {
+                listing.Gap(6f);
+                listing.Label("Enable embeddings to access configuration options.");
+                listing.Label("Embeddings allow for advanced AI features like semantic search.");
+            }
+
+            listing.Gap(12f);
+            DrawSectionHeader(listing, "Embedding Information");
+            listing.Label("📊 Embeddings convert text into numerical vectors for AI processing");
+            listing.Label("🎯 Useful for similarity matching, categorization, and semantic search");
+            listing.Label("💡 Requires additional API calls and will increase usage costs");
+        }
+
+        private void DrawDebugTab(Listing_Standard listing)
+        {
+            DrawSectionHeader(listing, "Debug & Logging");
+            
+            listing.CheckboxLabeled("Enable Detailed Logging", ref settings.enableDetailedLogging,
+                "Enable verbose logging for debugging purposes");
+            
+            string[] logLevels = { "Debug", "Info", "Warning", "Error" };
+            listing.Label($"Log Level: {logLevels[settings.logLevel]}");
+            settings.logLevel = (int)listing.Slider(settings.logLevel, 0, 3);
+            
+            listing.Gap(6f);
+            listing.Label("🔍 Debug logging provides more information but impacts performance");
+
+            // 内存监控设置
+            listing.Gap(12f);
+            DrawSectionHeader(listing, "Memory Monitoring");
+            
+            listing.CheckboxLabeled("Enable Memory Monitoring", ref settings.enableMemoryMonitoring,
+                "Monitor memory usage and trigger cleanup when needed");
+            
+            if (settings.enableMemoryMonitoring)
+            {
+                listing.Gap(6f);
+                listing.Label($"Memory Threshold (MB): {settings.memoryThresholdMB}");
+                settings.memoryThresholdMB = (int)listing.Slider(settings.memoryThresholdMB, 50, 500);
+                
+                listing.Gap(6f);
+                listing.Label("🧠 Lower threshold = more frequent cleanup but lower performance");
+            }
+            else
+            {
+                listing.Gap(6f);
+                listing.Label("Enable memory monitoring to access threshold settings.");
+            }
+
+            // 健康监控高级设置
+            listing.Gap(12f);
+            DrawSectionHeader(listing, "Health Monitoring");
+            
+            listing.CheckboxLabeled("Enable Health Checks", ref settings.enableHealthCheck,
+                "Periodically check system health and performance");
+            
+            if (settings.enableHealthCheck)
+            {
+                listing.Gap(6f);
+                listing.Label($"Health Check Interval (minutes): {settings.healthCheckIntervalMinutes}");
+                settings.healthCheckIntervalMinutes = (int)listing.Slider(settings.healthCheckIntervalMinutes, 1, 120);
+                
+                listing.Gap(6f);
+                listing.Label("❤️ More frequent checks = better monitoring but higher overhead");
+            }
+            else
+            {
+                listing.Gap(6f);
+                listing.Label("Enable health monitoring to access interval settings.");
             }
 
             listing.Gap(12f);
@@ -399,6 +517,25 @@ namespace RimAI.Framework.Core
             {
                 ResetToDefaults();
             }
+        }
+
+        private void DrawAdvancedTab(Listing_Standard listing)
+        {
+            DrawSectionHeader(listing, "Advanced Settings - 已整合到各标签页");
+            
+            listing.Label("🎉 好消息！所有高级设置已经整合到各个标签页中：");
+            listing.Gap(6f);
+            listing.Label("• Network - 网络和超时设置");
+            listing.Label("• Embedding - 嵌入功能配置");  
+            listing.Label("• Debug - 调试、日志和监控设置");
+            listing.Gap(12f);
+            listing.Label("不再需要单独的高级设置窗口！");
+
+            listing.Gap(12f);
+            DrawSectionHeader(listing, "窗口功能");
+            listing.Label("✨ 此窗口支持拖动 - 点击并拖动标题栏！");
+            listing.Label("📏 此窗口支持调整大小 - 拖动边角！");
+            listing.Label("🔧 所有更改都会自动同步到配置系统");
         }
 
         private void DrawSectionHeader(Listing_Standard listing, string title)
@@ -438,8 +575,10 @@ namespace RimAI.Framework.Core
                 case 0: return 500f;  // Basic
                 case 1: return 400f;  // Performance
                 case 2: return 350f;  // Cache
-                case 3: return 600f;  // Diagnostics
-                case 4: return 450f;  // Advanced
+                case 3: return 600f;  // Network
+                case 4: return 450f;  // Embedding
+                case 5: return 700f;  // Debug
+                case 6: return 600f;  // Diagnostics
                 default: return 400f;
             }
         }
@@ -492,40 +631,98 @@ namespace RimAI.Framework.Core
 
         private void TestConnection()
         {
+            // 防止重复测试
+            if (isDiagnosticRunning || isTestingConnection) return;
+            
+            // 设置两种状态
             isDiagnosticRunning = true;
+            isTestingConnection = true;
+            
             diagnosticsResult = "Testing connection...";
             diagnosticsColor = Color.yellow;
+            testResult = "Testing connection...";
+            testResultColor = Color.yellow;
             
-            try
-            {
-                // Simple validation test instead of async network test
-                var validationErrors = RimAISettingsHelper.ValidateSettings(settings);
-                
-                if (validationErrors.Count == 0 && !string.IsNullOrWhiteSpace(settings.apiKey))
+            // 启动异步测试连接
+            Task.Run(async () => {
+                try
                 {
-                    diagnosticsResult = "Connection settings validated successfully";
-                    diagnosticsColor = Color.green;
+                    // 首先进行基本验证
+                    var validationErrors = RimAISettingsHelper.ValidateSettings(settings);
+                    
+                    if (validationErrors.Count > 0)
+                    {
+                        var errorMsg = $"Validation failed: {validationErrors.First()}";
+                        diagnosticsResult = errorMsg;
+                        diagnosticsColor = Color.red;
+                        testResult = $"❌ {errorMsg}";
+                        testResultColor = Color.red;
+                        return;
+                    }
+                    
+                    if (string.IsNullOrWhiteSpace(settings.apiKey))
+                    {
+                        var errorMsg = "API key is required";
+                        diagnosticsResult = errorMsg;
+                        diagnosticsColor = Color.red;
+                        testResult = $"❌ {errorMsg}";
+                        testResultColor = Color.red;
+                        return;
+                    }
+                    
+                    // 同步设置到配置系统 - 确保最新的设置被使用
+                    Log.Message($"[RimAI] Syncing settings: API Key={(!string.IsNullOrEmpty(settings.apiKey) ? $"Set (length: {settings.apiKey.Length})" : "Not Set")}, Endpoint={settings.apiEndpoint}, Model={settings.modelName}");
+                    RimAISettingsHelper.SyncSettingsToConfiguration(settings);
+                    
+                    // 等待一小段时间让配置系统更新
+                    await Task.Delay(100);
+                    
+                    // 确保LLMManager使用最新的设置
+                    Log.Message("[RimAI] Refreshing LLMManager with latest settings...");
+                    // 强制LLMManager重新加载设置
+                    if (LLMManager.Instance.IsDisposed)
+                    {
+                        Log.Warning("[RimAI] LLMManager was disposed, it will be recreated");
+                    }
+                    
+                    // 进行真正的网络连接测试
+                    Log.Message("[RimAI] Starting actual connection test...");
+                    var (success, message) = await LLMManager.Instance.TestConnectionAsync();
+                    
+                    if (success)
+                    {
+                        var successMsg = "✅ 测试成功";
+                        diagnosticsResult = successMsg;
+                        diagnosticsColor = Color.green;
+                        testResult = successMsg;
+                        testResultColor = Color.green;
+                        Log.Message("[RimAI] Connection test passed!");
+                    }
+                    else
+                    {
+                        var failMsg = $"❌ Connection failed: {message}";
+                        diagnosticsResult = failMsg;
+                        diagnosticsColor = Color.red;
+                        testResult = failMsg;
+                        testResultColor = Color.red;
+                        Log.Warning($"[RimAI] Connection test failed: {message}");
+                    }
                 }
-                else if (validationErrors.Count > 0)
+                catch (Exception ex)
                 {
-                    diagnosticsResult = $"Validation failed: {validationErrors.First()}";
+                    var errorMsg = $"❌ Connection test error: {ex.Message}";
+                    diagnosticsResult = errorMsg;
                     diagnosticsColor = Color.red;
+                    testResult = errorMsg;
+                    testResultColor = Color.red;
+                    Log.Error($"[RimAI] Connection test exception: {ex}");
                 }
-                else
+                finally
                 {
-                    diagnosticsResult = "API key is required";
-                    diagnosticsColor = Color.red;
+                    isDiagnosticRunning = false;
+                    isTestingConnection = false;
                 }
-            }
-            catch (Exception ex)
-            {
-                diagnosticsResult = $"Connection test error: {ex.Message}";
-                diagnosticsColor = Color.red;
-            }
-            finally
-            {
-                isDiagnosticRunning = false;
-            }
+            });
         }
 
         private void RunDiagnostics()
@@ -608,6 +805,12 @@ namespace RimAI.Framework.Core
                 Log.Error($"Failed to import settings: {ex.Message}");
                 Messages.Message($"Import failed: {ex.Message}", MessageTypeDefOf.RejectInput);
             }
+        }
+
+        private void OpenAdvancedSettingsWindow()
+        {
+            // 这个方法现在不再需要，因为所有设置都在一个窗口中
+            Messages.Message("所有高级设置已整合到主设置窗口的各个标签页中！", MessageTypeDefOf.PositiveEvent);
         }
     }
 }

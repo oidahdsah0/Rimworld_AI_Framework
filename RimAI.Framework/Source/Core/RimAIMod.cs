@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
@@ -23,6 +24,7 @@ namespace RimAI.Framework.Core
         private string testResult = "";
         private Color testResultColor = Color.white;
         private string testingStatus = "";
+        private CancellationTokenSource testCancellationTokenSource;
 
         /// <summary>
         /// The constructor for the Mod class. It's called once when the mod is loaded.
@@ -81,7 +83,7 @@ namespace RimAI.Framework.Core
             listingStandard.Gap(12f);
 
             // Enhanced Settings Button
-            if (listingStandard.ButtonText("Open Advanced Settings"))
+            if (listingStandard.ButtonText("Open Complete Settings Window"))
             {
                 Find.WindowStack.Add(new RimAISettingsWindow(settings, this));
             }
@@ -93,6 +95,9 @@ namespace RimAI.Framework.Core
             
             listingStandard.Label("API Key:");
             settings.apiKey = listingStandard.TextEntry(settings.apiKey);
+
+            listingStandard.Label("API Endpoint:");
+            settings.apiEndpoint = listingStandard.TextEntry(settings.apiEndpoint);
 
             listingStandard.Label("Model Name:");
             settings.modelName = listingStandard.TextEntry(settings.modelName);
@@ -106,6 +111,15 @@ namespace RimAI.Framework.Core
 
             listingStandard.Gap(12f);
 
+            // Apply Settings Button
+            if (listingStandard.ButtonText("Apply Settings"))
+            {
+                Log.Message("[RimAI] RimAIMod: Apply Settings button clicked");
+                ApplySettings();
+            }
+            
+            listingStandard.Gap(6f);
+
             // Test Connection Button
             if (isTesting)
             {
@@ -115,6 +129,12 @@ namespace RimAI.Framework.Core
                     GUI.color = Color.yellow;
                     listingStandard.Label($"  {testingStatus}");
                     GUI.color = Color.white;
+                }
+                
+                // Cancel button during testing
+                if (listingStandard.ButtonText("Cancel Test"))
+                {
+                    CancelTest();
                 }
             }
             else
@@ -147,11 +167,53 @@ namespace RimAI.Framework.Core
             base.DoSettingsWindowContents(inRect);
         }
 
+        private void CancelTest()
+        {
+            Log.Message("[RimAI] RimAIMod: Test Connection cancelled by user");
+            testCancellationTokenSource?.Cancel();
+            testCancellationTokenSource?.Dispose();
+            testCancellationTokenSource = null;
+            
+            isTesting = false;
+            testingStatus = "";
+            testResult = "Test cancelled";
+            testResultColor = Color.gray;
+            
+            Messages.Message("Connection test cancelled", MessageTypeDefOf.NeutralEvent);
+        }
+
+        private void ApplySettings()
+        {
+            Log.Message("[RimAI] RimAIMod: Applying settings changes");
+            
+            try
+            {
+                // 刷新 LLMManager 设置
+                LLMManager.Instance.RefreshSettings();
+                
+                // 保存设置到游戏
+                settings.Write();
+                
+                // 显示成功消息
+                Messages.Message("RimAI settings applied successfully", MessageTypeDefOf.PositiveEvent);
+                
+                Log.Message("[RimAI] RimAIMod: Settings applied successfully");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[RimAI] RimAIMod: Error applying settings: {ex}");
+                Messages.Message($"Error applying RimAI settings: {ex.Message}", MessageTypeDefOf.RejectInput);
+            }
+        }
+
         private async Task TestConnection()
         {
             Log.Message("[RimAI] RimAIMod: TestConnection started");
             Messages.Message("RimAI.Framework.Messages.TestStarting".Translate(), MessageTypeDefOf.NeutralEvent);
             testingStatus = "RimAI.Framework.Settings.TestConnectionStatus.Validating".Translate();
+            
+            // 创建取消令牌
+            testCancellationTokenSource = new CancellationTokenSource();
             
             (bool success, string message) result = (false, "Unknown error");
             Exception testException = null;
@@ -159,7 +221,12 @@ namespace RimAI.Framework.Core
             try
             {
                 testingStatus = "RimAI.Framework.Settings.TestConnectionStatus.Connecting".Translate();
-                result = await LLMManager.Instance.TestConnectionAsync();
+                result = await LLMManager.Instance.TestConnectionAsync(testCancellationTokenSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // 测试被取消，不需要特别处理，UI已经在CancelTest中处理了
+                return;
             }
             catch (Exception ex)
             {
@@ -171,7 +238,7 @@ namespace RimAI.Framework.Core
             {
                 try
                 {
-                    Log.Message($"[RimAI] RimAIMod: TestConnection completed. Success: {result.success}, Message: {result.message}");
+                    Log.Message($"[RimAI] RimAIMod: TestConnection completed. Success: {result.success}");
                     
                     if (testException != null)
                     {
@@ -183,8 +250,8 @@ namespace RimAI.Framework.Core
                     else if (result.success)
                     {
                         testResultColor = Color.green;
-                        testResult = $"Success: {result.message}";
-                        Messages.Message($"{"RimAI.Framework.Messages.TestSuccess".Translate()} {result.message}", MessageTypeDefOf.PositiveEvent);
+                        testResult = "Success";
+                        Messages.Message("RimAI.Framework.Messages.TestSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
                     }
                     else
                     {
@@ -204,6 +271,10 @@ namespace RimAI.Framework.Core
                     Log.Message("[RimAI] RimAIMod: Setting isTesting to false");
                     testingStatus = "";
                     isTesting = false;
+                    
+                    // 清理取消令牌
+                    testCancellationTokenSource?.Dispose();
+                    testCancellationTokenSource = null;
                 }
             });
         }
