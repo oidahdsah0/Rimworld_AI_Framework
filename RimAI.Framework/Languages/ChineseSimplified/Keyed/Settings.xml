@@ -2,7 +2,7 @@
 <LanguageData>
 
   <!-- Informational Labels -->
-  <RimAI.Framework.Info.EmbeddingsAllowAdvanced>文本向量化 (Embedding) 允许高级AI功能，如语义搜索。</RimAI.Framework.Info.EmbeddingsAllowAdvanced>
+  <RimAI.Framework.Info.EmbeddingsAllowAdvanced>向量化 (Embedding) 允许高级AI功能，如语义搜索。</RimAI.Framework.Info.EmbeddingsAllowAdvanced>
   <RimAI.Framework.Info.EmbeddingsConvertText>📊 文本向量化将文本转换为数值向量用于AI处理</RimAI.Framework.Info.EmbeddingsConvertText>
   <RimAI.Framework.Info.EmbeddingsForSimilarity>🔗 文本向量化 (Embedding) 启用语义搜索和相似性匹配</RimAI.Framework.Info.EmbeddingsForSimilarity>
   <RimAI.Framework.Info.EmbeddingsIncreasesCost>💡 需要额外的API调用，将增加使用成本</RimAI.Framework.Info.EmbeddingsIncreasesCost>
@@ -91,5 +91,27 @@
   <RimAI.Framework.Settings.Timeout>等待时间 (秒)：{0}</RimAI.Framework.Settings.Timeout>
   <!-- Settings Category -->
   <RimAI.Framework.Settings.WindowTitle>RimAI Framework v3.0 设置</RimAI.Framework.Settings.WindowTitle>
+
+  <!-- Main Settings Page (RimAIMod.cs) -->
+  <RimAI.Framework.Settings.FrameworkStatus>框架状态：{0}</RimAI.Framework.Settings.FrameworkStatus>
+  <RimAI.Framework.Settings.StatusHealthy>正常</RimAI.Framework.Settings.StatusHealthy>
+  <RimAI.Framework.Settings.StatusIssuesDetected>检测到问题</RimAI.Framework.Settings.StatusIssuesDetected>
+  <RimAI.Framework.Settings.OpenCompleteSettingsWindow>打开完整设置窗口</RimAI.Framework.Settings.OpenCompleteSettingsWindow>
+  <RimAI.Framework.Settings.QuickSettings>快速设置：</RimAI.Framework.Settings.QuickSettings>
+  <RimAI.Framework.Settings.EnableStreaming>启用实时回复</RimAI.Framework.Settings.EnableStreaming>
+  <RimAI.Framework.Settings.EnableCaching>启用智能缓存</RimAI.Framework.Settings.EnableCaching>
+  <RimAI.Framework.Settings.ApplySettings>应用设置</RimAI.Framework.Settings.ApplySettings>
+  <RimAI.Framework.Settings.CancelTest>取消测试</RimAI.Framework.Settings.CancelTest>
+  
+  <!-- Messages for RimAIMod.cs -->
+  <RimAI.Framework.Messages.SettingsAppliedSuccessfully>RimAI 设置应用成功</RimAI.Framework.Messages.SettingsAppliedSuccessfully>
+  <RimAI.Framework.Messages.ErrorApplyingSettings>应用 RimAI 设置时出错：{0}</RimAI.Framework.Messages.ErrorApplyingSettings>
+  <RimAI.Framework.Messages.ConnectionTestCancelled>连接测试已取消</RimAI.Framework.Messages.ConnectionTestCancelled>
+  <RimAI.Framework.Messages.InitializingTest>正在初始化测试...</RimAI.Framework.Messages.InitializingTest>
+  <RimAI.Framework.Messages.TestResultSuccess>成功</RimAI.Framework.Messages.TestResultSuccess>
+  <RimAI.Framework.Messages.TestResultFailure>失败：{0}</RimAI.Framework.Messages.TestResultFailure>
+  <RimAI.Framework.Messages.TestResultException>异常：{0}</RimAI.Framework.Messages.TestResultException>
+  <RimAI.Framework.Messages.TestResultCancelled>测试已取消</RimAI.Framework.Messages.TestResultCancelled>
+  <RimAI.Framework.Messages.TestResultCallbackError>回调错误：{0}</RimAI.Framework.Messages.TestResultCallbackError>
 
 </LanguageData>

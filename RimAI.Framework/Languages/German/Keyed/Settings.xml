@@ -92,4 +92,26 @@
   <!-- Settings Category -->
   <RimAI.Framework.Settings.WindowTitle>RimAI Framework v3.0 Einstellungen</RimAI.Framework.Settings.WindowTitle>
 
+  <!-- Main Settings Page (RimAIMod.cs) -->
+  <RimAI.Framework.Settings.FrameworkStatus>Framework-Status: {0}</RimAI.Framework.Settings.FrameworkStatus>
+  <RimAI.Framework.Settings.StatusHealthy>Gesund</RimAI.Framework.Settings.StatusHealthy>
+  <RimAI.Framework.Settings.StatusIssuesDetected>Probleme erkannt</RimAI.Framework.Settings.StatusIssuesDetected>
+  <RimAI.Framework.Settings.OpenCompleteSettingsWindow>Vollständiges Einstellungsfenster öffnen</RimAI.Framework.Settings.OpenCompleteSettingsWindow>
+  <RimAI.Framework.Settings.QuickSettings>Schnelleinstellungen:</RimAI.Framework.Settings.QuickSettings>
+  <RimAI.Framework.Settings.EnableStreaming>Streaming aktivieren</RimAI.Framework.Settings.EnableStreaming>
+  <RimAI.Framework.Settings.EnableCaching>Caching aktivieren</RimAI.Framework.Settings.EnableCaching>
+  <RimAI.Framework.Settings.ApplySettings>Einstellungen anwenden</RimAI.Framework.Settings.ApplySettings>
+  <RimAI.Framework.Settings.CancelTest>Test abbrechen</RimAI.Framework.Settings.CancelTest>
+  
+  <!-- Messages for RimAIMod.cs -->
+  <RimAI.Framework.Messages.SettingsAppliedSuccessfully>RimAI-Einstellungen erfolgreich angewendet</RimAI.Framework.Messages.SettingsAppliedSuccessfully>
+  <RimAI.Framework.Messages.ErrorApplyingSettings>Fehler beim Anwenden der RimAI-Einstellungen: {0}</RimAI.Framework.Messages.ErrorApplyingSettings>
+  <RimAI.Framework.Messages.ConnectionTestCancelled>Verbindungstest abgebrochen</RimAI.Framework.Messages.ConnectionTestCancelled>
+  <RimAI.Framework.Messages.InitializingTest>Test wird initialisiert...</RimAI.Framework.Messages.InitializingTest>
+  <RimAI.Framework.Messages.TestResultSuccess>Erfolgreich</RimAI.Framework.Messages.TestResultSuccess>
+  <RimAI.Framework.Messages.TestResultFailure>Fehlgeschlagen: {0}</RimAI.Framework.Messages.TestResultFailure>
+  <RimAI.Framework.Messages.TestResultException>Ausnahme: {0}</RimAI.Framework.Messages.TestResultException>
+  <RimAI.Framework.Messages.TestResultCancelled>Test abgebrochen</RimAI.Framework.Messages.TestResultCancelled>
+  <RimAI.Framework.Messages.TestResultCallbackError>Callback-Fehler: {0}</RimAI.Framework.Messages.TestResultCallbackError>
+
 </LanguageData>

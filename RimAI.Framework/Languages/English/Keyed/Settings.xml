@@ -92,4 +92,26 @@
   <!-- Settings Category -->
   <RimAI.Framework.Settings.WindowTitle>RimAI Framework v3.0 Settings</RimAI.Framework.Settings.WindowTitle>
 
+  <!-- Main Settings Page (RimAIMod.cs) -->
+  <RimAI.Framework.Settings.FrameworkStatus>Framework Status: {0}</RimAI.Framework.Settings.FrameworkStatus>
+  <RimAI.Framework.Settings.StatusHealthy>Healthy</RimAI.Framework.Settings.StatusHealthy>
+  <RimAI.Framework.Settings.StatusIssuesDetected>Issues Detected</RimAI.Framework.Settings.StatusIssuesDetected>
+  <RimAI.Framework.Settings.OpenCompleteSettingsWindow>Open Complete Settings Window</RimAI.Framework.Settings.OpenCompleteSettingsWindow>
+  <RimAI.Framework.Settings.QuickSettings>Quick Settings:</RimAI.Framework.Settings.QuickSettings>
+  <RimAI.Framework.Settings.EnableStreaming>Enable Streaming</RimAI.Framework.Settings.EnableStreaming>
+  <RimAI.Framework.Settings.EnableCaching>Enable Caching</RimAI.Framework.Settings.EnableCaching>
+  <RimAI.Framework.Settings.ApplySettings>Apply Settings</RimAI.Framework.Settings.ApplySettings>
+  <RimAI.Framework.Settings.CancelTest>Cancel Test</RimAI.Framework.Settings.CancelTest>
+  
+  <!-- Messages for RimAIMod.cs -->
+  <RimAI.Framework.Messages.SettingsAppliedSuccessfully>RimAI settings applied successfully</RimAI.Framework.Messages.SettingsAppliedSuccessfully>
+  <RimAI.Framework.Messages.ErrorApplyingSettings>Error applying RimAI settings: {0}</RimAI.Framework.Messages.ErrorApplyingSettings>
+  <RimAI.Framework.Messages.ConnectionTestCancelled>Connection test cancelled</RimAI.Framework.Messages.ConnectionTestCancelled>
+  <RimAI.Framework.Messages.InitializingTest>Initializing test...</RimAI.Framework.Messages.InitializingTest>
+  <RimAI.Framework.Messages.TestResultSuccess>Success</RimAI.Framework.Messages.TestResultSuccess>
+  <RimAI.Framework.Messages.TestResultFailure>Failure: {0}</RimAI.Framework.Messages.TestResultFailure>
+  <RimAI.Framework.Messages.TestResultException>Exception: {0}</RimAI.Framework.Messages.TestResultException>
+  <RimAI.Framework.Messages.TestResultCancelled>Test cancelled</RimAI.Framework.Messages.TestResultCancelled>
+  <RimAI.Framework.Messages.TestResultCallbackError>Callback error: {0}</RimAI.Framework.Messages.TestResultCallbackError>
+
 </LanguageData>

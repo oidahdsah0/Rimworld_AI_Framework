@@ -92,4 +92,26 @@
   <!-- Settings Category -->
   <RimAI.Framework.Settings.WindowTitle>RimAI Framework v3.0 設定</RimAI.Framework.Settings.WindowTitle>
 
+  <!-- Main Settings Page (RimAIMod.cs) -->
+  <RimAI.Framework.Settings.FrameworkStatus>フレームワークステータス：{0}</RimAI.Framework.Settings.FrameworkStatus>
+  <RimAI.Framework.Settings.StatusHealthy>正常</RimAI.Framework.Settings.StatusHealthy>
+  <RimAI.Framework.Settings.StatusIssuesDetected>問題が検出されました</RimAI.Framework.Settings.StatusIssuesDetected>
+  <RimAI.Framework.Settings.OpenCompleteSettingsWindow>完全な設定ウィンドウを開く</RimAI.Framework.Settings.OpenCompleteSettingsWindow>
+  <RimAI.Framework.Settings.QuickSettings>クイック設定：</RimAI.Framework.Settings.QuickSettings>
+  <RimAI.Framework.Settings.EnableStreaming>ストリーミングを有効化</RimAI.Framework.Settings.EnableStreaming>
+  <RimAI.Framework.Settings.EnableCaching>キャッシュを有効化</RimAI.Framework.Settings.EnableCaching>
+  <RimAI.Framework.Settings.ApplySettings>設定を適用</RimAI.Framework.Settings.ApplySettings>
+  <RimAI.Framework.Settings.CancelTest>テストをキャンセル</RimAI.Framework.Settings.CancelTest>
+  
+  <!-- Messages for RimAIMod.cs -->
+  <RimAI.Framework.Messages.SettingsAppliedSuccessfully>RimAI設定が正常に適用されました</RimAI.Framework.Messages.SettingsAppliedSuccessfully>
+  <RimAI.Framework.Messages.ErrorApplyingSettings>RimAI設定の適用でエラーが発生しました：{0}</RimAI.Framework.Messages.ErrorApplyingSettings>
+  <RimAI.Framework.Messages.ConnectionTestCancelled>接続テストがキャンセルされました</RimAI.Framework.Messages.ConnectionTestCancelled>
+  <RimAI.Framework.Messages.InitializingTest>テストを初期化中...</RimAI.Framework.Messages.InitializingTest>
+  <RimAI.Framework.Messages.TestResultSuccess>成功</RimAI.Framework.Messages.TestResultSuccess>
+  <RimAI.Framework.Messages.TestResultFailure>失敗：{0}</RimAI.Framework.Messages.TestResultFailure>
+  <RimAI.Framework.Messages.TestResultException>例外：{0}</RimAI.Framework.Messages.TestResultException>
+  <RimAI.Framework.Messages.TestResultCancelled>テストがキャンセルされました</RimAI.Framework.Messages.TestResultCancelled>
+  <RimAI.Framework.Messages.TestResultCallbackError>コールバックエラー：{0}</RimAI.Framework.Messages.TestResultCallbackError>
+
 </LanguageData>

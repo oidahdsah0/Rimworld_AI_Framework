@@ -77,13 +77,13 @@ namespace RimAI.Framework.Core
             var isHealthy = stats.ContainsKey("IsHealthy") ? Convert.ToBoolean(stats["IsHealthy"]) : false;
             
             GUI.color = isHealthy ? Color.green : Color.red;
-            listingStandard.Label($"Framework Status: {(isHealthy ? "Healthy" : "Issues Detected")}");
+            listingStandard.Label($"{"RimAI.Framework.Messages.FrameworkStatus".Translate()} {(isHealthy ? "RimAI.Framework.Messages.StatusHealthy".Translate() : "RimAI.Framework.Messages.StatusIssuesDetected".Translate())}");
             GUI.color = Color.white;
             
             listingStandard.Gap(12f);
 
             // Enhanced Settings Button
-            if (listingStandard.ButtonText("Open Complete Settings Window"))
+            if (listingStandard.ButtonText("RimAI.Framework.Settings.OpenCompleteSettingsWindow".Translate()))
             {
                 Find.WindowStack.Add(new RimAISettingsWindow(settings, this));
             }
@@ -91,19 +91,19 @@ namespace RimAI.Framework.Core
             listingStandard.Gap(6f);
             
             // Quick access settings
-            listingStandard.Label("Quick Settings:");
+            listingStandard.Label("RimAI.Framework.Settings.QuickSettings".Translate());
             
-            listingStandard.Label("API Key:");
+            listingStandard.Label("RimAI.Framework.Settings.ApiKey".Translate());
             settings.apiKey = listingStandard.TextEntry(settings.apiKey);
 
-            listingStandard.Label("API Endpoint:");
+            listingStandard.Label("RimAI.Framework.Settings.ApiEndpoint".Translate());
             settings.apiEndpoint = listingStandard.TextEntry(settings.apiEndpoint);
 
-            listingStandard.Label("Model Name:");
+            listingStandard.Label("RimAI.Framework.Settings.ModelName".Translate());
             settings.modelName = listingStandard.TextEntry(settings.modelName);
 
-            listingStandard.CheckboxLabeled("Enable Streaming", ref settings.enableStreaming);
-            listingStandard.CheckboxLabeled("Enable Caching", ref settings.enableCaching);
+            listingStandard.CheckboxLabeled("RimAI.Framework.Settings.EnableStreaming".Translate(), ref settings.enableStreaming);
+            listingStandard.CheckboxLabeled("RimAI.Framework.Settings.EnableCaching".Translate(), ref settings.enableCaching);
 
             listingStandard.Gap(6f);
             listingStandard.Label($"Temperature: {settings.temperature:F1}");
@@ -112,7 +112,7 @@ namespace RimAI.Framework.Core
             listingStandard.Gap(12f);
 
             // Apply Settings Button
-            if (listingStandard.ButtonText("Apply Settings"))
+            if (listingStandard.ButtonText("RimAI.Framework.Settings.ApplySettings".Translate()))
             {
                 Log.Message("[RimAI] RimAIMod: Apply Settings button clicked");
                 ApplySettings();
@@ -123,7 +123,7 @@ namespace RimAI.Framework.Core
             // Test Connection Button
             if (isTesting)
             {
-                listingStandard.Label("Testing Connection...");
+                listingStandard.Label("RimAI.Framework.Messages.TestingConnection".Translate());
                 if (!string.IsNullOrEmpty(testingStatus))
                 {
                     GUI.color = Color.yellow;
@@ -132,14 +132,14 @@ namespace RimAI.Framework.Core
                 }
                 
                 // Cancel button during testing
-                if (listingStandard.ButtonText("Cancel Test"))
+                if (listingStandard.ButtonText("RimAI.Framework.Settings.CancelTest".Translate()))
                 {
                     CancelTest();
                 }
             }
             else
             {
-                if (listingStandard.ButtonText("Test Connection"))
+                if (listingStandard.ButtonText("RimAI.Framework.Settings.TestConnection".Translate()))
                 {
                     Log.Message("[RimAI] RimAIMod: Test Connection button clicked");
                     isTesting = true;
@@ -176,10 +176,10 @@ namespace RimAI.Framework.Core
             
             isTesting = false;
             testingStatus = "";
-            testResult = "Test cancelled";
+            testResult = "RimAI.Framework.Messages.TestCancelled".Translate();
             testResultColor = Color.gray;
             
-            Messages.Message("Connection test cancelled", MessageTypeDefOf.NeutralEvent);
+            Messages.Message("RimAI.Framework.Messages.TestCancelled".Translate(), MessageTypeDefOf.NeutralEvent);
         }
 
         private void ApplySettings()
@@ -195,14 +195,14 @@ namespace RimAI.Framework.Core
                 settings.Write();
                 
                 // 显示成功消息
-                Messages.Message("RimAI settings applied successfully", MessageTypeDefOf.PositiveEvent);
+                Messages.Message("RimAI.Framework.Messages.SettingsAppliedSuccessfully".Translate(), MessageTypeDefOf.PositiveEvent);
                 
                 Log.Message("[RimAI] RimAIMod: Settings applied successfully");
             }
             catch (Exception ex)
             {
                 Log.Error($"[RimAI] RimAIMod: Error applying settings: {ex}");
-                Messages.Message($"Error applying RimAI settings: {ex.Message}", MessageTypeDefOf.RejectInput);
+                Messages.Message($"{"RimAI.Framework.Messages.SettingsApplyError".Translate()}: {ex.Message}", MessageTypeDefOf.RejectInput);
             }
         }
 
@@ -244,19 +244,19 @@ namespace RimAI.Framework.Core
                     {
                         Log.Error($"[RimAI] RimAIMod: TestConnection exception: {testException}");
                         testResultColor = Color.red;
-                        testResult = $"Exception: {testException.Message}";
+                        testResult = $"{"RimAI.Framework.Messages.TestResultException".Translate()}: {testException.Message}";
                         Messages.Message($"{"RimAI.Framework.Messages.TestError".Translate()} {testException.Message}", MessageTypeDefOf.RejectInput);
                     }
                     else if (result.success)
                     {
                         testResultColor = Color.green;
-                        testResult = "Success";
+                        testResult = "RimAI.Framework.Messages.TestResultSuccess".Translate();
                         Messages.Message("RimAI.Framework.Messages.TestSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
                     }
                     else
                     {
                         testResultColor = Color.red;
-                        testResult = $"Failure: {result.message}";
+                        testResult = $"{"RimAI.Framework.Messages.TestResultFailure".Translate()}: {result.message}";
                         Messages.Message($"{"RimAI.Framework.Messages.TestFailed".Translate()} {result.message}", MessageTypeDefOf.NegativeEvent);
                     }
                 }
@@ -264,7 +264,7 @@ namespace RimAI.Framework.Core
                 {
                     Log.Error($"[RimAI] RimAIMod: Error in main thread callback: {ex}");
                     testResultColor = Color.red;
-                    testResult = $"Callback error: {ex.Message}";
+                    testResult = $"{"RimAI.Framework.Messages.CallbackError".Translate()}: {ex.Message}";
                 }
                 finally
                 {
