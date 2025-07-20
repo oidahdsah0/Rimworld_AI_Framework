@@ -83,7 +83,7 @@ namespace RimAI.Framework.LLM
                 Info("LLMManager initializing with configuration system");
                 
                 // Initialize cache system
-                var cacheEnabled = _configuration.Get<bool>("Performance.EnableCaching", true);
+                var cacheEnabled = _configuration.Get<bool>("cache.enabled", true);
                 if (cacheEnabled)
                 {
                     _responseCache = ResponseCache.Instance;
@@ -109,8 +109,8 @@ namespace RimAI.Framework.LLM
                     connectionTimeout
                 );
                 
-                // Create unified executor
-                var settings = _settingsManager.GetSettings();
+                // Create unified executor with settings from configuration
+                var settings = CreateSettingsFromConfiguration();
                 _executor = new LLMExecutor(_httpClient, settings);
                 
                 // 初始化统计信息
@@ -148,6 +148,62 @@ namespace RimAI.Framework.LLM
         /// 是否已被释放
         /// </summary>
         public bool IsDisposed => _disposed;
+        #endregion
+
+        #region Configuration Integration
+        /// <summary>
+        /// Creates a RimAISettings object from the current configuration system
+        /// </summary>
+        private RimAISettings CreateSettingsFromConfiguration()
+        {
+            var settings = new RimAISettings
+            {
+                // API配置从配置系统读取
+                apiKey = _configuration.Get<string>("api.key", ""),
+                apiEndpoint = _configuration.Get<string>("api.endpoint", "https://api.openai.com/v1"),
+                modelName = _configuration.Get<string>("api.model", "gpt-4o"),
+                temperature = _configuration.Get<float>("api.temperature", 0.7f),
+                maxTokens = _configuration.Get<int>("api.maxTokens", 1000),
+                enableStreaming = _configuration.Get<bool>("api.enableStreaming", false),
+                
+                // 性能配置
+                timeoutSeconds = _configuration.Get<int>("performance.timeoutSeconds", 30),
+                retryCount = _configuration.Get<int>("performance.retryCount", 3),
+                maxConcurrentRequests = _configuration.Get<int>("performance.maxConcurrentRequests", 5),
+                
+                // 缓存配置
+                enableCaching = _configuration.Get<bool>("cache.enabled", true),
+                cacheSize = _configuration.Get<int>("cache.size", 1000),
+                cacheTtlMinutes = _configuration.Get<int>("cache.ttlMinutes", 30),
+                
+                // 批处理配置
+                batchSize = _configuration.Get<int>("batch.size", 5),
+                batchTimeoutSeconds = _configuration.Get<int>("batch.timeoutSeconds", 2),
+                
+                // 日志配置
+                enableDetailedLogging = _configuration.Get<bool>("logging.enableDetailed", false),
+                logLevel = _configuration.Get<int>("logging.level", 1),
+                
+                // 健康检查配置
+                enableHealthCheck = _configuration.Get<bool>("health.enableChecks", true),
+                healthCheckIntervalMinutes = _configuration.Get<int>("health.intervalMinutes", 5),
+                enableMemoryMonitoring = _configuration.Get<bool>("health.enableMemoryMonitoring", true),
+                memoryThresholdMB = _configuration.Get<int>("health.memoryThresholdMB", 100),
+                
+                // 嵌入配置
+                enableEmbeddings = _configuration.Get<bool>("embedding.enabled", false),
+                embeddingApiKey = _configuration.Get<string>("embedding.key", ""),
+                embeddingEndpoint = _configuration.Get<string>("embedding.endpoint", "https://api.openai.com/v1"),
+                embeddingModelName = _configuration.Get<string>("embedding.model", "text-embedding-3-small")
+            };
+            
+            Debug("Created settings from configuration: apiKey={0}, model={1}, temperature={2}", 
+                  string.IsNullOrEmpty(settings.apiKey) ? "NOT_SET" : "SET", 
+                  settings.modelName, 
+                  settings.temperature);
+                  
+            return settings;
+        }
         #endregion
 
         #region Core API Methods
@@ -188,7 +244,7 @@ namespace RimAI.Framework.LLM
             cts.CancelAfter(TimeSpan.FromMilliseconds(timeoutMs));
 
             // 检查是否应该使用缓存
-            var cacheEnabled = _configuration.Get<bool>("Performance.EnableCaching", true);
+            var cacheEnabled = _configuration.Get<bool>("cache.enabled", true);
             var shouldCache = cacheEnabled && _responseCache != null && ShouldCacheRequest(options);
             
             if (shouldCache)

@@ -36,6 +36,81 @@ namespace RimAI.Framework.Core
         public float temperature = 0.7f;
 
         /// <summary>
+        /// Maximum tokens in response. Higher values allow longer responses but consume more resources.
+        /// </summary>
+        public int maxTokens = 1000;
+
+        /// <summary>
+        /// Request timeout in seconds.
+        /// </summary>
+        public int timeoutSeconds = 30;
+
+        /// <summary>
+        /// Number of retry attempts on failure.
+        /// </summary>
+        public int retryCount = 3;
+
+        /// <summary>
+        /// Enable response caching for improved performance.
+        /// </summary>
+        public bool enableCaching = true;
+
+        /// <summary>
+        /// Cache size limit (number of cached responses).
+        /// </summary>
+        public int cacheSize = 1000;
+
+        /// <summary>
+        /// Cache TTL (time to live) in minutes.
+        /// </summary>
+        public int cacheTtlMinutes = 30;
+
+        /// <summary>
+        /// Maximum concurrent requests allowed.
+        /// </summary>
+        public int maxConcurrentRequests = 5;
+
+        /// <summary>
+        /// Batch size for batch processing.
+        /// </summary>
+        public int batchSize = 5;
+
+        /// <summary>
+        /// Batch timeout window in seconds.
+        /// </summary>
+        public int batchTimeoutSeconds = 2;
+
+        /// <summary>
+        /// Enable detailed logging for debugging.
+        /// </summary>
+        public bool enableDetailedLogging = false;
+
+        /// <summary>
+        /// Log level: 0=Debug, 1=Info, 2=Warning, 3=Error.
+        /// </summary>
+        public int logLevel = 1;
+
+        /// <summary>
+        /// Enable health check monitoring.
+        /// </summary>
+        public bool enableHealthCheck = true;
+
+        /// <summary>
+        /// Health check interval in minutes.
+        /// </summary>
+        public int healthCheckIntervalMinutes = 5;
+
+        /// <summary>
+        /// Enable memory monitoring.
+        /// </summary>
+        public bool enableMemoryMonitoring = true;
+
+        /// <summary>
+        /// Memory threshold for automatic cleanup (MB).
+        /// </summary>
+        public int memoryThresholdMB = 100;
+
+        /// <summary>
         /// A master switch to enable embedding-related features.
         /// </summary>
         public bool enableEmbeddings = false;
@@ -101,6 +176,29 @@ namespace RimAI.Framework.Core
             Scribe_Values.Look(ref modelName, "RimAIFramework_modelName", "gpt-4o");
             Scribe_Values.Look(ref enableStreaming, "RimAIFramework_enableStreaming", false);
             Scribe_Values.Look(ref temperature, "RimAIFramework_temperature", 0.7f);
+
+            // Performance Settings
+            Scribe_Values.Look(ref maxTokens, "RimAIFramework_maxTokens", 1000);
+            Scribe_Values.Look(ref timeoutSeconds, "RimAIFramework_timeoutSeconds", 30);
+            Scribe_Values.Look(ref retryCount, "RimAIFramework_retryCount", 3);
+            Scribe_Values.Look(ref maxConcurrentRequests, "RimAIFramework_maxConcurrentRequests", 5);
+
+            // Cache Settings
+            Scribe_Values.Look(ref enableCaching, "RimAIFramework_enableCaching", true);
+            Scribe_Values.Look(ref cacheSize, "RimAIFramework_cacheSize", 1000);
+            Scribe_Values.Look(ref cacheTtlMinutes, "RimAIFramework_cacheTtlMinutes", 30);
+
+            // Batch Processing Settings
+            Scribe_Values.Look(ref batchSize, "RimAIFramework_batchSize", 5);
+            Scribe_Values.Look(ref batchTimeoutSeconds, "RimAIFramework_batchTimeoutSeconds", 2);
+
+            // Diagnostics Settings
+            Scribe_Values.Look(ref enableDetailedLogging, "RimAIFramework_enableDetailedLogging", false);
+            Scribe_Values.Look(ref logLevel, "RimAIFramework_logLevel", 1);
+            Scribe_Values.Look(ref enableHealthCheck, "RimAIFramework_enableHealthCheck", true);
+            Scribe_Values.Look(ref healthCheckIntervalMinutes, "RimAIFramework_healthCheckIntervalMinutes", 5);
+            Scribe_Values.Look(ref enableMemoryMonitoring, "RimAIFramework_enableMemoryMonitoring", true);
+            Scribe_Values.Look(ref memoryThresholdMB, "RimAIFramework_memoryThresholdMB", 100);
 
             // Embeddings Settings
             Scribe_Values.Look(ref enableEmbeddings, "RimAIFramework_enableEmbeddings", false);

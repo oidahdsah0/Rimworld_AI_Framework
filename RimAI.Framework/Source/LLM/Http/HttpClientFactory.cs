@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using RimAI.Framework.Configuration;
 using Verse;
 
 namespace RimAI.Framework.LLM.Http
@@ -29,12 +30,33 @@ namespace RimAI.Framework.LLM.Http
         }
         
         /// <summary>
+        /// 从配置系统获取超时设置
+        /// </summary>
+        /// <returns>超时时间（秒）</returns>
+        private static int GetTimeoutFromConfiguration()
+        {
+            try
+            {
+                var config = RimAIConfiguration.Instance;
+                return config.Get<int>("performance.timeoutSeconds", 30);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"[RimAI] Failed to read timeout from configuration: {ex.Message}");
+                return 30; // 回退到默认值
+            }
+        }
+        
+        /// <summary>
         /// 获取管理的HttpClient实例（推荐使用这个方法）
         /// </summary>
-        /// <param name="timeoutSeconds">请求超时时间（秒）</param>
+        /// <param name="timeoutSeconds">请求超时时间（秒），如果为null则从配置读取</param>
         /// <returns>管理的HttpClient实例</returns>
-        public static HttpClient GetClient(int timeoutSeconds = 30)
+        public static HttpClient GetClient(int? timeoutSeconds = null)
         {
+            // 从配置系统获取默认超时 - CRITICAL FIX
+            var actualTimeout = timeoutSeconds ?? GetTimeoutFromConfiguration();
+            
             if (_managedClient == null || _managedClient.ShouldRefresh)
             {
                 lock (_lock)
@@ -42,7 +64,7 @@ namespace RimAI.Framework.LLM.Http
                     if (_managedClient == null || _managedClient.ShouldRefresh)
                     {
                         var oldClient = _managedClient;
-                        _managedClient = new ManagedHttpClient(timeoutSeconds);
+                        _managedClient = new ManagedHttpClient(actualTimeout);
                         
                         if (oldClient != null)
                         {

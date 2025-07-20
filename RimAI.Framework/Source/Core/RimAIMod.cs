@@ -4,6 +4,7 @@ using UnityEngine;
 using Verse;
 using RimWorld;
 using RimAI.Framework.LLM;
+using RimAI.Framework.API;
 
 namespace RimAI.Framework.Core
 {
@@ -63,60 +64,52 @@ namespace RimAI.Framework.Core
             Listing_Standard listingStandard = new Listing_Standard();
             listingStandard.Begin(inRect);
 
-            // --- Chat Completion Settings ---
-            listingStandard.Label("RimAI.Framework.Settings.ChatCompletion.Title".Translate());
+            // Header with framework info
+            Text.Font = GameFont.Medium;
+            listingStandard.Label("RimAI Framework v3.0");
+            Text.Font = GameFont.Small;
             listingStandard.GapLine();
 
-            listingStandard.Label("RimAI.Framework.Settings.ChatCompletion.APIKey".Translate());
+            // Quick status check
+            var stats = RimAIAPI.GetStatistics();
+            var isHealthy = stats.ContainsKey("IsHealthy") ? Convert.ToBoolean(stats["IsHealthy"]) : false;
+            
+            GUI.color = isHealthy ? Color.green : Color.red;
+            listingStandard.Label($"Framework Status: {(isHealthy ? "Healthy" : "Issues Detected")}");
+            GUI.color = Color.white;
+            
+            listingStandard.Gap(12f);
+
+            // Enhanced Settings Button
+            if (listingStandard.ButtonText("Open Advanced Settings"))
+            {
+                Find.WindowStack.Add(new RimAISettingsWindow(settings, this));
+            }
+            
+            listingStandard.Gap(6f);
+            
+            // Quick access settings
+            listingStandard.Label("Quick Settings:");
+            
+            listingStandard.Label("API Key:");
             settings.apiKey = listingStandard.TextEntry(settings.apiKey);
 
-            listingStandard.Label("RimAI.Framework.Settings.ChatCompletion.EndpointURL".Translate());
-            settings.apiEndpoint = listingStandard.TextEntry(settings.apiEndpoint);
-
-            listingStandard.Label("RimAI.Framework.Settings.ChatCompletion.ModelName".Translate());
+            listingStandard.Label("Model Name:");
             settings.modelName = listingStandard.TextEntry(settings.modelName);
 
-            listingStandard.CheckboxLabeled("RimAI.Framework.Settings.ChatCompletion.EnableStreaming".Translate(), ref settings.enableStreaming, "RimAI.Framework.Settings.ChatCompletion.EnableStreaming.Tooltip".Translate());
+            listingStandard.CheckboxLabeled("Enable Streaming", ref settings.enableStreaming);
+            listingStandard.CheckboxLabeled("Enable Caching", ref settings.enableCaching);
 
-            // Add Temperature slider
             listingStandard.Gap(6f);
-            listingStandard.Label($"{"RimAI.Framework.Settings.ChatCompletion.Temperature".Translate()}: {settings.temperature:F1}");
+            listingStandard.Label($"Temperature: {settings.temperature:F1}");
             settings.temperature = (float)Math.Round(listingStandard.Slider(settings.temperature, 0.0f, 2.0f), 1);
-            
-            // Add temperature guidance
-            Text.Font = GameFont.Tiny;
-            GUI.color = Color.gray;
-            listingStandard.Label("  " + "RimAI.Framework.Settings.ChatCompletion.Temperature.Tooltip".Translate());
-            GUI.color = Color.white;
-            Text.Font = GameFont.Small;
-
-            // Add a helpful description for streaming
-            Text.Font = GameFont.Tiny;
-            GUI.color = Color.gray;
-            if (settings.enableStreaming)
-            {
-                listingStandard.Label("  " + "RimAI.Framework.Settings.StreamingEnabled".Translate());
-            }
-            else
-            {
-                listingStandard.Label("  " + "RimAI.Framework.Settings.StreamingDisabled".Translate());
-            }
-            GUI.color = Color.white;
-            Text.Font = GameFont.Small;
-
-            // Add a note about applying changes
-            if (GUI.changed)
-            {
-                // Refresh LLMManager settings when any setting changes
-                LLMManager.Instance.RefreshSettings();
-            }
 
             listingStandard.Gap(12f);
 
-            // --- Test Connection Button ---
+            // Test Connection Button
             if (isTesting)
             {
-                listingStandard.Label("RimAI.Framework.Settings.TestingStatus".Translate());
+                listingStandard.Label("Testing Connection...");
                 if (!string.IsNullOrEmpty(testingStatus))
                 {
                     GUI.color = Color.yellow;
@@ -126,12 +119,12 @@ namespace RimAI.Framework.Core
             }
             else
             {
-                if (listingStandard.ButtonText("RimAI.Framework.Settings.TestConnectionButton".Translate()))
+                if (listingStandard.ButtonText("Test Connection"))
                 {
                     Log.Message("[RimAI] RimAIMod: Test Connection button clicked");
                     isTesting = true;
                     testResult = "";
-                    testingStatus = "RimAI.Framework.Settings.TestConnectionStatus.Initializing".Translate();
+                    testingStatus = "Initializing test...";
                     _ = TestConnection();
                 }
             }
@@ -143,45 +136,11 @@ namespace RimAI.Framework.Core
                 GUI.color = Color.white;
             }
 
-            listingStandard.Gap(24f);
-
-            // --- Embeddings Settings ---
-            listingStandard.Label("RimAI.Framework.Settings.Embeddings.Title".Translate());
-            listingStandard.GapLine();
-
-            listingStandard.CheckboxLabeled("RimAI.Framework.Settings.Embeddings.EnableEmbeddings".Translate(), ref settings.enableEmbeddings, "RimAI.Framework.Settings.Embeddings.EnableEmbeddings.Tooltip".Translate());
-
-            if (settings.enableEmbeddings)
+            // Apply changes notification
+            if (GUI.changed)
             {
-                listingStandard.Label("RimAI.Framework.Settings.Embeddings.APIKey".Translate());
-                settings.embeddingApiKey = listingStandard.TextEntry(settings.embeddingApiKey);
-
-                listingStandard.Label("RimAI.Framework.Settings.Embeddings.EndpointURL".Translate());
-                settings.embeddingEndpoint = listingStandard.TextEntry(settings.embeddingEndpoint);
-
-                listingStandard.Label("RimAI.Framework.Settings.Embeddings.ModelName".Translate());
-                settings.embeddingModelName = listingStandard.TextEntry(settings.embeddingModelName);
-            }
-
-            listingStandard.Gap(24f);
-
-            // --- Reset Button ---
-            if (listingStandard.ButtonText("RimAI.Framework.Settings.ResetButton".Translate()))
-            {
-                // Reset Chat settings
-                settings.apiKey = "";
-                settings.apiEndpoint = "https://api.openai.com/v1";
-                settings.modelName = "gpt-4o";
-                // settings.apiEndpoint = "https://api.deepseek.com/v1";
-                // settings.modelName = "deepseek-chat";
-                settings.enableStreaming = false;
-                settings.temperature = 0.7f;
-
-                // Reset Embeddings settings
-                settings.enableEmbeddings = false;
-                settings.embeddingApiKey = "";
-                settings.embeddingEndpoint = "https://api.openai.com/v1";
-                settings.embeddingModelName = "text-embedding-3-small";
+                // Refresh LLMManager settings when any setting changes
+                LLMManager.Instance.RefreshSettings();
             }
 
             listingStandard.End();

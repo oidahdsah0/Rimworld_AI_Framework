@@ -1,4 +1,5 @@
 using System;
+using RimAI.Framework.Configuration;
 using Verse;
 
 namespace RimAI.Framework.Core
@@ -28,6 +29,44 @@ namespace RimAI.Framework.Core
         /// 是否启用详细日志（包括Debug级别）
         /// </summary>
         public static bool EnableVerboseLogging { get; set; } = false;
+        
+        /// <summary>
+        /// 从配置系统更新日志设置 - CRITICAL FIX
+        /// </summary>
+        public static void UpdateFromConfiguration()
+        {
+            try
+            {
+                var config = RimAIConfiguration.Instance;
+                var logLevel = config.Get<int>("logging.level", 1); // 默认Info
+                var enableDetailed = config.Get<bool>("logging.enableDetailed", false);
+                
+                CurrentLogLevel = (LogLevel)Math.Max(0, Math.Min(3, logLevel));
+                EnableVerboseLogging = enableDetailed;
+                
+                Debug("Logger settings updated from configuration: level={0}, verbose={1}", CurrentLogLevel, EnableVerboseLogging);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"[RimAI] Failed to update logger settings from configuration: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// 静态构造函数，初始化时从配置读取设置
+        /// </summary>
+        static RimAILogger()
+        {
+            // 延迟初始化，避免循环依赖
+            try
+            {
+                UpdateFromConfiguration();
+            }
+            catch
+            {
+                // 忽略初始化错误，使用默认设置
+            }
+        }
         
         /// <summary>
         /// 日志前缀

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using RimAI.Framework.Configuration;
 using RimAI.Framework.Core;
 using RimAI.Framework.LLM.Models;
 using Verse;
@@ -28,6 +29,95 @@ namespace RimAI.Framework.LLM.Services
             _defaultHeaders = new Dictionary<string, object>();
         }
 
+        #region Configuration Priority Methods
+        /// <summary>
+        /// 获取API端点 - 优先级：配置系统 > 设置对象 > 默认值
+        /// </summary>
+        private string GetApiEndpoint()
+        {
+            try
+            {
+                var config = RimAIConfiguration.Instance;
+                var configEndpoint = config?.Get<string>("api.endpoint");
+                if (!string.IsNullOrEmpty(configEndpoint))
+                    return configEndpoint;
+                
+                return _settings?.apiEndpoint ?? "https://api.openai.com/v1/chat/completions";
+            }
+            catch
+            {
+                return _settings?.apiEndpoint ?? "https://api.openai.com/v1/chat/completions";
+            }
+        }
+
+        /// <summary>
+        /// 获取API密钥 - 优先级：配置系统 > 设置对象 > 空值
+        /// </summary>
+        private string GetApiKey()
+        {
+            try
+            {
+                var config = RimAIConfiguration.Instance;
+                var configKey = config?.Get<string>("api.key");
+                if (!string.IsNullOrEmpty(configKey))
+                    return configKey;
+                
+                return _settings?.apiKey ?? string.Empty;
+            }
+            catch
+            {
+                return _settings?.apiKey ?? string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// 应用全局默认值到请求 - 只在未指定时应用
+        /// </summary>
+        private void ApplyGlobalDefaults(UnifiedLLMRequest request)
+        {
+            try
+            {
+                var config = RimAIConfiguration.Instance;
+                
+                // 确保Options不为空
+                if (request.Options == null)
+                {
+                    request.Options = new LLMRequestOptions();
+                }
+                
+                // 应用API默认值
+                if (!request.Options.Temperature.HasValue)
+                {
+                    var defaultTemp = config?.Get<float?>("api.temperature") ?? _settings?.temperature ?? 0.7f;
+                    request.Options.Temperature = defaultTemp;
+                }
+                
+                if (!request.Options.MaxTokens.HasValue)
+                {
+                    var defaultTokens = config?.Get<int?>("api.maxTokens") ?? _settings?.maxTokens ?? 1000;
+                    request.Options.MaxTokens = defaultTokens;
+                }
+                
+                if (string.IsNullOrEmpty(request.Options.Model))
+                {
+                    var defaultModel = config?.Get<string>("api.model") ?? _settings?.modelName ?? "gpt-4o";
+                    request.Options.Model = defaultModel;
+                }
+                
+                // 应用流式设置（只在没有明确设置时应用）
+                if (!request.Options.HasExplicitStreamingSetting)
+                {
+                    var defaultStreaming = config?.Get<bool?>("api.enableStreaming") ?? _settings?.enableStreaming ?? false;
+                    request.Options.EnableStreaming = defaultStreaming;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"[RimAI] Failed to apply global defaults: {ex.Message}");
+            }
+        }
+        #endregion
+
         /// <summary>
         /// Execute a unified LLM request - the single entry point for all LLM operations
         /// </summary>
@@ -38,6 +128,9 @@ namespace RimAI.Framework.LLM.Services
 
             try
             {
+                // 应用全局默认值 - CRITICAL FIX
+                ApplyGlobalDefaults(request);
+                
                 // Validate request
                 var validationResult = ValidateRequest(request);
                 if (!validationResult.IsValid)
@@ -94,10 +187,14 @@ namespace RimAI.Framework.LLM.Services
             var requestBody = BuildRequestBody(request, false);
             var jsonBody = JsonConvert.SerializeObject(requestBody);
             
+            // 使用配置优先级获取API配置 - CRITICAL FIX
+            var apiEndpoint = GetApiEndpoint();
+            var apiKey = GetApiKey();
+            
             var httpResponse = await SendHttpRequestAsync(
-                _settings.ChatCompletionsEndpoint, 
+                apiEndpoint, 
                 jsonBody, 
-                _settings.apiKey, 
+                apiKey, 
                 request.CancellationToken
             );
 
@@ -125,8 +222,12 @@ namespace RimAI.Framework.LLM.Services
                 var requestBody = BuildRequestBody(request, true);
                 var jsonBody = JsonConvert.SerializeObject(requestBody);
                 
-                using var httpRequest = new HttpRequestMessage(HttpMethod.Post, _settings.ChatCompletionsEndpoint);
-                httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _settings.apiKey);
+                // 使用配置优先级获取API配置 - CRITICAL FIX
+                var apiEndpoint = GetApiEndpoint();
+                var apiKey = GetApiKey();
+                
+                using var httpRequest = new HttpRequestMessage(HttpMethod.Post, apiEndpoint);
+                httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
                 httpRequest.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
                 using var response = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, request.CancellationToken);

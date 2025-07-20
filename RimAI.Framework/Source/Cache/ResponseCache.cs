@@ -96,18 +96,22 @@ namespace RimAI.Framework.Cache
         /// </summary>
         public bool IsDisposed => _disposed;
         
-        private ResponseCache(int maxSize = 100)
+        private ResponseCache()
         {
-            _maxSize = Math.Max(1, maxSize);
+            // 从配置系统读取缓存设置 - CRITICAL FIX
+            var configuration = RimAI.Framework.Configuration.RimAIConfiguration.Instance;
+            _maxSize = Math.Max(1, configuration.Get<int>("cache.size", 1000));
+            var cleanupIntervalMinutes = Math.Max(1, configuration.Get<int>("cache.cleanupIntervalMinutes", 2));
+            
             _cache = new ConcurrentDictionary<string, CacheEntry>();
             _accessOrder = new LinkedList<string>();
             
-            // 定期清理过期条目 - 每2分钟检查一次
+            // 使用配置的清理间隔
             _cleanupTimer = new Timer(
                 CleanupExpiredEntries,
                 null,
-                TimeSpan.FromMinutes(2),
-                TimeSpan.FromMinutes(2)
+                TimeSpan.FromMinutes(cleanupIntervalMinutes),
+                TimeSpan.FromMinutes(cleanupIntervalMinutes)
             );
             
             // 统计信息定时器 - 每10分钟记录一次统计
@@ -118,7 +122,8 @@ namespace RimAI.Framework.Cache
                 TimeSpan.FromMinutes(10)
             );
             
-            Info("ResponseCache initialized with max size: {0}", _maxSize);
+            Info("ResponseCache initialized from configuration: maxSize={0}, cleanupInterval={1}min", 
+                 _maxSize, cleanupIntervalMinutes);
         }
         
         /// <summary>
@@ -183,7 +188,10 @@ namespace RimAI.Framework.Cache
             var value = await factory();
             
             // 将新值添加到缓存
-            var expirationTime = expiration ?? TimeSpan.FromMinutes(30); // 默认30分钟
+            // 从配置系统获取默认TTL - CRITICAL FIX
+            var configuration = RimAI.Framework.Configuration.RimAIConfiguration.Instance;
+            var defaultTtlMinutes = configuration.Get<int>("cache.ttlMinutes", 30);
+            var expirationTime = expiration ?? TimeSpan.FromMinutes(defaultTtlMinutes);
             AddToCache(safeKey, value, expirationTime);
             
             return value;
@@ -223,7 +231,10 @@ namespace RimAI.Framework.Cache
                 return;
                 
             var safeKey = GenerateCacheKey(key);
-            var expirationTime = expiration ?? TimeSpan.FromMinutes(30);
+            // 从配置系统获取默认TTL - CRITICAL FIX
+            var configuration = RimAI.Framework.Configuration.RimAIConfiguration.Instance;
+            var defaultTtlMinutes = configuration.Get<int>("cache.ttlMinutes", 30);
+            var expirationTime = expiration ?? TimeSpan.FromMinutes(defaultTtlMinutes);
             
             AddToCache(safeKey, value, expirationTime);
         }

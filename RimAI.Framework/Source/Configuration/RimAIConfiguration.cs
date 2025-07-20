@@ -127,43 +127,55 @@ namespace RimAI.Framework.Configuration
         {
             var defaults = new Dictionary<string, object>
             {
-                // 日志设置
-                ["Logging.Level"] = "Info",
-                ["Logging.EnableDebug"] = false,
-                ["Logging.MaxLogFiles"] = 10,
-                
-                // HTTP设置
-                ["Http.Timeout"] = 30000, // 30秒
-                ["Http.RetryCount"] = 3,
-                ["Http.RetryDelay"] = 1000, // 1秒
-                ["Http.MaxConnections"] = 20,
-                ["Http.DnsRefreshInterval"] = 300000, // 5分钟
-                
-                // 缓存设置
-                ["Cache.MaxSize"] = 100,
-                ["Cache.DefaultExpiration"] = 1800000, // 30分钟
-                ["Cache.CleanupInterval"] = 120000, // 2分钟
-                
-                // 批处理设置
-                ["Batch.MaxSize"] = 10,
-                ["Batch.WindowMs"] = 500,
-                ["Batch.MaxConcurrent"] = 3,
-                
-                // API设置
-                ["API.BaseUrl"] = "",
-                ["API.ApiKey"] = "",
-                ["API.Model"] = "gpt-3.5-turbo",
-                ["API.MaxTokens"] = 2048,
-                ["API.Temperature"] = 0.7,
+                // API配置 - 对应RimAISettings
+                ["api.key"] = "",
+                ["api.endpoint"] = "https://api.openai.com/v1",
+                ["api.model"] = "gpt-4o",
+                ["api.temperature"] = 0.7f,
+                ["api.maxTokens"] = 1000,
+                ["api.enableStreaming"] = false,
                 
                 // 性能设置
+                ["performance.timeoutSeconds"] = 30,
+                ["performance.retryCount"] = 3,
+                ["performance.maxConcurrentRequests"] = 5,
+                
+                // 缓存设置
+                ["cache.enabled"] = true,
+                ["cache.size"] = 1000,
+                ["cache.ttlMinutes"] = 30,
+                
+                // 批处理设置
+                ["batch.size"] = 5,
+                ["batch.timeoutSeconds"] = 2,
+                
+                // 日志设置
+                ["logging.enableDetailed"] = false,
+                ["logging.level"] = 1, // Info
+                
+                // 健康检查设置
+                ["health.enableChecks"] = true,
+                ["health.intervalMinutes"] = 5,
+                ["health.enableMemoryMonitoring"] = true,
+                ["health.memoryThresholdMB"] = 100,
+                
+                // 嵌入设置
+                ["embedding.enabled"] = false,
+                ["embedding.key"] = "",
+                ["embedding.endpoint"] = "https://api.openai.com/v1",
+                ["embedding.model"] = "text-embedding-3-small",
+                
+                // 遗留设置（保持向后兼容）
+                ["Logging.Level"] = "Info",
+                ["Logging.EnableDebug"] = false,
+                ["Http.Timeout"] = 30000,
+                ["Http.RetryCount"] = 3,
+                ["Http.MaxConnections"] = 20,
+                ["Cache.MaxSize"] = 1000,
+                ["Cache.DefaultExpiration"] = 1800000, // 30分钟
                 ["Performance.EnableBatching"] = true,
                 ["Performance.EnableCaching"] = true,
-                ["Performance.MaxMemoryUsage"] = 100 * 1024 * 1024, // 100MB
-                
-                // 安全设置
-                ["Security.ValidateSSL"] = true,
-                ["Security.AllowSelfSignedCerts"] = false
+                ["Security.ValidateSSL"] = true
             };
             
             foreach (var kvp in defaults)
