@@ -77,7 +77,7 @@ namespace RimAI.Framework.Core
             var isHealthy = stats.ContainsKey("IsHealthy") ? Convert.ToBoolean(stats["IsHealthy"]) : false;
             
             GUI.color = isHealthy ? Color.green : Color.red;
-            listingStandard.Label($"{"RimAI.Framework.Messages.FrameworkStatus".Translate()} {(isHealthy ? "RimAI.Framework.Messages.StatusHealthy".Translate() : "RimAI.Framework.Messages.StatusIssuesDetected".Translate())}");
+            listingStandard.Label($"{"RimAI.Framework.Settings.FrameworkStatus".Translate()} {(isHealthy ? "RimAI.Framework.Settings.StatusHealthy".Translate() : "RimAI.Framework.Settings.StatusIssuesDetected".Translate())}");
             GUI.color = Color.white;
             
             listingStandard.Gap(12f);
@@ -93,10 +93,10 @@ namespace RimAI.Framework.Core
             // Quick access settings
             listingStandard.Label("RimAI.Framework.Settings.QuickSettings".Translate());
             
-            listingStandard.Label("RimAI.Framework.Settings.ApiKey".Translate());
+            listingStandard.Label("RimAI.Framework.Settings.APIKey".Translate());
             settings.apiKey = listingStandard.TextEntry(settings.apiKey);
 
-            listingStandard.Label("RimAI.Framework.Settings.ApiEndpoint".Translate());
+            listingStandard.Label("RimAI.Framework.Settings.APIEndpoint".Translate());
             settings.apiEndpoint = listingStandard.TextEntry(settings.apiEndpoint);
 
             listingStandard.Label("RimAI.Framework.Settings.ModelName".Translate());
@@ -106,7 +106,7 @@ namespace RimAI.Framework.Core
             listingStandard.CheckboxLabeled("RimAI.Framework.Settings.EnableCaching".Translate(), ref settings.enableCaching);
 
             listingStandard.Gap(6f);
-            listingStandard.Label($"Temperature: {settings.temperature:F1}");
+            listingStandard.Label($"{"RimAI.Framework.Settings.Temperature".Translate()}");
             settings.temperature = (float)Math.Round(listingStandard.Slider(settings.temperature, 0.0f, 2.0f), 1);
 
             listingStandard.Gap(12f);
@@ -144,7 +144,7 @@ namespace RimAI.Framework.Core
                     Log.Message("[RimAI] RimAIMod: Test Connection button clicked");
                     isTesting = true;
                     testResult = "";
-                    testingStatus = "Initializing test...";
+                    testingStatus = "RimAI.Framework.Messages.InitializingTest".Translate();
                     _ = TestConnection();
                 }
             }
@@ -176,10 +176,10 @@ namespace RimAI.Framework.Core
             
             isTesting = false;
             testingStatus = "";
-            testResult = "RimAI.Framework.Messages.TestCancelled".Translate();
+            testResult = "RimAI.Framework.Messages.ConnectionTestCancelled".Translate();
             testResultColor = Color.gray;
             
-            Messages.Message("RimAI.Framework.Messages.TestCancelled".Translate(), MessageTypeDefOf.NeutralEvent);
+            Messages.Message("RimAI.Framework.Messages.ConnectionTestCancelled".Translate(), MessageTypeDefOf.NeutralEvent);
         }
 
         private void ApplySettings()
@@ -202,7 +202,7 @@ namespace RimAI.Framework.Core
             catch (Exception ex)
             {
                 Log.Error($"[RimAI] RimAIMod: Error applying settings: {ex}");
-                Messages.Message($"{"RimAI.Framework.Messages.SettingsApplyError".Translate()}: {ex.Message}", MessageTypeDefOf.RejectInput);
+                Messages.Message($"{"RimAI.Framework.Messages.ErrorApplyingSettings".Translate()}: {ex.Message}", MessageTypeDefOf.RejectInput);
             }
         }
 
@@ -264,7 +264,7 @@ namespace RimAI.Framework.Core
                 {
                     Log.Error($"[RimAI] RimAIMod: Error in main thread callback: {ex}");
                     testResultColor = Color.red;
-                    testResult = $"{"RimAI.Framework.Messages.CallbackError".Translate()}: {ex.Message}";
+                    testResult = $"{"RimAI.Framework.Messages.TestResultCallbackError".Translate()}: {ex.Message}";
                 }
                 finally
                 {

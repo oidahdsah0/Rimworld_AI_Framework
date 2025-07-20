@@ -79,7 +79,7 @@
   <RimAI.Framework.Settings.Tab.Cache>缓存</RimAI.Framework.Settings.Tab.Cache>
   <RimAI.Framework.Settings.Tab.Debug>调试</RimAI.Framework.Settings.Tab.Debug>
   <RimAI.Framework.Settings.Tab.Diagnostics>诊断</RimAI.Framework.Settings.Tab.Diagnostics>
-  <RimAI.Framework.Settings.Tab.Embedding>文本向量化 (Embedding)</RimAI.Framework.Settings.Tab.Embedding>
+  <RimAI.Framework.Settings.Tab.Embedding>向量化 (Embedding)</RimAI.Framework.Settings.Tab.Embedding>
   <RimAI.Framework.Settings.Tab.Network>网络</RimAI.Framework.Settings.Tab.Network>
   <RimAI.Framework.Settings.Tab.Performance>性能</RimAI.Framework.Settings.Tab.Performance>
   <!-- Settings -->
