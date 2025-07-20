@@ -13,83 +13,130 @@ using Verse;
 namespace RimAI.Framework.LLM.Services
 {
     /// <summary>
-    /// Executes individual LLM requests - handles the actual HTTP communication
+    /// Modern unified LLM executor implementation - handles all LLM requests through unified interface
     /// </summary>
-    public class LLMExecutor : ILLMExecutor
+    public class LLMExecutor
     {
         private readonly HttpClient _httpClient;
         private readonly RimAISettings _settings;
+        private readonly Dictionary<string, object> _defaultHeaders;
 
         public LLMExecutor(HttpClient httpClient, RimAISettings settings)
         {
-            _httpClient = httpClient;
-            _settings = settings;
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            _defaultHeaders = new Dictionary<string, object>();
         }
 
-        public async Task<string> ExecuteSingleRequestAsync(string prompt, CancellationToken cancellationToken)
+        /// <summary>
+        /// Execute a unified LLM request - the single entry point for all LLM operations
+        /// </summary>
+        public async Task<LLMResponse> ExecuteAsync(UnifiedLLMRequest request)
         {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+
             try
             {
-                var requestBody = new
+                // Validate request
+                var validationResult = ValidateRequest(request);
+                if (!validationResult.IsValid)
                 {
-                    model = _settings.modelName,
-                    messages = new[]
-                    {
-                        new { role = "user", content = prompt }
-                    },
-                    stream = false,
-                    temperature = _settings.temperature
-                };
-
-                var jsonBody = JsonConvert.SerializeObject(requestBody);
-                var response = await SendHttpRequestAsync(_settings.ChatCompletionsEndpoint, jsonBody, _settings.apiKey, cancellationToken);
-
-                if (response.success)
-                {
-                    return ParseChatCompletionResponse(response.responseBody);
+                    return LLMResponse.Failed(validationResult.Error, request.RequestId)
+                        .WithMetadata("validation_error", true);
                 }
-                
-                return null;
+
+                // Execute based on streaming mode
+                if (request.IsStreaming)
+                {
+                    return await ExecuteStreamingInternalAsync(request);
+                }
+                else
+                {
+                    return await ExecuteNonStreamingInternalAsync(request);
+                }
             }
             catch (OperationCanceledException)
             {
-                throw;
+                return LLMResponse.Failed("Request was cancelled", request.RequestId)
+                    .WithMetadata("cancelled", true);
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimAI] LLMExecutor: Failed to execute single request. Details: {ex}");
-                return null;
+                Log.Error($"[RimAI] LLMExecutor: Execution failed: {ex}");
+                return LLMResponse.Failed($"Execution failed: {ex.Message}", request.RequestId)
+                    .WithMetadata("exception_type", ex.GetType().Name)
+                    .WithMetadata("stack_trace", ex.StackTrace);
             }
         }
 
-        public async Task ExecuteStreamingRequestAsync(string prompt, Action<string> onChunkReceived, CancellationToken cancellationToken)
+        /// <summary>
+        /// Test connection to the LLM service
+        /// </summary>
+        public async Task<(bool success, string message)> TestConnectionAsync()
         {
+            var testRequest = new UnifiedLLMRequest
+            {
+                Prompt = "Say 'test'",
+                Options = new LLMRequestOptions { MaxTokens = 5 },
+                CancellationToken = CancellationToken.None,
+                RequestId = "test-connection"
+            };
+
+            var response = await ExecuteAsync(testRequest);
+            return (response.IsSuccess, response.IsSuccess ? "Connection successful" : response.Error);
+        }
+
+        #region Private Implementation Methods
+        
+        private async Task<LLMResponse> ExecuteNonStreamingInternalAsync(UnifiedLLMRequest request)
+        {
+            var requestBody = BuildRequestBody(request, false);
+            var jsonBody = JsonConvert.SerializeObject(requestBody);
+            
+            var httpResponse = await SendHttpRequestAsync(
+                _settings.ChatCompletionsEndpoint, 
+                jsonBody, 
+                _settings.apiKey, 
+                request.CancellationToken
+            );
+
+            if (httpResponse.success)
+            {
+                var content = ParseChatCompletionResponse(httpResponse.responseBody);
+                return LLMResponse.Success(content, request.RequestId)
+                    .WithMetadata("status_code", httpResponse.statusCode)
+                    .WithMetadata("model", request.Options?.Model ?? _settings.modelName)
+                    .WithMetadata("temperature", request.Options?.Temperature ?? _settings.temperature);
+            }
+
+            return LLMResponse.Failed($"HTTP {httpResponse.statusCode}: {httpResponse.errorContent}", request.RequestId)
+                .WithMetadata("status_code", httpResponse.statusCode)
+                .WithMetadata("error_content", httpResponse.errorContent);
+        }
+
+        private async Task<LLMResponse> ExecuteStreamingInternalAsync(UnifiedLLMRequest request)
+        {
+            var responseBuilder = new StringBuilder();
+            var chunkCount = 0;
+
             try
             {
-                var requestBody = new
-                {
-                    model = _settings.modelName,
-                    messages = new[]
-                    {
-                        new { role = "user", content = prompt }
-                    },
-                    stream = true,
-                    temperature = _settings.temperature
-                };
-
+                var requestBody = BuildRequestBody(request, true);
                 var jsonBody = JsonConvert.SerializeObject(requestBody);
                 
-                using var request = new HttpRequestMessage(HttpMethod.Post, _settings.ChatCompletionsEndpoint);
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _settings.apiKey);
-                request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+                using var httpRequest = new HttpRequestMessage(HttpMethod.Post, _settings.ChatCompletionsEndpoint);
+                httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _settings.apiKey);
+                httpRequest.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
-                using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                using var response = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, request.CancellationToken);
                 
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
-                    Log.Error($"RimAI Framework: Streaming request failed with status {response.StatusCode}: {errorContent}");
-                    return;
+                    return LLMResponse.Failed($"HTTP {response.StatusCode}: {errorContent}", request.RequestId)
+                        .WithMetadata("status_code", (int)response.StatusCode)
+                        .WithMetadata("error_content", errorContent);
                 }
 
                 using var stream = await response.Content.ReadAsStreamAsync();
@@ -98,78 +145,126 @@ namespace RimAI.Framework.LLM.Services
                 string line;
                 while ((line = await reader.ReadLineAsync()) != null)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    ProcessStreamLine(line, onChunkReceived, cancellationToken);
+                    if (request.CancellationToken.IsCancellationRequested)
+                        break;
+
+                    if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("data: "))
+                        continue;
+
+                    var jsonData = line.Substring(6);
+                    if (jsonData == "[DONE]")
+                        break;
+
+                    try
+                    {
+                        var chunk = JsonConvert.DeserializeObject<dynamic>(jsonData);
+                        var content = chunk?.choices?[0]?.delta?.content?.ToString();
+                        
+                        if (!string.IsNullOrEmpty(content))
+                        {
+                            responseBuilder.Append(content);
+                            chunkCount++;
+                            request.OnChunkReceived?.Invoke(content);
+                        }
+                    }
+                    catch (Exception chunkEx)
+                    {
+                        Log.Warning($"RimAI Framework: Failed to parse streaming chunk: {chunkEx.Message}");
+                    }
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                Log.Message("RimAI Framework: Streaming request was cancelled");
-                throw;
+
+                return LLMResponse.Success(responseBuilder.ToString(), request.RequestId)
+                    .WithMetadata("streaming", true)
+                    .WithMetadata("chunk_count", chunkCount)
+                    .WithMetadata("model", request.Options?.Model ?? _settings.modelName);
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimAI] LLMExecutor: Failed to execute streaming request. Details: {ex}");
+                return LLMResponse.Failed($"Streaming failed: {ex.Message}", request.RequestId)
+                    .WithContent(responseBuilder.ToString())
+                    .WithMetadata("streaming", true)
+                    .WithMetadata("chunk_count", chunkCount)
+                    .WithMetadata("partial_content", responseBuilder.Length > 0);
             }
         }
 
-        public async Task<(bool success, string message)> TestConnectionAsync()
+        private object BuildRequestBody(UnifiedLLMRequest request, bool streaming)
         {
-            Log.Message("[RimAI] LLMExecutor: TestConnectionAsync called.");
+            var options = request.Options ?? new LLMRequestOptions();
+            var temperature = options.Temperature ?? _settings.temperature;
+            var model = options.Model ?? _settings.modelName;
+
+            var body = new Dictionary<string, object>
+            {
+                ["model"] = model,
+                ["messages"] = new[]
+                {
+                    new { role = "user", content = request.Prompt }
+                },
+                ["stream"] = streaming,
+                ["temperature"] = temperature
+            };
+
+            if (options.MaxTokens.HasValue)
+            {
+                body["max_tokens"] = options.MaxTokens.Value;
+            }
+
+            // Add any additional parameters from options
+            if (options.TopP.HasValue)
+            {
+                body["top_p"] = options.TopP.Value;
+            }
+
+            if (options.FrequencyPenalty.HasValue)
+            {
+                body["frequency_penalty"] = options.FrequencyPenalty.Value;
+            }
+
+            if (options.PresencePenalty.HasValue)
+            {
+                body["presence_penalty"] = options.PresencePenalty.Value;
+            }
+
+            // Add all custom parameters from AdditionalParameters
+            if (options.AdditionalParameters != null && options.AdditionalParameters.Count > 0)
+            {
+                foreach (var param in options.AdditionalParameters)
+                {
+                    // Avoid overwriting core parameters that are already set
+                    if (!body.ContainsKey(param.Key))
+                    {
+                        body[param.Key] = param.Value;
+                    }
+                }
+            }
+
+            return body;
+        }
+
+        private (bool IsValid, string Error) ValidateRequest(UnifiedLLMRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Prompt))
+            {
+                return (false, "Prompt cannot be empty");
+            }
+
+            if (request.Prompt.Length > 32000) // Example limit
+            {
+                return (false, "Prompt exceeds maximum length");
+            }
 
             if (string.IsNullOrEmpty(_settings.apiKey))
             {
-                Log.Warning("[RimAI] LLMExecutor: API Key is not set.");
-                return (false, "API Key is not set.");
+                return (false, "API Key is not configured");
             }
+
             if (string.IsNullOrEmpty(_settings.apiEndpoint))
             {
-                Log.Warning("[RimAI] LLMExecutor: API Endpoint is not set.");
-                return (false, "API Endpoint is not set.");
+                return (false, "API Endpoint is not configured");
             }
 
-            var requestBody = new
-            {
-                model = _settings.modelName,
-                messages = new[]
-                {
-                    new { role = "user", content = "Say 'test'." }
-                },
-                max_tokens = 5
-            };
-
-            var jsonBody = JsonConvert.SerializeObject(requestBody);
-            
-            try
-            {
-                var response = await SendHttpRequestAsync(_settings.ChatCompletionsEndpoint, jsonBody, _settings.apiKey, CancellationToken.None);
-
-                if (response.success)
-                {
-                    Log.Message("[RimAI] LLMExecutor: Request successful.");
-                    return (true, "Connection successful");
-                }
-                else
-                {
-                    Log.Error($"[RimAI] LLMExecutor: Request failed. Status: {response.statusCode}, Body: {response.errorContent}");
-                    return (false, $"Request failed with status {response.statusCode}: {response.errorContent}");
-                }
-            }
-            catch (HttpRequestException e)
-            {
-                Log.Error($"[RimAI] LLMExecutor: HttpRequestException: {e.Message}");
-                return (false, $"HTTP Error: {e.Message}");
-            }
-            catch (TaskCanceledException e)
-            {
-                Log.Error($"[RimAI] LLMExecutor: TaskCanceledException (Timeout): {e.Message}");
-                return (false, $"Timeout: {e.Message}");
-            }
-            catch (Exception e)
-            {
-                Log.Error($"[RimAI] LLMExecutor: An unexpected error occurred: {e.ToString()}");
-                return (false, $"Unexpected error: {e.Message}");
-            }
+            return (true, null);
         }
 
         private string ParseChatCompletionResponse(string jsonResponse)
@@ -190,92 +285,15 @@ namespace RimAI.Framework.LLM.Services
                 Log.Error($"RimAI Framework: Response format unexpected. Response: {jsonResponse}");
                 return null;
             }
-            catch (JsonException ex)
-            {
-                Log.Error($"RimAI Framework: JSON parsing error: {ex.Message}\nResponse Body: {jsonResponse}");
-                return null;
-            }
             catch (Exception ex)
             {
-                Log.Error($"RimAI Framework: Unexpected error parsing response: {ex}\nResponse Body: {jsonResponse}");
+                Log.Error($"RimAI Framework: Error parsing response: {ex.Message}");
                 return null;
             }
         }
 
-        private void ProcessStreamLine(string line, Action<string> onChunkReceived, CancellationToken cancellationToken = default)
-        {
-            if (cancellationToken.IsCancellationRequested)
-                return;
-
-            if (string.IsNullOrWhiteSpace(line))
-                return;
-
-            if (!line.StartsWith("data: "))
-                return;
-
-            var data = line.Substring(6);
-            
-            if (data.Trim() == "[DONE]")
-                return;
-
-            try
-            {
-                var chunk = JsonConvert.DeserializeObject<StreamingChatCompletionChunk>(data);
-                
-                if (chunk?.choices != null && chunk.choices.Count > 0)
-                {
-                    var delta = chunk.choices[0].delta;
-                    if (!string.IsNullOrEmpty(delta?.content))
-                    {
-                        if (cancellationToken.IsCancellationRequested)
-                            return;
-
-                        try
-                        {
-                            Verse.LongEventHandler.ExecuteWhenFinished(() => 
-                            {
-                                try
-                                {
-                                    if (!cancellationToken.IsCancellationRequested)
-                                    {
-                                        onChunkReceived(delta.content);
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    Log.Warning($"RimAI Framework: Exception in streaming callback: {ex.Message}");
-                                }
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Warning($"RimAI Framework: Could not marshal to main thread, calling directly: {ex.Message}");
-                            try
-                            {
-                                if (!cancellationToken.IsCancellationRequested)
-                                {
-                                    onChunkReceived(delta.content);
-                                }
-                            }
-                            catch (Exception callbackEx)
-                            {
-                                Log.Warning($"RimAI Framework: Exception in direct streaming callback: {callbackEx.Message}");
-                            }
-                        }
-                    }
-                }
-            }
-            catch (JsonException ex)
-            {
-                Log.Warning($"RimAI Framework: Failed to parse streaming chunk: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                Log.Warning($"RimAI Framework: Error processing stream chunk: {ex.Message}");
-            }
-        }
-
-        private async Task<(bool success, int statusCode, string responseBody, string errorContent)> SendHttpRequestAsync(string endpoint, string jsonBody, string apiKey, CancellationToken cancellationToken)
+        private async Task<(bool success, int statusCode, string responseBody, string errorContent)> SendHttpRequestAsync(
+            string endpoint, string jsonBody, string apiKey, CancellationToken cancellationToken)
         {
             try
             {
@@ -283,38 +301,36 @@ namespace RimAI.Framework.LLM.Services
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
                 request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
+                // Add custom headers if any
+                foreach (var header in _defaultHeaders)
+                {
+                    request.Headers.TryAddWithoutValidation(header.Key, header.Value.ToString());
+                }
+
                 using var response = await _httpClient.SendAsync(request, cancellationToken);
+                var responseBody = await response.Content.ReadAsStringAsync();
                 
                 if (response.IsSuccessStatusCode)
                 {
-                    var responseBody = await response.Content.ReadAsStringAsync();
                     return (true, (int)response.StatusCode, responseBody, null);
                 }
                 else
                 {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    Log.Error($"RimAI Framework: HTTP request failed with status {response.StatusCode}: {errorContent}");
-                    return (false, (int)response.StatusCode, null, errorContent);
+                    return (false, (int)response.StatusCode, null, responseBody);
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
             }
             catch (Exception ex)
             {
-                Log.Error($"RimAI Framework: HTTP request exception: {ex.Message}");
+                Log.Error($"RimAI Framework: HTTP request exception: {ex}");
                 return (false, 0, null, ex.Message);
             }
         }
 
-        /// <summary>
-        /// Dispose implementation for IDisposable
-        /// </summary>
+        #endregion
+
         public void Dispose()
         {
-            // HttpClient is managed externally, so we don't dispose it here
-            // Any other cleanup logic can be added here if needed
+            // HttpClient is managed externally
         }
     }
 }

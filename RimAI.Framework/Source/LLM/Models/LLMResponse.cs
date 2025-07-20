@@ -57,19 +57,6 @@ namespace RimAI.Framework.LLM.Models
     }
 
     /// <summary>
-    /// Generic response wrapper
-    /// </summary>
-    public class LLMResponse
-    {
-        public bool Success { get; set; }
-        public string Content { get; set; }
-        public object JsonContent { get; set; }
-        public Dictionary<string, object> RawResponse { get; set; }
-        public string Error { get; set; }
-        public Usage Usage { get; set; }
-    }
-
-    /// <summary>
     /// Custom response for flexible API
     /// </summary>
     public class CustomResponse

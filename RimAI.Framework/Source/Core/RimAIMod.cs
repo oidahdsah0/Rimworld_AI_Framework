@@ -31,6 +31,17 @@ namespace RimAI.Framework.Core
         {
             // Get a reference to our settings.
             settings = GetSettings<RimAISettings>();
+            
+            // Initialize the LifecycleManager early in the mod lifecycle
+            try
+            {
+                _ = LifecycleManager.Instance;
+                RimAILogger.Info("LifecycleManager initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                RimAILogger.Error("Failed to initialize LifecycleManager: {0}", ex.Message);
+            }
         }
 
         /// <summary>
