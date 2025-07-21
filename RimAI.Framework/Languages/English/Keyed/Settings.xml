@@ -16,9 +16,10 @@
   <RimAI.Framework.Messages.PresetApplied>{0} preset applied</RimAI.Framework.Messages.PresetApplied>
   <RimAI.Framework.Messages.SettingsApplied>Settings applied successfully</RimAI.Framework.Messages.SettingsApplied>
   <RimAI.Framework.Messages.TestError>RimAI: Connection error occurred: {0}</RimAI.Framework.Messages.TestError>
-  <RimAI.Framework.Messages.TestFailed>RimAI: Connection failed! Status: {0}, Reason: {1}</RimAI.Framework.Messages.TestFailed>
+  <RimAI.Framework.Messages.TestFailed>RimAI: Connection failed! Reason: {0}</RimAI.Framework.Messages.TestFailed>
   <RimAI.Framework.Messages.TestStarting>RimAI: Starting connection test...</RimAI.Framework.Messages.TestStarting>
   <RimAI.Framework.Messages.TestSuccess>RimAI: Connection successful!</RimAI.Framework.Messages.TestSuccess>
+  <RimAI.Framework.Messages.TestingConnection>Testing connection...</RimAI.Framework.Messages.TestingConnection>
   <RimAI.Framework.Messages.UnableToRetrieveCacheStats>Unable to retrieve cache statistics: {0}</RimAI.Framework.Messages.UnableToRetrieveCacheStats>
   <!-- Settings -->
   <RimAI.Framework.Settings.APIEndpoint>Server URL (API Endpoint):</RimAI.Framework.Settings.APIEndpoint>
@@ -98,8 +99,6 @@
   <RimAI.Framework.Settings.StatusIssuesDetected>Issues Detected</RimAI.Framework.Settings.StatusIssuesDetected>
   <RimAI.Framework.Settings.OpenCompleteSettingsWindow>Open Complete Settings Window</RimAI.Framework.Settings.OpenCompleteSettingsWindow>
   <RimAI.Framework.Settings.QuickSettings>Quick Settings:</RimAI.Framework.Settings.QuickSettings>
-  <RimAI.Framework.Settings.EnableStreaming>Enable Streaming</RimAI.Framework.Settings.EnableStreaming>
-  <RimAI.Framework.Settings.EnableCaching>Enable Caching</RimAI.Framework.Settings.EnableCaching>
   <RimAI.Framework.Settings.ApplySettings>Apply Settings</RimAI.Framework.Settings.ApplySettings>
   <RimAI.Framework.Settings.CancelTest>Cancel Test</RimAI.Framework.Settings.CancelTest>
   

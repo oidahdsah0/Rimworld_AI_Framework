@@ -322,8 +322,8 @@ namespace RimAI.Framework.LLM.Services
 
                     try
                     {
-                        var chunk = JsonConvert.DeserializeObject<dynamic>(jsonData);
-                        var content = chunk?.choices?[0]?.delta?.content?.ToString();
+                        var chunk = JsonConvert.DeserializeObject<StreamingChatCompletionChunk>(jsonData);
+                        var content = chunk?.choices?[0]?.delta?.content;
                         
                         if (!string.IsNullOrEmpty(content))
                         {

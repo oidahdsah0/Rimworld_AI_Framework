@@ -16,9 +16,10 @@
   <RimAI.Framework.Messages.PresetApplied>已应用 {0} 预设配置</RimAI.Framework.Messages.PresetApplied>
   <RimAI.Framework.Messages.SettingsApplied>设置保存成功</RimAI.Framework.Messages.SettingsApplied>
   <RimAI.Framework.Messages.TestError>RimAI：连接时发生错误：{0}</RimAI.Framework.Messages.TestError>
-  <RimAI.Framework.Messages.TestFailed>RimAI：连接失败！状态码：{0}，原因：{1}</RimAI.Framework.Messages.TestFailed>
+  <RimAI.Framework.Messages.TestFailed>RimAI：连接失败！原因：{0}</RimAI.Framework.Messages.TestFailed>
   <RimAI.Framework.Messages.TestStarting>RimAI：开始连接测试...</RimAI.Framework.Messages.TestStarting>
   <RimAI.Framework.Messages.TestSuccess>RimAI：连接成功！</RimAI.Framework.Messages.TestSuccess>
+  <RimAI.Framework.Messages.TestingConnection>正在测试连接...</RimAI.Framework.Messages.TestingConnection>
   <RimAI.Framework.Messages.UnableToRetrieveCacheStats>无法获取缓存统计：{0}</RimAI.Framework.Messages.UnableToRetrieveCacheStats>
   <!-- Settings -->
   <RimAI.Framework.Settings.APIEndpoint>服务器地址 (API URL)：</RimAI.Framework.Settings.APIEndpoint>
@@ -98,8 +99,6 @@
   <RimAI.Framework.Settings.StatusIssuesDetected>检测到问题</RimAI.Framework.Settings.StatusIssuesDetected>
   <RimAI.Framework.Settings.OpenCompleteSettingsWindow>打开完整设置窗口</RimAI.Framework.Settings.OpenCompleteSettingsWindow>
   <RimAI.Framework.Settings.QuickSettings>快速设置：</RimAI.Framework.Settings.QuickSettings>
-  <RimAI.Framework.Settings.EnableStreaming>启用实时回复</RimAI.Framework.Settings.EnableStreaming>
-  <RimAI.Framework.Settings.EnableCaching>启用智能缓存</RimAI.Framework.Settings.EnableCaching>
   <RimAI.Framework.Settings.ApplySettings>应用设置</RimAI.Framework.Settings.ApplySettings>
   <RimAI.Framework.Settings.CancelTest>取消测试</RimAI.Framework.Settings.CancelTest>
   

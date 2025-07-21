@@ -77,7 +77,8 @@ namespace RimAI.Framework.Core
             var isHealthy = stats.ContainsKey("IsHealthy") ? Convert.ToBoolean(stats["IsHealthy"]) : false;
             
             GUI.color = isHealthy ? Color.green : Color.red;
-            listingStandard.Label($"{"RimAI.Framework.Settings.FrameworkStatus".Translate()} {(isHealthy ? "RimAI.Framework.Settings.StatusHealthy".Translate() : "RimAI.Framework.Settings.StatusIssuesDetected".Translate())}");
+            var statusText = isHealthy ? "RimAI.Framework.Settings.StatusHealthy".Translate() : "RimAI.Framework.Settings.StatusIssuesDetected".Translate();
+            listingStandard.Label("RimAI.Framework.Settings.FrameworkStatus".Translate(statusText));
             GUI.color = Color.white;
             
             listingStandard.Gap(12f);
@@ -106,7 +107,7 @@ namespace RimAI.Framework.Core
             listingStandard.CheckboxLabeled("RimAI.Framework.Settings.EnableCaching".Translate(), ref settings.enableCaching);
 
             listingStandard.Gap(6f);
-            listingStandard.Label($"{"RimAI.Framework.Settings.Temperature".Translate()}");
+            listingStandard.Label("RimAI.Framework.Settings.Temperature".Translate(settings.temperature.ToString("F1")));
             settings.temperature = (float)Math.Round(listingStandard.Slider(settings.temperature, 0.0f, 2.0f), 1);
 
             listingStandard.Gap(12f);
@@ -202,7 +203,7 @@ namespace RimAI.Framework.Core
             catch (Exception ex)
             {
                 Log.Error($"[RimAI] RimAIMod: Error applying settings: {ex}");
-                Messages.Message($"{"RimAI.Framework.Messages.ErrorApplyingSettings".Translate()}: {ex.Message}", MessageTypeDefOf.RejectInput);
+                Messages.Message("RimAI.Framework.Messages.ErrorApplyingSettings".Translate(ex.Message), MessageTypeDefOf.RejectInput);
             }
         }
 
@@ -244,8 +245,8 @@ namespace RimAI.Framework.Core
                     {
                         Log.Error($"[RimAI] RimAIMod: TestConnection exception: {testException}");
                         testResultColor = Color.red;
-                        testResult = $"{"RimAI.Framework.Messages.TestResultException".Translate()}: {testException.Message}";
-                        Messages.Message($"{"RimAI.Framework.Messages.TestError".Translate()} {testException.Message}", MessageTypeDefOf.RejectInput);
+                        testResult = "RimAI.Framework.Messages.TestResultException".Translate(testException.Message);
+                        Messages.Message("RimAI.Framework.Messages.TestError".Translate(testException.Message), MessageTypeDefOf.RejectInput);
                     }
                     else if (result.success)
                     {
@@ -256,15 +257,15 @@ namespace RimAI.Framework.Core
                     else
                     {
                         testResultColor = Color.red;
-                        testResult = $"{"RimAI.Framework.Messages.TestResultFailure".Translate()}: {result.message}";
-                        Messages.Message($"{"RimAI.Framework.Messages.TestFailed".Translate()} {result.message}", MessageTypeDefOf.NegativeEvent);
+                        testResult = "RimAI.Framework.Messages.TestResultFailure".Translate(result.message);
+                        Messages.Message("RimAI.Framework.Messages.TestFailed".Translate(result.message), MessageTypeDefOf.NegativeEvent);
                     }
                 }
                 catch (Exception ex)
                 {
                     Log.Error($"[RimAI] RimAIMod: Error in main thread callback: {ex}");
                     testResultColor = Color.red;
-                    testResult = $"{"RimAI.Framework.Messages.TestResultCallbackError".Translate()}: {ex.Message}";
+                    testResult = "RimAI.Framework.Messages.TestResultCallbackError".Translate(ex.Message);
                 }
                 finally
                 {

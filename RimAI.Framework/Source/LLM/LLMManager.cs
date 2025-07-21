@@ -533,7 +533,7 @@ namespace RimAI.Framework.LLM
         public void RefreshSettings()
         {
             _settingsManager.RefreshSettings();
-            Warning("RimAI Framework: Settings refreshed. Some services may require restart to apply new settings.");
+            Info("RimAI Framework: Settings refreshed successfully. Some services may require restart to apply new settings.");
         }
 
         #endregion
