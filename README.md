@@ -8,16 +8,17 @@
 [![RimWorld](https://img.shields.io/badge/RimWorld-1.6-brightgreen.svg)](https://rimworldgame.com/)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.7.2-blue.svg)](https://dotnet.microsoft.com/download/dotnet-framework)
 [![Steam Workshop](https://img.shields.io/badge/Steam-Workshop-blue.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)
-[![Status](https://img.shields.io/badge/Status-Released-success.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
+[![Status](https://img.shields.io/badge/Status-v3.0%20Beta-orange.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
 
 > **🚀 A revolutionary AI-powered framework for RimWorld that brings Large Language Models directly into your colony management experience, enabling intelligent, context-aware administrative decisions! 🎮✨**
 
 **🎉 NOW AVAILABLE ON STEAM WORKSHOP!** 🎉  
-**[� Download RimAI Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)**
+**[📥 Download RimAI Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)**
 
-**�👨‍💻 Author**: [@oidahdsah0](https://github.com/oidahdsah0)  
+**👨‍💻 Author**: [@oidahdsah0](https://github.com/oidahdsah0)  
 **📅 Created**: 15 July 2025  
-**🚀 Released**: 19 July 2025
+**🚀 Released**: 19 July 2025  
+**🔄 Latest**: v3.0 Beta - Unified Architecture
 
 ---
 
@@ -37,6 +38,9 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
   - All Large Language Model (LLM) network communication ✅
   - API key management, request building, response parsing, and error handling ✅
   - ⚡ Asynchronous processing and concurrency control for API requests ✅
+  - 🔄 **v3.0 NEW**: Unified API with preset options and intelligent caching ✅
+  - 📊 **v3.0 NEW**: Batch processing and streaming responses ✅
+  - 🏗️ **v3.0 NEW**: Lifecycle management and health monitoring ✅
   - 🔍 Embedding system for semantic search and context understanding 🚧
   - 📚 RAG (Retrieval-Augmented Generation) knowledge base integration 🚧
   - 🌳 JSON tree hierarchical structure RAG library support 🚧
@@ -89,12 +93,23 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
 - **🌐 GameComponent**: Global data management and persistent storage
 - **📝 Custom Defs**: New XML-definable concepts (`ToolDef`, `CaseDef`)
 - **⚙️ ModSettings**: Player-configurable options and API management
+- **🏗️ **v3.0 NEW**: Unified architecture with lifecycle management**
+- **📊 **v3.0 NEW**: Performance monitoring and health diagnostics**
 
 ### 🗂️ Key Classes
-- 🤖 `LLMManager`: Singleton for all AI communication and intelligent response processing
+- 🤖 `RimAIAPI`: **v3.0 NEW** - Unified API entry point for all AI communication
 - ⚙️ `RimAISettings`: Configuration management and AI model persistence
-- 🧠 `ContextManager`: Intelligent game state analysis and context building for AI
+- 🧠 `LifecycleManager`: **v3.0 NEW** - Application-level resource management
 - 📚 `CoreDefs`: Framework-level definitions and AI-powered data structures
+- 🔄 `ResponseCache`: **v3.0 NEW** - LRU caching with intelligent cache policies
+
+### ⚡ **v3.0 New Features** 🌟
+- **🎯 Preset Options**: Quick configuration for common scenarios
+- **📦 Batch Processing**: Handle multiple requests efficiently
+- **🔄 Streaming Responses**: Real-time response chunks for better UX
+- **🧠 Smart Caching**: Automatic cache management with hit rate monitoring
+- **📊 Performance Monitoring**: Real-time statistics and health checks
+- **🔧 Error Recovery**: Robust error handling with automatic retries
 
 ## 🔧 **Installation & Setup** 📦
 
@@ -104,13 +119,13 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
 ### 💾 Installation
 
 #### 🎮 **For Players (Recommended)**
-1. **� Steam Workshop**: [Subscribe to RimAI Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)
+1. **📥 Steam Workshop**: [Subscribe to RimAI Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)
 2. **🔧 Enable Mod**: Launch RimWorld and enable "RimAI Framework" in the mod list
 3. **⚙️ Configure**: Set up your API credentials in Mod Options
 
 #### 👨‍💻 **For Developers**
 1. **📂 Manual Install**: Download from [GitHub Releases](https://github.com/oidahdsah0/Rim_AI_Framework/releases)
-2. **� Build from Source**: Clone and build locally (see Development Setup below)
+2. **🔨 Build from Source**: Clone and build locally (see Development Setup below)
 3. **⚙️ Configure**: Set up your development environment and API settings
 
 ### ⚙️ Configuration
@@ -120,6 +135,85 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
    - **🌐 Endpoint URL**: Service endpoint (defaults to OpenAI)
    - **🤖 Model Name**: Specific model to use (e.g., `gpt-4o`)
 3. 🔍 Configure optional embedding settings for enhanced context
+
+## 📚 **v3.0 API Usage Examples** 💻
+
+### Quick Start
+```csharp
+using RimAI.Framework.API;
+using RimAI.Framework.LLM.Models;
+
+// Simple request
+var response = await RimAIAPI.SendMessageAsync("Analyze colony status");
+if (response.IsSuccess)
+{
+    Log.Message($"AI Response: {response.Content}");
+}
+```
+
+### Using Preset Options
+```csharp
+// Creative content generation
+var story = await RimAIAPI.SendMessageAsync(
+    "Write a RimWorld story", 
+    RimAIAPI.Options.Creative()
+);
+
+// Factual analysis
+var analysis = await RimAIAPI.SendMessageAsync(
+    "What are the colony's current threats?", 
+    RimAIAPI.Options.Factual()
+);
+
+// Structured JSON output
+var data = await RimAIAPI.SendMessageAsync(
+    "Return colony stats as JSON", 
+    RimAIAPI.Options.Structured()
+);
+```
+
+### Streaming Responses
+```csharp
+// Real-time response streaming
+await RimAIAPI.SendMessageStreamAsync(
+    "Generate a detailed event description",
+    chunk => UpdateUI(chunk), // Real-time UI updates
+    RimAIAPI.Options.Streaming()
+);
+```
+
+### Batch Processing
+```csharp
+// Process multiple requests efficiently
+var prompts = new List<string> 
+{
+    "Generate colonist name",
+    "Generate faction name",
+    "Generate event description"
+};
+
+var responses = await RimAIAPI.SendBatchRequestAsync(prompts);
+foreach (var response in responses)
+{
+    if (response.IsSuccess)
+        ProcessResult(response.Content);
+}
+```
+
+### Performance Monitoring
+```csharp
+// Check framework health
+var stats = RimAIAPI.GetStatistics();
+Log.Message($"Success rate: {stats.SuccessfulRequests * 100.0 / stats.TotalRequests:F1}%");
+Log.Message($"Cache hit rate: {stats.CacheHitRate:P2}");
+Log.Message($"Average response time: {stats.AverageResponseTime:F0}ms");
+
+// Clear cache when needed
+if (stats.CacheHitRate < 0.2)
+{
+    RimAIAPI.ClearCache();
+}
+```
 
 ## 🌍 **Supported Languages** 🗣️
 
@@ -173,9 +267,9 @@ This is an open-source project and contributions are welcome! 🎉 Please see ou
 - **📦 Releases**: Pre-compiled mods are available in GitHub Releases
 
 ### 📚 Architecture Documentation
-- 🏗️ [Technical Design](docs/TECHNICAL_DESIGN.md)
-- 📖 [API Reference](docs/API_REFERENCE.md)
-- 📋 [Implementation Guide](docs/IMPLEMENTATION_GUIDE.md)
+- 🏗️ [v3.0 API Quick Start](docs/EN_v3.0_API_Quick_Start.md)
+- 📖 [v3.0 API Comprehensive Guide](docs/EN_v3.0_API_Comprehensive_Guide.md)
+- 📋 [Framework Features Overview](docs/CN_v3.0_功能特性.md)
 
 ## 📄 **License** ⚖️
 
@@ -204,12 +298,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 3. **Configure Required Fields**
 
-   **� API Key** (Required for cloud services):
+   **🔐 API Key** (Required for cloud services):
    - **OpenAI**: Get from https://platform.openai.com/api-keys
    - **Ollama (Local), vLLM**: Leave empty - no key needed
    - Copy the key exactly as provided by your service
 
-   **� Endpoint URL** (Required):
+   **🌐 Endpoint URL** (Required):
    ```
    OpenAI users: https://api.openai.com/v1 (Deepseek, Siliconflow settings are similar)
    Local Ollama: http://localhost:11434/v1
