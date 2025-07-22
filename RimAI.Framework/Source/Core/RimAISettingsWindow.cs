@@ -184,12 +184,14 @@ namespace RimAI.Framework.Core
                 "RimAI.Framework.Settings.EnableStreaming.Tooltip".Translate());
             
             listing.Gap(6f);
-            listing.Label("RimAI.Framework.Settings.Temperature".Translate(settings.temperature.ToString("F1")));
-            settings.temperature = (float)Math.Round(listing.Slider(settings.temperature, 0.0f, 2.0f), 1);
+            var currentTemperature = (float)Math.Round(listing.Slider(settings.temperature, 0.0f, 2.0f), 1);
+            listing.Label("RimAI.Framework.Settings.Temperature".Translate(currentTemperature.ToString("F1")));
+            settings.temperature = currentTemperature;
             
             listing.Gap(6f);
-            listing.Label("RimAI.Framework.Settings.MaxTokens".Translate(settings.maxTokens.ToString()));
-            settings.maxTokens = (int)listing.Slider(settings.maxTokens, 50, 4000);
+            var currentMaxTokens = (int)listing.Slider(settings.maxTokens, 50, 4000);
+            listing.Label("RimAI.Framework.Settings.MaxTokens".Translate(currentMaxTokens.ToString()));
+            settings.maxTokens = currentMaxTokens;
         }
 
         private void DrawPerformanceTab(Listing_Standard listing)
@@ -209,23 +211,28 @@ namespace RimAI.Framework.Core
             listing.Gap(12f);
             DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.RequestSettings".Translate());
             
-            listing.Label("RimAI.Framework.Settings.Timeout".Translate(settings.timeoutSeconds.ToString()));
-            settings.timeoutSeconds = (int)listing.Slider(settings.timeoutSeconds, 5, 120);
+            var currentTimeout = (int)listing.Slider(settings.timeoutSeconds, 5, 120);
+            listing.Label("RimAI.Framework.Settings.Timeout".Translate(currentTimeout.ToString()));
+            settings.timeoutSeconds = currentTimeout;
             
-            listing.Label("RimAI.Framework.Settings.RetryCount".Translate(settings.retryCount.ToString()));
-            settings.retryCount = (int)listing.Slider(settings.retryCount, 1, 10);
+            var currentRetryCount = (int)listing.Slider(settings.retryCount, 1, 10);
+            listing.Label("RimAI.Framework.Settings.RetryCount".Translate(currentRetryCount.ToString()));
+            settings.retryCount = currentRetryCount;
             
-            listing.Label("RimAI.Framework.Settings.MaxConcurrentRequests".Translate(settings.maxConcurrentRequests.ToString()));
-            settings.maxConcurrentRequests = (int)listing.Slider(settings.maxConcurrentRequests, 1, 20);
+            var currentMaxConcurrent = (int)listing.Slider(settings.maxConcurrentRequests, 1, 20);
+            listing.Label("RimAI.Framework.Settings.MaxConcurrentRequests".Translate(currentMaxConcurrent.ToString()));
+            settings.maxConcurrentRequests = currentMaxConcurrent;
 
             listing.Gap(12f);
             DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.BatchProcessing".Translate());
             
-            listing.Label("RimAI.Framework.Settings.BatchSize".Translate(settings.batchSize.ToString()));
-            settings.batchSize = (int)listing.Slider(settings.batchSize, 1, 20);
+            var currentBatchSize = (int)listing.Slider(settings.batchSize, 1, 20);
+            listing.Label("RimAI.Framework.Settings.BatchSize".Translate(currentBatchSize.ToString()));
+            settings.batchSize = currentBatchSize;
             
-            listing.Label("RimAI.Framework.Settings.BatchTimeout".Translate(settings.batchTimeoutSeconds.ToString()));
-            settings.batchTimeoutSeconds = (int)listing.Slider(settings.batchTimeoutSeconds, 1, 10);
+            var currentBatchTimeout = (int)listing.Slider(settings.batchTimeoutSeconds, 1, 10);
+            listing.Label("RimAI.Framework.Settings.BatchTimeout".Translate(currentBatchTimeout.ToString()));
+            settings.batchTimeoutSeconds = currentBatchTimeout;
 
             listing.Gap(12f);
             DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.MemoryManagement".Translate());
@@ -235,8 +242,9 @@ namespace RimAI.Framework.Core
             
             if (settings.enableMemoryMonitoring)
             {
-                listing.Label("RimAI.Framework.Settings.MemoryThreshold".Translate(settings.memoryThresholdMB.ToString()));
-                settings.memoryThresholdMB = (int)listing.Slider(settings.memoryThresholdMB, 50, 500);
+                var currentMemoryThreshold = (int)listing.Slider(settings.memoryThresholdMB, 50, 500);
+                listing.Label("RimAI.Framework.Settings.MemoryThreshold".Translate(currentMemoryThreshold.ToString()));
+                settings.memoryThresholdMB = currentMemoryThreshold;
             }
         }
 
@@ -249,17 +257,21 @@ namespace RimAI.Framework.Core
             
             if (settings.enableCaching)
             {
-                listing.Label("RimAI.Framework.Settings.CacheSize".Translate(settings.cacheSize.ToString()));
-                settings.cacheSize = (int)listing.Slider(settings.cacheSize, 100, 2000); // 扩大范围：100-2000
+                var currentCacheSize = (int)listing.Slider(settings.cacheSize, 100, 2000); // 扩大范围：100-2000
+                listing.Label("RimAI.Framework.Settings.CacheSize".Translate(currentCacheSize.ToString()));
+                settings.cacheSize = currentCacheSize;
                 
-                listing.Label("RimAI.Framework.Settings.CacheTTL".Translate(settings.cacheTtlMinutes.ToString()));
-                settings.cacheTtlMinutes = (int)listing.Slider(settings.cacheTtlMinutes, 5, 240); // 扩大范围：5分钟-4小时
+                var currentCacheTTL = (int)listing.Slider(settings.cacheTtlMinutes, 5, 240); // 扩大范围：5分钟-4小时
+                listing.Label("RimAI.Framework.Settings.CacheTTL".Translate(currentCacheTTL.ToString()));
+                settings.cacheTtlMinutes = currentCacheTTL;
 
-                listing.Label("RimAI.Framework.Settings.CacheMemoryLimit".Translate(settings.cacheMaxMemoryMB.ToString()));
-                settings.cacheMaxMemoryMB = (int)listing.Slider(settings.cacheMaxMemoryMB, 50, 1000); // 50MB到1GB
+                var currentCacheMemory = (int)listing.Slider(settings.cacheMaxMemoryMB, 50, 1000); // 50MB到1GB
+                listing.Label("RimAI.Framework.Settings.CacheMemoryLimit".Translate(currentCacheMemory.ToString()));
+                settings.cacheMaxMemoryMB = currentCacheMemory;
 
-                listing.Label("RimAI.Framework.Settings.CacheCleanupInterval".Translate(settings.cacheCleanupIntervalMinutes.ToString()));
-                settings.cacheCleanupIntervalMinutes = (int)listing.Slider(settings.cacheCleanupIntervalMinutes, 1, 10); // 1到10分钟
+                var currentCacheCleanup = (int)listing.Slider(settings.cacheCleanupIntervalMinutes, 1, 10); // 1到10分钟
+                listing.Label("RimAI.Framework.Settings.CacheCleanupInterval".Translate(currentCacheCleanup.ToString()));
+                settings.cacheCleanupIntervalMinutes = currentCacheCleanup;
 
                 // Cache statistics
                 listing.Gap(12f);
@@ -299,8 +311,9 @@ namespace RimAI.Framework.Core
                 "Enable verbose logging for debugging purposes");
             
             string[] logLevels = { "Debug", "Info", "Warning", "Error" };
-            listing.Label($"Log Level: {logLevels[settings.logLevel]}");
-            settings.logLevel = (int)listing.Slider(settings.logLevel, 0, 3);
+            var currentLogLevel = (int)listing.Slider(settings.logLevel, 0, 3);
+            listing.Label($"Log Level: {logLevels[currentLogLevel]}");
+            settings.logLevel = currentLogLevel;
 
             listing.Gap(12f);
             DrawSectionHeader(listing, "Health Monitoring");
@@ -310,8 +323,9 @@ namespace RimAI.Framework.Core
             
             if (settings.enableHealthCheck)
             {
-                listing.Label($"Health Check Interval (minutes): {settings.healthCheckIntervalMinutes}");
-                settings.healthCheckIntervalMinutes = (int)listing.Slider(settings.healthCheckIntervalMinutes, 1, 60);
+                var currentHealthInterval = (int)listing.Slider(settings.healthCheckIntervalMinutes, 1, 60);
+                listing.Label($"Health Check Interval (minutes): {currentHealthInterval}");
+                settings.healthCheckIntervalMinutes = currentHealthInterval;
             }
 
             // System diagnostics
@@ -371,11 +385,13 @@ namespace RimAI.Framework.Core
         {
             DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.NetworkTimeout".Translate());
             
-            listing.Label("RimAI.Framework.Settings.RequestTimeout".Translate(settings.timeoutSeconds.ToString()));
-            settings.timeoutSeconds = (int)listing.Slider(settings.timeoutSeconds, 5, 300);
+            var currentRequestTimeout = (int)listing.Slider(settings.timeoutSeconds, 5, 300);
+            listing.Label("RimAI.Framework.Settings.RequestTimeout".Translate(currentRequestTimeout.ToString()));
+            settings.timeoutSeconds = currentRequestTimeout;
             
-            listing.Label("RimAI.Framework.Settings.RetryCount".Translate(settings.retryCount.ToString()));
-            settings.retryCount = (int)listing.Slider(settings.retryCount, 1, 10);
+            var currentNetworkRetryCount = (int)listing.Slider(settings.retryCount, 1, 10);
+            listing.Label("RimAI.Framework.Settings.RetryCount".Translate(currentNetworkRetryCount.ToString()));
+            settings.retryCount = currentNetworkRetryCount;
             
             listing.Gap(6f);
             listing.Label("RimAI.Framework.Info.LongerTimeoutsSlowerResponses".Translate());
@@ -384,11 +400,13 @@ namespace RimAI.Framework.Core
             listing.Gap(12f);
             DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.BatchProcessing".Translate());
             
-            listing.Label("RimAI.Framework.Settings.BatchSize".Translate(settings.batchSize.ToString()));
-            settings.batchSize = (int)listing.Slider(settings.batchSize, 1, 20);
+            var currentNetworkBatchSize = (int)listing.Slider(settings.batchSize, 1, 20);
+            listing.Label("RimAI.Framework.Settings.BatchSize".Translate(currentNetworkBatchSize.ToString()));
+            settings.batchSize = currentNetworkBatchSize;
             
-            listing.Label("RimAI.Framework.Settings.BatchTimeout".Translate(settings.batchTimeoutSeconds.ToString()));
-            settings.batchTimeoutSeconds = (int)listing.Slider(settings.batchTimeoutSeconds, 1, 10);
+            var currentNetworkBatchTimeout = (int)listing.Slider(settings.batchTimeoutSeconds, 1, 10);
+            listing.Label("RimAI.Framework.Settings.BatchTimeout".Translate(currentNetworkBatchTimeout.ToString()));
+            settings.batchTimeoutSeconds = currentNetworkBatchTimeout;
             
             listing.Gap(6f);
             listing.Label("RimAI.Framework.Info.LargerBatchesMoreEfficient".Translate());
@@ -462,8 +480,9 @@ namespace RimAI.Framework.Core
                 "Enable verbose logging for debugging purposes");
             
             string[] logLevels = { "Debug", "Info", "Warning", "Error" };
-            listing.Label($"Log Level: {logLevels[settings.logLevel]}");
-            settings.logLevel = (int)listing.Slider(settings.logLevel, 0, 3);
+            var currentDebugLogLevel = (int)listing.Slider(settings.logLevel, 0, 3);
+            listing.Label($"Log Level: {logLevels[currentDebugLogLevel]}");
+            settings.logLevel = currentDebugLogLevel;
             
             listing.Gap(6f);
             listing.Label("🔍 Debug logging provides more information but impacts performance");
@@ -478,8 +497,9 @@ namespace RimAI.Framework.Core
             if (settings.enableMemoryMonitoring)
             {
                 listing.Gap(6f);
-                listing.Label($"Memory Threshold (MB): {settings.memoryThresholdMB}");
-                settings.memoryThresholdMB = (int)listing.Slider(settings.memoryThresholdMB, 50, 500);
+                var currentDebugMemoryThreshold = (int)listing.Slider(settings.memoryThresholdMB, 50, 500);
+                listing.Label($"Memory Threshold (MB): {currentDebugMemoryThreshold}");
+                settings.memoryThresholdMB = currentDebugMemoryThreshold;
                 
                 listing.Gap(6f);
                 listing.Label("🧠 Lower threshold = more frequent cleanup but lower performance");
@@ -500,8 +520,9 @@ namespace RimAI.Framework.Core
             if (settings.enableHealthCheck)
             {
                 listing.Gap(6f);
-                listing.Label($"Health Check Interval (minutes): {settings.healthCheckIntervalMinutes}");
-                settings.healthCheckIntervalMinutes = (int)listing.Slider(settings.healthCheckIntervalMinutes, 1, 120);
+                var currentDebugHealthInterval = (int)listing.Slider(settings.healthCheckIntervalMinutes, 1, 120);
+                listing.Label($"Health Check Interval (minutes): {currentDebugHealthInterval}");
+                settings.healthCheckIntervalMinutes = currentDebugHealthInterval;
                 
                 listing.Gap(6f);
                 listing.Label("❤️ More frequent checks = better monitoring but higher overhead");

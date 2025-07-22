@@ -107,8 +107,9 @@ namespace RimAI.Framework.Core
             listingStandard.CheckboxLabeled("RimAI.Framework.Settings.EnableCaching".Translate(), ref settings.enableCaching);
 
             listingStandard.Gap(6f);
-            listingStandard.Label("RimAI.Framework.Settings.Temperature".Translate(settings.temperature.ToString("F1")));
-            settings.temperature = (float)Math.Round(listingStandard.Slider(settings.temperature, 0.0f, 2.0f), 1);
+            var currentTemperature = (float)Math.Round(listingStandard.Slider(settings.temperature, 0.0f, 2.0f), 1);
+            listingStandard.Label("RimAI.Framework.Settings.Temperature".Translate(currentTemperature.ToString("F1")));
+            settings.temperature = currentTemperature;
 
             listingStandard.Gap(12f);
 
