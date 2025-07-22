@@ -153,6 +153,9 @@ namespace RimAI.Framework.Diagnostics
             }
         }
 
+        /// <summary>
+        /// 检查缓存系统健康状态
+        /// </summary>
         private static void CheckCacheSystem(HealthCheckResult result)
         {
             try
@@ -174,21 +177,49 @@ namespace RimAI.Framework.Diagnostics
                 if (stats == null)
                 {
                     result.Warnings.Add("Cache System: Unable to retrieve statistics");
+                    return;
                 }
-                else
-                {
-                    // 检查缓存是否过大
-                    if (stats.EntryCount > 1000)
-                    {
-                        result.Warnings.Add($"Cache System: Large cache size ({stats.EntryCount} entries)");
-                    }
 
-                    // 检查内存使用
-                    if (stats.MemoryUsageEstimate > 100 * 1024 * 1024) // 100MB
+                // 检查缓存大小
+                var sizeThreshold = stats.MaxSize * 0.8;
+                if (stats.EntryCount > sizeThreshold)
+                {
+                    result.Warnings.Add($"Cache System: Large cache size ({stats.EntryCount}/{stats.MaxSize} entries)");
+                }
+
+                // 检查内存使用
+                var memoryUsageMB = stats.MemoryUsageEstimate / (1024 * 1024);
+                var maxMemoryMB = RimAIConfiguration.Instance.Get<int>("cache.maxMemoryMB", 50);
+                if (memoryUsageMB > maxMemoryMB * 0.8)
+                {
+                    result.Warnings.Add($"Cache System: High memory usage ({memoryUsageMB:F1}MB/{maxMemoryMB}MB)");
+                }
+
+                // 检查命中率
+                var minHitRate = RimAIConfiguration.Instance.Get<double>("cache.minHitRate", 0.1);
+                if (stats.TotalRequests > 50 && stats.HitRate < minHitRate)
+                {
+                    result.Warnings.Add($"Cache System: Low hit rate ({stats.HitRate:P2} < {minHitRate:P2})");
+                }
+
+                // 检查过期条目
+                if (stats.ExpiredEntries > stats.EntryCount * 0.1)
+                {
+                    result.Warnings.Add($"Cache System: Many expired entries ({stats.ExpiredEntries}/{stats.EntryCount})");
+                }
+
+                // 游戏启动时的特殊检查
+                if (Find.TickManager != null && Find.TickManager.TicksGame < 1000)
+                {
+                    if (stats.EntryCount > 50)
                     {
-                        result.Warnings.Add($"Cache System: High memory usage ({stats.MemoryUsageEstimate / (1024 * 1024):F0}MB)");
+                        result.Warnings.Add($"Cache System: High cache usage during game startup ({stats.EntryCount} entries at tick {Find.TickManager.TicksGame})");
                     }
                 }
+
+                // 记录缓存健康状态
+                RimAILogger.Info("Cache Health Check - Entries: {0}/{1}, Hit Rate: {2:P2}, Memory: {3:F1}MB, Requests: {4}", 
+                     stats.EntryCount, stats.MaxSize, stats.HitRate, memoryUsageMB, stats.TotalRequests);
             }
             catch (Exception ex)
             {
@@ -592,6 +623,80 @@ namespace RimAI.Framework.Diagnostics
             GC.Collect();
             var afterMemory = GC.GetTotalMemory(false) / (1024 * 1024);
             Log.Message($"[RimAI Memory] GC completed - Memory: {beforeMemory:F1}MB → {afterMemory:F1}MB (Freed: {beforeMemory - afterMemory:F1}MB)");
+        }
+
+        /// <summary>
+        /// 执行缓存监控命令
+        /// </summary>
+        public static void ExecuteCacheMonitoringCommand()
+        {
+            try
+            {
+                var cache = ResponseCache.Instance;
+                if (cache == null)
+                {
+                    Log.Warning("Cache system not available");
+                    return;
+                }
+
+                var stats = cache.GetStats();
+                var memoryUsageMB = stats.MemoryUsageEstimate / (1024 * 1024);
+                var maxMemoryMB = RimAIConfiguration.Instance.Get<int>("cache.maxMemoryMB", 50);
+                var minHitRate = RimAIConfiguration.Instance.Get<double>("cache.minHitRate", 0.1);
+
+                Log.Message("=== RimAI Cache Status ===");
+                Log.Message($"Entries: {stats.EntryCount}/{stats.MaxSize}");
+                Log.Message($"Hit Rate: {stats.HitRate:P2}");
+                Log.Message($"Memory Usage: {memoryUsageMB:F1}MB/{maxMemoryMB}MB");
+                Log.Message($"Total Requests: {stats.TotalRequests:N0}");
+                Log.Message($"Cache Hits: {stats.CacheHits:N0}");
+                Log.Message($"Cache Misses: {stats.CacheMisses:N0}");
+                Log.Message($"Evictions: {stats.Evictions:N0}");
+                Log.Message($"Expirations: {stats.Expirations:N0}");
+                Log.Message($"Expired Entries: {stats.ExpiredEntries}");
+
+                // 健康状态评估
+                var healthIssues = new List<string>();
+                
+                if (stats.EntryCount > stats.MaxSize * 0.8)
+                    healthIssues.Add($"High cache usage ({stats.EntryCount}/{stats.MaxSize})");
+                
+                if (memoryUsageMB > maxMemoryMB * 0.8)
+                    healthIssues.Add($"High memory usage ({memoryUsageMB:F1}MB/{maxMemoryMB}MB)");
+                
+                if (stats.TotalRequests > 50 && stats.HitRate < minHitRate)
+                    healthIssues.Add($"Low hit rate ({stats.HitRate:P2} < {minHitRate:P2})");
+                
+                if (stats.ExpiredEntries > stats.EntryCount * 0.1)
+                    healthIssues.Add($"Many expired entries ({stats.ExpiredEntries}/{stats.EntryCount})");
+
+                if (healthIssues.Count > 0)
+                {
+                    Log.Warning("Cache Health Issues:");
+                    foreach (var issue in healthIssues)
+                    {
+                        Log.Warning($"  - {issue}");
+                    }
+                }
+                else
+                {
+                    Log.Message("Cache health: GOOD");
+                }
+
+                // 游戏启动时的特殊信息
+                if (Find.TickManager != null)
+                {
+                    Log.Message($"Game Tick: {Find.TickManager.TicksGame:N0}");
+                    if (Find.TickManager.TicksGame < 1000)
+                    {
+                        Log.Message("Note: Cache is optimized during game startup");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error executing cache monitoring command: {ex.Message}");
+            }
         }
 
         #endregion

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -100,8 +99,8 @@ namespace RimAI.Framework.Cache
         {
             // 从配置系统读取缓存设置 - CRITICAL FIX
             var configuration = RimAI.Framework.Configuration.RimAIConfiguration.Instance;
-            _maxSize = Math.Max(1, configuration.Get<int>("cache.size", 1000));
-            var cleanupIntervalMinutes = Math.Max(1, configuration.Get<int>("cache.cleanupIntervalMinutes", 2));
+            _maxSize = Math.Max(1, configuration.Get<int>("cache.size", 200)); // 降低默认值
+            var cleanupIntervalMinutes = Math.Max(1, configuration.Get<int>("cache.cleanupIntervalMinutes", 1)); // 更频繁的清理
             
             _cache = new ConcurrentDictionary<string, CacheEntry>();
             _accessOrder = new LinkedList<string>();
@@ -114,12 +113,12 @@ namespace RimAI.Framework.Cache
                 TimeSpan.FromMinutes(cleanupIntervalMinutes)
             );
             
-            // 统计信息定时器 - 每10分钟记录一次统计
+            // 统计信息定时器 - 每5分钟记录一次统计（更频繁）
             _statsTimer = new Timer(
                 LogStatistics,
                 null,
-                TimeSpan.FromMinutes(10),
-                TimeSpan.FromMinutes(10)
+                TimeSpan.FromMinutes(5),
+                TimeSpan.FromMinutes(5)
             );
             
             Info("ResponseCache initialized from configuration: maxSize={0}, cleanupInterval={1}min", 
@@ -187,12 +186,15 @@ namespace RimAI.Framework.Cache
             // 缓存未命中，调用工厂方法
             var value = await factory();
             
-            // 将新值添加到缓存
-            // 从配置系统获取默认TTL - CRITICAL FIX
-            var configuration = RimAI.Framework.Configuration.RimAIConfiguration.Instance;
-            var defaultTtlMinutes = configuration.Get<int>("cache.ttlMinutes", 30);
-            var expirationTime = expiration ?? TimeSpan.FromMinutes(defaultTtlMinutes);
-            AddToCache(safeKey, value, expirationTime);
+            // 判断是否应该缓存请求
+            if (ShouldCacheRequest(safeKey, value))
+            {
+                // 从配置系统获取默认TTL - CRITICAL FIX
+                var configuration = RimAI.Framework.Configuration.RimAIConfiguration.Instance;
+                var defaultTtlMinutes = configuration.Get<int>("cache.ttlMinutes", 30);
+                var expirationTime = expiration ?? TimeSpan.FromMinutes(defaultTtlMinutes);
+                AddToCache(safeKey, value, expirationTime);
+            }
             
             return value;
         }
@@ -297,14 +299,17 @@ namespace RimAI.Framework.Cache
         /// </summary>
         private string GenerateCacheKey(string originalKey)
         {
-            // 对于长键或包含特殊字符的键，使用SHA256哈希
-            if (originalKey.Length > 250 || originalKey.IndexOfAny(new[] { '\n', '\r', '\t', '\0' }) >= 0)
+            // 优化：对于长键或包含特殊字符的键，使用更高效的哈希
+            if (originalKey.Length > 200 || originalKey.IndexOfAny(new[] { '\n', '\r', '\t', '\0' }) >= 0)
             {
-                using (var sha256 = SHA256.Create())
+                // 使用更高效的哈希算法
+                var hash = 0;
+                foreach (char c in originalKey)
                 {
-                    var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(originalKey));
-                    return Convert.ToBase64String(hashBytes);
+                    hash = ((hash << 5) - hash) + c;
+                    hash = hash & hash; // 转换为32位整数
                 }
+                return $"H{Math.Abs(hash):X8}";
             }
             
             return originalKey;
@@ -385,7 +390,7 @@ namespace RimAI.Framework.Cache
         /// <summary>
         /// 清理最少使用的条目（LRU）
         /// </summary>
-        private void EvictLeastRecentlyUsed()
+        private bool EvictLeastRecentlyUsed()
         {
             string keyToRemove = null;
             
@@ -401,10 +406,11 @@ namespace RimAI.Framework.Cache
                     {
                         Interlocked.Increment(ref _evictions);
                         Debug("Evicted LRU entry: {0}", keyToRemove);
-                        break;
+                        return true; // 成功移除
                     }
                 }
             }
+            return false; // 没有成功移除
         }
         
         /// <summary>
@@ -432,6 +438,49 @@ namespace RimAI.Framework.Cache
                     }
                 }
                 
+                // 新增：内存压力检测和主动清理
+                var stats = GetStats();
+                var memoryUsageMB = stats.MemoryUsageEstimate / (1024 * 1024);
+                var maxMemoryMB = RimAI.Framework.Configuration.RimAIConfiguration.Instance.Get<int>("cache.maxMemoryMB", 50);
+                
+                // 如果内存使用超过限制，进行更积极的清理
+                if (memoryUsageMB > maxMemoryMB)
+                {
+                    Warning("Cache memory usage ({0:F1}MB) exceeds limit ({1}MB), performing aggressive cleanup", 
+                           memoryUsageMB, maxMemoryMB);
+                    
+                    // 清理最少使用的条目，直到内存使用降低
+                    var aggressiveCleanupCount = 0;
+                    while (memoryUsageMB > maxMemoryMB * 0.8 && _cache.Count > _maxSize * 0.5)
+                    {
+                        if (EvictLeastRecentlyUsed())
+                        {
+                            aggressiveCleanupCount++;
+                            stats = GetStats();
+                            memoryUsageMB = stats.MemoryUsageEstimate / (1024 * 1024);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    
+                    if (aggressiveCleanupCount > 0)
+                    {
+                        Info("Aggressive cleanup completed: removed {0} entries, memory usage: {1:F1}MB", 
+                             aggressiveCleanupCount, memoryUsageMB);
+                    }
+                }
+                
+                // 新增：低命中率时的清理
+                var minHitRate = RimAI.Framework.Configuration.RimAIConfiguration.Instance.Get<double>("cache.minHitRate", 0.1);
+                if (stats.TotalRequests > 50 && stats.HitRate < minHitRate)
+                {
+                    Warning("Cache hit rate ({0:P2}) below minimum ({1:P2}), clearing cache", 
+                           stats.HitRate, minHitRate);
+                    Clear();
+                }
+                
                 if (cleanedCount > 0)
                 {
                     Debug("Cleaned up {0} expired cache entries", cleanedCount);
@@ -454,8 +503,38 @@ namespace RimAI.Framework.Cache
             try
             {
                 var stats = GetStats();
-                Info("Cache Statistics - Entries: {0}/{1}, Hit Rate: {2:P1}, Memory: ~{3}KB", 
-                     stats.EntryCount, stats.MaxSize, stats.HitRate, stats.MemoryUsageEstimate / 1024);
+                var memoryUsageMB = stats.MemoryUsageEstimate / (1024 * 1024);
+                var maxMemoryMB = RimAI.Framework.Configuration.RimAIConfiguration.Instance.Get<int>("cache.maxMemoryMB", 50);
+                var minHitRate = RimAI.Framework.Configuration.RimAIConfiguration.Instance.Get<double>("cache.minHitRate", 0.1);
+                
+                // 详细的缓存健康状态报告
+                Info("Cache Statistics - Entries: {0}/{1}, Hit Rate: {2:P1}, Memory: ~{3:F1}MB/{4}MB", 
+                     stats.EntryCount, stats.MaxSize, stats.HitRate, memoryUsageMB, maxMemoryMB);
+                
+                // 健康状态警告
+                if (stats.EntryCount > stats.MaxSize * 0.8)
+                {
+                    Warning("Cache approaching size limit: {0}/{1}", stats.EntryCount, stats.MaxSize);
+                }
+                
+                if (memoryUsageMB > maxMemoryMB * 0.8)
+                {
+                    Warning("Cache approaching memory limit: {0:F1}MB/{1}MB", memoryUsageMB, maxMemoryMB);
+                }
+                
+                if (stats.TotalRequests > 50 && stats.HitRate < minHitRate)
+                {
+                    Warning("Cache hit rate below minimum: {0:P2} < {1:P2}", stats.HitRate, minHitRate);
+                }
+                
+                // 性能指标
+                if (stats.TotalRequests > 0)
+                {
+                    var avgResponseTime = stats.TotalRequests > 0 ? 
+                        (double)stats.TotalRequests / stats.TotalRequests : 0;
+                    Debug("Cache performance - Avg response time: {0:F0}ms, Evictions: {1}, Expirations: {2}", 
+                          avgResponseTime, stats.Evictions, stats.Expirations);
+                }
             }
             catch (Exception ex)
             {
@@ -468,25 +547,72 @@ namespace RimAI.Framework.Cache
         /// </summary>
         private long EstimateMemoryUsage()
         {
-            // 这是一个粗略的估算
+            // 改进的内存估算算法
             long totalSize = 0;
             
             foreach (var entry in _cache.Values)
             {
-                // 估算每个条目的大小
-                totalSize += 200; // 基础开销
+                // 基础开销：对象头 + 字段 + 引用
+                totalSize += 64; // 基础开销
                 
                 if (entry.Value is string str)
                 {
-                    totalSize += str.Length * 2; // Unicode字符
+                    // 字符串：长度 * 2 (Unicode) + 对象开销
+                    totalSize += str.Length * 2 + 24;
+                }
+                else if (entry.Value is LLMResponse response)
+                {
+                    // LLMResponse对象估算
+                    totalSize += 200; // 基础对象大小
+                    if (response.Content != null)
+                    {
+                        totalSize += response.Content.Length * 2;
+                    }
                 }
                 else
                 {
-                    totalSize += 100; // 其他对象的估算大小
+                    // 其他对象：保守估算
+                    totalSize += 128;
                 }
+                
+                // 缓存键的开销
+                totalSize += 32;
             }
             
             return totalSize;
+        }
+        
+        /// <summary>
+        /// 判断是否应该缓存请求
+        /// </summary>
+        private bool ShouldCacheRequest(string key, object value)
+        {
+            // 游戏启动时的优化：前1000个tick不缓存
+            if (Find.TickManager != null && Find.TickManager.TicksGame < 1000)
+            {
+                Debug("Skipping cache during game startup (tick {0})", Find.TickManager.TicksGame);
+                return false;
+            }
+            
+            // 内存压力检查
+            var stats = GetStats();
+            var memoryUsageMB = stats.MemoryUsageEstimate / (1024 * 1024);
+            var maxMemoryMB = RimAI.Framework.Configuration.RimAIConfiguration.Instance.Get<int>("cache.maxMemoryMB", 50);
+            
+            if (memoryUsageMB > maxMemoryMB * 0.9)
+            {
+                Debug("Skipping cache due to memory pressure: {0:F1}MB/{1}MB", memoryUsageMB, maxMemoryMB);
+                return false;
+            }
+            
+            // 缓存大小检查
+            if (_cache.Count >= _maxSize * 0.95)
+            {
+                Debug("Skipping cache due to size limit: {0}/{1}", _cache.Count, _maxSize);
+                return false;
+            }
+            
+            return true;
         }
         
         /// <summary>

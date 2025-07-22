@@ -302,20 +302,13 @@ namespace RimAI.Framework.API
         #region System Operations
 
         /// <summary>
-        /// Gets comprehensive statistics about the RimAI Framework's performance and usage.
+        /// 获取框架统计信息
         /// </summary>
-        /// <returns>
-        /// A dictionary containing various statistics such as request counts, response times,
-        /// cache hit rates, and resource usage metrics.
-        /// </returns>
-        /// <exception cref="InvalidOperationException">Thrown when the framework is not initialized.</exception>
+        /// <returns>包含各种统计信息的字典</returns>
         /// <example>
         /// <code>
         /// var stats = RimAIAPI.GetStatistics();
-        /// foreach (var stat in stats)
-        /// {
-        ///     Log.Message($"{stat.Key}: {stat.Value}");
-        /// }
+        /// Log.Message($"Success rate: {stats["SuccessRate"]}");
         /// </code>
         /// </example>
         public static Dictionary<string, object> GetStatistics()
@@ -323,37 +316,42 @@ namespace RimAI.Framework.API
             if (!ValidateFramework())
                 return new Dictionary<string, object>();
 
-            try
+            return LLMManager.Instance.GetStatistics();
+        }
+
+        /// <summary>
+        /// 清理缓存
+        /// </summary>
+        public static void ClearCache()
+        {
+            if (ValidateFramework())
             {
-                return LLMManager.Instance.GetStatistics();
-            }
-            catch (Exception ex)
-            {
-                RimAILogger.Error("Failed to get statistics: {0}", ex.Message);
-                return new Dictionary<string, object>();
+                ResponseCache.Instance?.Clear();
+                Log.Message("RimAI cache cleared successfully");
             }
         }
 
         /// <summary>
-        /// Clears all cached responses to free up memory.
-        /// Use this method if you're experiencing memory issues or want to ensure fresh responses.
+        /// 获取缓存统计信息（已弃用，请使用GetStatistics()）
         /// </summary>
-        /// <example>
-        /// <code>
-        /// // Clear cache when starting a new game or when memory is low
-        /// RimAIAPI.ClearCache();
-        /// </code>
-        /// </example>
-        public static void ClearCache()
+        [Obsolete("Use GetStatistics() instead, which includes cache statistics")]
+        public static Dictionary<string, object> GetCacheStatistics()
+        {
+            return GetStatistics();
+        }
+
+        /// <summary>
+        /// 监控缓存健康状态
+        /// </summary>
+        public static void MonitorCacheHealth()
         {
             try
             {
-                LLMManager.Instance?.ClearCache();
-                RimAILogger.Info("Response cache cleared successfully");
+                FrameworkDiagnostics.ExecuteCacheMonitoringCommand();
             }
             catch (Exception ex)
             {
-                RimAILogger.Error("Failed to clear cache: {0}", ex.Message);
+                Log.Error($"Failed to monitor cache health: {ex.Message}");
             }
         }
 

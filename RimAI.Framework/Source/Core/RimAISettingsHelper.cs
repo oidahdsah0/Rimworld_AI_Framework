@@ -42,7 +42,7 @@ namespace RimAI.Framework.Core
                 config.Set("cache.enabled", settings.enableCaching);
                 config.Set("cache.size", settings.cacheSize);
                 config.Set("cache.ttlMinutes", settings.cacheTtlMinutes);
-                config.Set("cache.defaultExpirationMinutes", settings.cacheTtlMinutes); // 添加缺失的配置项
+                config.Set("cache.ttlMinutes", settings.cacheTtlMinutes); // 使用统一的配置键
 
                 // Batch Settings
                 config.Set("batch.size", settings.batchSize);

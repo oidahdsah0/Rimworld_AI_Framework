@@ -140,10 +140,14 @@ namespace RimAI.Framework.Configuration
                 ["performance.retryCount"] = 3,
                 ["performance.maxConcurrentRequests"] = 5,
                 
-                // 缓存设置
+                // 缓存设置 - 立即修复：降低缓存大小和TTL
                 ["cache.enabled"] = true,
-                ["cache.size"] = 1000,
-                ["cache.ttlMinutes"] = 30,
+                ["cache.size"] = 200,                    // 从1000降低到200
+                ["cache.ttlMinutes"] = 15,               // 从30分钟降低到15分钟
+                ["cache.cleanupIntervalMinutes"] = 1,    // 从2分钟降低到1分钟
+                ["cache.maxMemoryMB"] = 50,              // 新增：内存限制50MB
+                ["cache.minHitRate"] = 0.1,              // 新增：最低命中率
+                ["cache.autoCleanup"] = true,            // 新增：自动清理
                 
                 // 批处理设置
                 ["batch.size"] = 5,
@@ -171,8 +175,8 @@ namespace RimAI.Framework.Configuration
                 ["Http.Timeout"] = 30000,
                 ["Http.RetryCount"] = 3,
                 ["Http.MaxConnections"] = 20,
-                ["Cache.MaxSize"] = 1000,
-                ["Cache.DefaultExpiration"] = 1800000, // 30分钟
+                ["Cache.MaxSize"] = 200,                 // 更新遗留设置
+                ["Cache.DefaultExpiration"] = 900000,    // 15分钟，更新遗留设置
                 ["Performance.EnableBatching"] = true,
                 ["Performance.EnableCaching"] = true,
                 ["Security.ValidateSSL"] = true

@@ -265,7 +265,7 @@ namespace RimAI.Framework.LLM
                 {
                     // 生成缓存键
                     var cacheKey = GenerateCacheKey(prompt, options);
-                    var cacheExpiration = TimeSpan.FromMinutes(_configuration.Get<int>("cache.defaultExpirationMinutes", 30)); // 使用分钟单位
+                    var cacheExpiration = TimeSpan.FromMinutes(_configuration.Get<int>("cache.ttlMinutes", 15)); // 使用统一的配置键
                     
                     Debug("Attempting to use cache for request");
                     
@@ -618,6 +618,13 @@ namespace RimAI.Framework.LLM
         /// </summary>
         private bool ShouldCacheRequest(LLMRequestOptions options)
         {
+            // 游戏启动时的优化：前1000个tick不缓存
+            if (Find.TickManager != null && Find.TickManager.TicksGame < 1000)
+            {
+                Debug("Skipping cache during game startup (tick {0})", Find.TickManager.TicksGame);
+                return false;
+            }
+            
             // 流式请求不缓存
             if (options?.EnableStreaming == true)
                 return false;
@@ -629,6 +636,27 @@ namespace RimAI.Framework.LLM
             // 包含随机性的请求不缓存
             if (options?.AdditionalParameters?.ContainsKey("seed") == true)
                 return false;
+            
+            // 内存压力检查
+            if (_responseCache != null)
+            {
+                var stats = _responseCache.GetStats();
+                var memoryUsageMB = stats.MemoryUsageEstimate / (1024 * 1024);
+                var maxMemoryMB = _configuration.Get<int>("cache.maxMemoryMB", 50);
+                
+                if (memoryUsageMB > maxMemoryMB * 0.9)
+                {
+                    Debug("Skipping cache due to memory pressure: {0:F1}MB/{1}MB", memoryUsageMB, maxMemoryMB);
+                    return false;
+                }
+                
+                // 缓存大小检查
+                if (stats.EntryCount >= stats.MaxSize * 0.95)
+                {
+                    Debug("Skipping cache due to size limit: {0}/{1}", stats.EntryCount, stats.MaxSize);
+                    return false;
+                }
+            }
                 
             return true;
         }

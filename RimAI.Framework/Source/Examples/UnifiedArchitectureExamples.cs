@@ -471,5 +471,60 @@ namespace RimAI.Framework.Examples
         }
 
         #endregion
+
+        /// <summary>
+        /// 测试缓存优化效果
+        /// </summary>
+        public static async Task TestCacheOptimization()
+        {
+            try
+            {
+                Log.Message("=== RimAI Cache Optimization Test ===");
+                
+                // 1. 游戏启动时的缓存优化测试
+                if (Find.TickManager != null && Find.TickManager.TicksGame < 1000)
+                {
+                    Log.Message($"Game startup detected (tick {Find.TickManager.TicksGame}), cache optimization active");
+                    
+                    // 在游戏启动时发送多个请求，应该不会缓存
+                    for (int i = 0; i < 5; i++)
+                    {
+                        var response = await RimAIAPI.SendMessageAsync($"Test request {i} during startup");
+                        Log.Message($"Startup request {i}: {(response != null ? "Success" : "Failed")}");
+                    }
+                    
+                    var startupStats = RimAIAPI.GetStatistics();
+                    Log.Message($"Cache entries after startup: {startupStats.GetValueOrDefault("CacheEntryCount", 0)}");
+                }
+                
+                // 2. 正常游戏时的缓存测试
+                else
+                {
+                    Log.Message("Normal game mode, testing cache functionality");
+                    
+                    // 发送相同请求测试缓存命中
+                    var testPrompt = "What is the best way to start a RimWorld colony?";
+                    
+                    var response1 = await RimAIAPI.SendMessageAsync(testPrompt);
+                    Log.Message("First request completed");
+                    
+                    var response2 = await RimAIAPI.SendMessageAsync(testPrompt);
+                    Log.Message("Second request completed");
+                    
+                    var stats = RimAIAPI.GetStatistics();
+                    Log.Message($"Cache hits: {stats.GetValueOrDefault("CacheHits", 0)}");
+                    Log.Message($"Cache misses: {stats.GetValueOrDefault("CacheMisses", 0)}");
+                }
+                
+                // 3. 监控缓存健康状态
+                RimAIAPI.MonitorCacheHealth();
+                
+                Log.Message("Cache optimization test completed");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Cache optimization test failed: {ex.Message}");
+            }
+        }
     }
 }
