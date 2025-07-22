@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using RimAI.Framework.Core;
+using RimAI.Framework.LLM.Models;
 using Verse;
 using static RimAI.Framework.Core.RimAILogger;
 

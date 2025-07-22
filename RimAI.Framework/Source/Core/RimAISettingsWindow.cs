@@ -37,7 +37,7 @@ namespace RimAI.Framework.Core
         private Color testResultColor = Color.white;
         
         // Presets
-        private static readonly Dictionary<string, Action<RimAISettings>> PresetConfigurations = new Dictionary<string, Action<RimAISettings>>
+        public static readonly Dictionary<string, Action<RimAISettings>> PresetConfigurations = new Dictionary<string, Action<RimAISettings>>
         {
             {
                 "Performance", (s) => {

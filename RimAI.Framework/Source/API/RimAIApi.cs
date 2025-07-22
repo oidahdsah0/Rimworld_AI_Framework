@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using RimAI.Framework.Core;
+using RimAI.Framework.Cache;
+using RimAI.Framework.Diagnostics;
 using RimAI.Framework.LLM.Models;
 using RimAI.Framework.LLM.Services;
 using RimAI.Framework.Configuration;
