@@ -37,12 +37,14 @@ namespace RimAI.Framework.Core
         private Color testResultColor = Color.white;
         
         // Presets
-        private static readonly Dictionary<string, Action<RimAISettings>> presets = new Dictionary<string, Action<RimAISettings>>
+        private static readonly Dictionary<string, Action<RimAISettings>> PresetConfigurations = new Dictionary<string, Action<RimAISettings>>
         {
             {
                 "Performance", (s) => {
                     s.enableCaching = true;
-                    s.cacheSize = 2000;
+                    s.cacheSize = 1000; // 性能模式使用更大缓存
+                    s.cacheMaxMemoryMB = 500; // 性能模式允许更多内存
+                    s.cacheCleanupIntervalMinutes = 3; // 较少频繁的清理
                     s.maxConcurrentRequests = 8;
                     s.batchSize = 10;
                     s.enableHealthCheck = true;
@@ -54,7 +56,10 @@ namespace RimAI.Framework.Core
                     s.temperature = 0.3f;
                     s.maxTokens = 2000;
                     s.retryCount = 5;
-                    s.enableCaching = false;
+                    s.enableCaching = true;
+                    s.cacheSize = 300; // 质量模式使用中等缓存
+                    s.cacheMaxMemoryMB = 150; // 质量模式中等内存
+                    s.cacheCleanupIntervalMinutes = 2; // 适中的清理频率
                     s.enableDetailedLogging = true;
                 }
             },
@@ -63,7 +68,9 @@ namespace RimAI.Framework.Core
                     s.temperature = 0.7f;
                     s.maxTokens = 1000;
                     s.enableCaching = true;
-                    s.cacheSize = 1000;
+                    s.cacheSize = 500; // 平衡模式使用默认缓存
+                    s.cacheMaxMemoryMB = 200; // 平衡模式默认内存
+                    s.cacheCleanupIntervalMinutes = 2; // 默认清理频率
                     s.maxConcurrentRequests = 5;
                     s.batchSize = 5;
                     s.retryCount = 3;
@@ -190,8 +197,7 @@ namespace RimAI.Framework.Core
             // Performance Presets
             DrawSectionHeader(listing, "RimAI.Framework.Settings.Section.PerformancePresets".Translate());
             
-            var presets = RimAISettingsHelper.GetPresets();
-            foreach (var preset in presets)
+            foreach (var preset in PresetConfigurations)
             {
                 if (listing.ButtonText("RimAI.Framework.Settings.ApplyPreset".Translate(preset.Key)))
                 {
@@ -244,10 +250,16 @@ namespace RimAI.Framework.Core
             if (settings.enableCaching)
             {
                 listing.Label("RimAI.Framework.Settings.CacheSize".Translate(settings.cacheSize.ToString()));
-                settings.cacheSize = (int)listing.Slider(settings.cacheSize, 100, 5000);
+                settings.cacheSize = (int)listing.Slider(settings.cacheSize, 100, 2000); // 扩大范围：100-2000
                 
                 listing.Label("RimAI.Framework.Settings.CacheTTL".Translate(settings.cacheTtlMinutes.ToString()));
-                settings.cacheTtlMinutes = (int)listing.Slider(settings.cacheTtlMinutes, 5, 180);
+                settings.cacheTtlMinutes = (int)listing.Slider(settings.cacheTtlMinutes, 5, 240); // 扩大范围：5分钟-4小时
+
+                listing.Label("RimAI.Framework.Settings.CacheMemoryLimit".Translate(settings.cacheMaxMemoryMB.ToString()));
+                settings.cacheMaxMemoryMB = (int)listing.Slider(settings.cacheMaxMemoryMB, 50, 1000); // 50MB到1GB
+
+                listing.Label("RimAI.Framework.Settings.CacheCleanupInterval".Translate(settings.cacheCleanupIntervalMinutes.ToString()));
+                settings.cacheCleanupIntervalMinutes = (int)listing.Slider(settings.cacheCleanupIntervalMinutes, 1, 10); // 1到10分钟
 
                 // Cache statistics
                 listing.Gap(12f);
@@ -610,8 +622,10 @@ namespace RimAI.Framework.Core
             settings.timeoutSeconds = 30;
             settings.retryCount = 3;
             settings.enableCaching = true;
-            settings.cacheSize = 1000;
-            settings.cacheTtlMinutes = 30;
+            settings.cacheSize = 500; // 更新为新的默认值
+            settings.cacheTtlMinutes = 30; // 更新为新的默认值
+            settings.cacheMaxMemoryMB = 200; // 新字段默认值
+            settings.cacheCleanupIntervalMinutes = 2; // 新字段默认值
             settings.maxConcurrentRequests = 5;
             settings.batchSize = 5;
             settings.batchTimeoutSeconds = 2;

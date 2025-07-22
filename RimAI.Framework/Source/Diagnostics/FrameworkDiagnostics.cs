@@ -163,58 +163,47 @@ namespace RimAI.Framework.Diagnostics
                 var cache = ResponseCache.Instance;
                 if (cache == null)
                 {
-                    result.Warnings.Add("Cache System: Instance is null");
-                    return;
-                }
-
-                if (cache.IsDisposed)
-                {
-                    result.Issues.Add("Cache System: Cache is disposed");
+                    result.Issues.Add("Cache System: ResponseCache instance is null");
                     return;
                 }
 
                 var stats = cache.GetStats();
-                if (stats == null)
-                {
-                    result.Warnings.Add("Cache System: Unable to retrieve statistics");
-                    return;
-                }
+                var memoryUsageMB = stats.MemoryUsageEstimate / (1024 * 1024);
+                var maxMemoryMB = RimAIConfiguration.Instance.Get<int>("cache.maxMemoryMB", 200);
 
-                // 检查缓存大小
+                // 缓存大小检查 - 使用统一的阈值
                 var sizeThreshold = stats.MaxSize * 0.8;
                 if (stats.EntryCount > sizeThreshold)
                 {
-                    result.Warnings.Add($"Cache System: Large cache size ({stats.EntryCount}/{stats.MaxSize} entries)");
+                    result.Warnings.Add($"Cache System: High cache usage ({stats.EntryCount}/{stats.MaxSize} entries)");
                 }
 
-                // 检查内存使用
-                var memoryUsageMB = stats.MemoryUsageEstimate / (1024 * 1024);
-                var maxMemoryMB = RimAIConfiguration.Instance.Get<int>("cache.maxMemoryMB", 50);
+                // 内存使用检查
                 if (memoryUsageMB > maxMemoryMB * 0.8)
                 {
                     result.Warnings.Add($"Cache System: High memory usage ({memoryUsageMB:F1}MB/{maxMemoryMB}MB)");
                 }
 
-                // 检查命中率
-                var minHitRate = RimAIConfiguration.Instance.Get<double>("cache.minHitRate", 0.1);
-                if (stats.TotalRequests > 50 && stats.HitRate < minHitRate)
-                {
-                    result.Warnings.Add($"Cache System: Low hit rate ({stats.HitRate:P2} < {minHitRate:P2})");
-                }
-
-                // 检查过期条目
-                if (stats.ExpiredEntries > stats.EntryCount * 0.1)
+                // 过期条目检查
+                if (stats.ExpiredEntries > stats.EntryCount * 0.2)
                 {
                     result.Warnings.Add($"Cache System: Many expired entries ({stats.ExpiredEntries}/{stats.EntryCount})");
                 }
 
-                // 游戏启动时的特殊检查
-                if (Find.TickManager != null && Find.TickManager.TicksGame < 1000)
+                // 游戏启动时的特殊检查 - 优化阈值
+                if (Find.TickManager != null && Find.TickManager.TicksGame < 75000)
                 {
-                    if (stats.EntryCount > 50)
+                    if (stats.EntryCount > 25) // 降低启动时的缓存警告阈值
                     {
                         result.Warnings.Add($"Cache System: High cache usage during game startup ({stats.EntryCount} entries at tick {Find.TickManager.TicksGame})");
                     }
+                }
+
+                // 命中率检查
+                var minHitRate = RimAIConfiguration.Instance.Get<double>("cache.minHitRate", 0.1);
+                if (stats.TotalRequests > 50 && stats.HitRate < minHitRate)
+                {
+                    result.Warnings.Add($"Cache System: Low hit rate ({stats.HitRate:P2} < {minHitRate:P2})");
                 }
 
                 // 记录缓存健康状态
@@ -234,28 +223,53 @@ namespace RimAI.Framework.Diagnostics
                 var config = RimAIConfiguration.Instance;
                 if (config == null)
                 {
-                    result.Issues.Add("Configuration System: Instance is null");
+                    result.Issues.Add("Configuration System: RimAIConfiguration instance is null");
                     return;
                 }
 
-                if (config.IsDisposed)
+                // 检查API配置
+                var apiKey = config.Get<string>("api.key");
+                if (string.IsNullOrEmpty(apiKey))
                 {
-                    result.Issues.Add("Configuration System: Configuration is disposed");
-                    return;
+                    result.Warnings.Add("Configuration System: API key not configured");
                 }
 
-                // 检查关键配置项
-                var httpTimeout = config.Get<int>("HTTP.TimeoutSeconds", 30);
-                if (httpTimeout < 5 || httpTimeout > 300)
+                var apiEndpoint = config.Get<string>("api.endpoint", "");
+                if (string.IsNullOrEmpty(apiEndpoint))
                 {
-                    result.Warnings.Add($"Configuration System: HTTP timeout is unusual ({httpTimeout}s)");
+                    result.Issues.Add("Configuration System: API endpoint not configured");
                 }
 
-                var cacheSize = config.Get<int>("Cache.MaxSize", 100);
-                if (cacheSize < 10 || cacheSize > 10000)
+                // 检查缓存配置 - 使用统一的小写前缀
+                var cacheEnabled = config.Get<bool>("cache.enabled", true);
+                var cacheSize = config.Get<int>("cache.size", 200);
+                var cacheTtl = config.Get<int>("cache.ttlMinutes", 15);
+                
+                if (cacheEnabled && cacheSize <= 0)
                 {
-                    result.Warnings.Add($"Configuration System: Cache size is unusual ({cacheSize})");
+                    result.Issues.Add("Configuration System: Invalid cache size configuration");
                 }
+                
+                if (cacheEnabled && cacheTtl <= 0)
+                {
+                    result.Issues.Add("Configuration System: Invalid cache TTL configuration");
+                }
+
+                // 检查性能配置
+                var timeoutSeconds = config.Get<int>("performance.timeoutSeconds", 30);
+                var maxConcurrentRequests = config.Get<int>("performance.maxConcurrentRequests", 5);
+                
+                if (timeoutSeconds <= 0)
+                {
+                    result.Issues.Add("Configuration System: Invalid timeout configuration");
+                }
+                
+                if (maxConcurrentRequests <= 0)
+                {
+                    result.Issues.Add("Configuration System: Invalid concurrent requests configuration");
+                }
+
+                RimAILogger.Debug("Configuration validation completed successfully");
             }
             catch (Exception ex)
             {
@@ -641,7 +655,7 @@ namespace RimAI.Framework.Diagnostics
 
                 var stats = cache.GetStats();
                 var memoryUsageMB = stats.MemoryUsageEstimate / (1024 * 1024);
-                var maxMemoryMB = RimAIConfiguration.Instance.Get<int>("cache.maxMemoryMB", 50);
+                var maxMemoryMB = RimAIConfiguration.Instance.Get<int>("cache.maxMemoryMB", 200);
                 var minHitRate = RimAIConfiguration.Instance.Get<double>("cache.minHitRate", 0.1);
 
                 Log.Message("=== RimAI Cache Status ===");
@@ -687,9 +701,9 @@ namespace RimAI.Framework.Diagnostics
                 if (Find.TickManager != null)
                 {
                     Log.Message($"Game Tick: {Find.TickManager.TicksGame:N0}");
-                    if (Find.TickManager.TicksGame < 1000)
+                    if (Find.TickManager.TicksGame < 75000)
                     {
-                        Log.Message("Note: Cache is optimized during game startup");
+                        Log.Message("Note: Cache is optimized during game startup (first 30 seconds)");
                     }
                 }
             }

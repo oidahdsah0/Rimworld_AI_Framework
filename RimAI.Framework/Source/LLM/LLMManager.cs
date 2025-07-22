@@ -178,8 +178,8 @@ namespace RimAI.Framework.LLM
                 
                 // 缓存配置
                 enableCaching = _configuration.Get<bool>("cache.enabled", true),
-                cacheSize = _configuration.Get<int>("cache.size", 1000),
-                cacheTtlMinutes = _configuration.Get<int>("cache.ttlMinutes", 30),
+                cacheSize = _configuration.Get<int>("cache.size", 500), // 与配置系统保持一致
+                cacheTtlMinutes = _configuration.Get<int>("cache.ttlMinutes", 30), // 与配置系统保持一致
                 
                 // 批处理配置
                 batchSize = _configuration.Get<int>("batch.size", 5),
@@ -618,8 +618,8 @@ namespace RimAI.Framework.LLM
         /// </summary>
         private bool ShouldCacheRequest(LLMRequestOptions options)
         {
-            // 游戏启动时的优化：前1000个tick不缓存
-            if (Find.TickManager != null && Find.TickManager.TicksGame < 1000)
+            // 游戏启动时的优化：前75000个tick（约30秒）不缓存
+            if (Find.TickManager != null && Find.TickManager.TicksGame < 75000)
             {
                 Debug("Skipping cache during game startup (tick {0})", Find.TickManager.TicksGame);
                 return false;
@@ -641,23 +641,13 @@ namespace RimAI.Framework.LLM
             if (_responseCache != null)
             {
                 var stats = _responseCache.GetStats();
-                var memoryUsageMB = stats.MemoryUsageEstimate / (1024 * 1024);
-                var maxMemoryMB = _configuration.Get<int>("cache.maxMemoryMB", 50);
-                
-                if (memoryUsageMB > maxMemoryMB * 0.9)
-                {
-                    Debug("Skipping cache due to memory pressure: {0:F1}MB/{1}MB", memoryUsageMB, maxMemoryMB);
-                    return false;
-                }
-                
-                // 缓存大小检查
                 if (stats.EntryCount >= stats.MaxSize * 0.95)
                 {
                     Debug("Skipping cache due to size limit: {0}/{1}", stats.EntryCount, stats.MaxSize);
                     return false;
                 }
             }
-                
+            
             return true;
         }
         

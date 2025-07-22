@@ -59,12 +59,22 @@ namespace RimAI.Framework.Core
         /// <summary>
         /// Cache size limit (number of cached responses).
         /// </summary>
-        public int cacheSize = 1000;
+        public int cacheSize = 500; // 更新默认值以匹配新配置
 
         /// <summary>
         /// Cache TTL (time to live) in minutes.
         /// </summary>
         public int cacheTtlMinutes = 30;
+
+        /// <summary>
+        /// Cache memory limit in MB.
+        /// </summary>
+        public int cacheMaxMemoryMB = 200;
+
+        /// <summary>
+        /// Cache cleanup interval in minutes.
+        /// </summary>
+        public int cacheCleanupIntervalMinutes = 2;
 
         /// <summary>
         /// Maximum concurrent requests allowed.
@@ -202,8 +212,10 @@ namespace RimAI.Framework.Core
 
             // Cache Settings
             Scribe_Values.Look(ref enableCaching, "RimAIFramework_enableCaching", true);
-            Scribe_Values.Look(ref cacheSize, "RimAIFramework_cacheSize", 1000);
+            Scribe_Values.Look(ref cacheSize, "RimAIFramework_cacheSize", 500); // 更新默认值以匹配新配置
             Scribe_Values.Look(ref cacheTtlMinutes, "RimAIFramework_cacheTtlMinutes", 30);
+            Scribe_Values.Look(ref cacheMaxMemoryMB, "RimAIFramework_cacheMaxMemoryMB", 200);
+            Scribe_Values.Look(ref cacheCleanupIntervalMinutes, "RimAIFramework_cacheCleanupIntervalMinutes", 2);
 
             // Batch Processing Settings
             Scribe_Values.Look(ref batchSize, "RimAIFramework_batchSize", 5);

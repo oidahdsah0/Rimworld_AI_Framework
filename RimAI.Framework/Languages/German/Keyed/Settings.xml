@@ -34,6 +34,8 @@
   <RimAI.Framework.Settings.CacheMisses>Cache-Fehlschläge: {0}</RimAI.Framework.Settings.CacheMisses>
   <RimAI.Framework.Settings.CacheSize>Cache-Größe (Einträge): {0}</RimAI.Framework.Settings.CacheSize>
   <RimAI.Framework.Settings.CacheTTL>Cache-TTL (Minuten): {0}</RimAI.Framework.Settings.CacheTTL>
+  <RimAI.Framework.Settings.CacheMemoryLimit>Cache-Speicherlimit (MB): {0}</RimAI.Framework.Settings.CacheMemoryLimit>
+  <RimAI.Framework.Settings.CacheCleanupInterval>Cache-Bereinigungsintervall (Minuten): {0}</RimAI.Framework.Settings.CacheCleanupInterval>
   <!-- Settings Category -->
   <RimAI.Framework.Settings.Category>RimAI Framework</RimAI.Framework.Settings.Category>
   <!-- Settings -->

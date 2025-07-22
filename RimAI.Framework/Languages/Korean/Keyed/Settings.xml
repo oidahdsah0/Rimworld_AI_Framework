@@ -32,8 +32,10 @@
   <RimAI.Framework.Settings.CacheHitRate>캐시 적중률: {0:P2}</RimAI.Framework.Settings.CacheHitRate>
   <RimAI.Framework.Settings.CacheHits>캐시 적중: {0}</RimAI.Framework.Settings.CacheHits>
   <RimAI.Framework.Settings.CacheMisses>캐시 누락: {0}</RimAI.Framework.Settings.CacheMisses>
-  <RimAI.Framework.Settings.CacheSize>캐시 크기 (항목): {0}</RimAI.Framework.Settings.CacheSize>
+  <RimAI.Framework.Settings.CacheSize>캐시 크기 (항목 수): {0}</RimAI.Framework.Settings.CacheSize>
   <RimAI.Framework.Settings.CacheTTL>캐시 TTL (분): {0}</RimAI.Framework.Settings.CacheTTL>
+  <RimAI.Framework.Settings.CacheMemoryLimit>캐시 메모리 제한 (MB): {0}</RimAI.Framework.Settings.CacheMemoryLimit>
+  <RimAI.Framework.Settings.CacheCleanupInterval>캐시 정리 간격 (분): {0}</RimAI.Framework.Settings.CacheCleanupInterval>
   <!-- Settings Category -->
   <RimAI.Framework.Settings.Category>RimAI Framework</RimAI.Framework.Settings.Category>
   <!-- Settings -->

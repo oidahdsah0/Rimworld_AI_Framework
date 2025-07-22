@@ -472,59 +472,58 @@ namespace RimAI.Framework.Examples
 
         #endregion
 
+        #region Cache Optimization Examples
+
         /// <summary>
-        /// 测试缓存优化效果
+        /// 演示缓存优化策略 - 启动时的缓存行为
         /// </summary>
-        public static async Task TestCacheOptimization()
+        public static async Task DemonstrateCacheOptimization()
         {
             try
             {
                 Log.Message("=== RimAI Cache Optimization Test ===");
                 
                 // 1. 游戏启动时的缓存优化测试
-                if (Find.TickManager != null && Find.TickManager.TicksGame < 1000)
+                if (Find.TickManager != null && Find.TickManager.TicksGame < 75000)
                 {
-                    Log.Message($"Game startup detected (tick {Find.TickManager.TicksGame}), cache optimization active");
+                    Log.Message($"Game startup detected (tick {Find.TickManager.TicksGame}), cache optimization active for first 30 seconds");
                     
-                    // 在游戏启动时发送多个请求，应该不会缓存
-                    for (int i = 0; i < 5; i++)
-                    {
-                        var response = await RimAIAPI.SendMessageAsync($"Test request {i} during startup");
-                        Log.Message($"Startup request {i}: {(response != null ? "Success" : "Failed")}");
-                    }
+                    // 在游戏启动时发送请求，应该不会缓存
+                    var response = await RimAIAPI.SendMessageAsync("Test request during startup");
+                    Log.Message($"Startup request: {(response != null ? "Success" : "Failed")}");
                     
                     var startupStats = RimAIAPI.GetStatistics();
                     Log.Message($"Cache entries after startup: {startupStats.GetValueOrDefault("CacheEntryCount", 0)}");
                 }
-                
-                // 2. 正常游戏时的缓存测试
                 else
                 {
-                    Log.Message("Normal game mode, testing cache functionality");
+                    // 正常游戏时的缓存测试
+                    Log.Message("Normal game time, testing cache behavior");
                     
-                    // 发送相同请求测试缓存命中
-                    var testPrompt = "What is the best way to start a RimWorld colony?";
+                    // 发送相同的请求多次，测试缓存命中
+                    const string testPrompt = "What is the best strategy for colony defense?";
                     
-                    var response1 = await RimAIAPI.SendMessageAsync(testPrompt);
-                    Log.Message("First request completed");
-                    
-                    var response2 = await RimAIAPI.SendMessageAsync(testPrompt);
-                    Log.Message("Second request completed");
-                    
-                    var stats = RimAIAPI.GetStatistics();
-                    Log.Message($"Cache hits: {stats.GetValueOrDefault("CacheHits", 0)}");
-                    Log.Message($"Cache misses: {stats.GetValueOrDefault("CacheMisses", 0)}");
+                    for (int i = 0; i < 3; i++)
+                    {
+                        var response = await RimAIAPI.SendMessageAsync(testPrompt);
+                        Log.Message($"Request {i + 1}: {(response != null ? "Success" : "Failed")}");
+                        
+                        var stats = RimAIAPI.GetStatistics();
+                        if (stats.ContainsKey("CacheHits") && stats.ContainsKey("CacheMisses"))
+                        {
+                            Log.Message($"Cache stats - Hits: {stats["CacheHits"]}, Misses: {stats["CacheMisses"]}");
+                        }
+                    }
                 }
                 
-                // 3. 监控缓存健康状态
-                RimAIAPI.MonitorCacheHealth();
-                
-                Log.Message("Cache optimization test completed");
+                Log.Message("=== Cache Optimization Test Complete ===");
             }
             catch (Exception ex)
             {
-                Log.Error($"Cache optimization test failed: {ex.Message}");
+                Log.Error($"[RimAI Cache Test] Failed: {ex.Message}");
             }
         }
+
+        #endregion
     }
 }

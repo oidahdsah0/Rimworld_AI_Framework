@@ -33,8 +33,10 @@
   <RimAI.Framework.Settings.CacheHitRate>缓存命中率：{0:P2}</RimAI.Framework.Settings.CacheHitRate>
   <RimAI.Framework.Settings.CacheHits>缓存命中：{0}</RimAI.Framework.Settings.CacheHits>
   <RimAI.Framework.Settings.CacheMisses>缓存未命中：{0}</RimAI.Framework.Settings.CacheMisses>
-  <RimAI.Framework.Settings.CacheSize>缓存容量 (条目数)：{0}</RimAI.Framework.Settings.CacheSize>
-  <RimAI.Framework.Settings.CacheTTL>缓存保存时间 (分钟)：{0}</RimAI.Framework.Settings.CacheTTL>
+  <RimAI.Framework.Settings.CacheSize>缓存大小（条目数）：{0}</RimAI.Framework.Settings.CacheSize>
+  <RimAI.Framework.Settings.CacheTTL>缓存生存时间（分钟）：{0}</RimAI.Framework.Settings.CacheTTL>
+  <RimAI.Framework.Settings.CacheMemoryLimit>缓存内存限制（MB）：{0}</RimAI.Framework.Settings.CacheMemoryLimit>
+  <RimAI.Framework.Settings.CacheCleanupInterval>缓存清理间隔（分钟）：{0}</RimAI.Framework.Settings.CacheCleanupInterval>
   <!-- Settings Category -->
   <RimAI.Framework.Settings.Category>RimAI Framework</RimAI.Framework.Settings.Category>
   <!-- Settings -->

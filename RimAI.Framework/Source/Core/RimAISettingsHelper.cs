@@ -42,7 +42,8 @@ namespace RimAI.Framework.Core
                 config.Set("cache.enabled", settings.enableCaching);
                 config.Set("cache.size", settings.cacheSize);
                 config.Set("cache.ttlMinutes", settings.cacheTtlMinutes);
-                config.Set("cache.ttlMinutes", settings.cacheTtlMinutes); // 使用统一的配置键
+                config.Set("cache.maxMemoryMB", settings.cacheMaxMemoryMB);
+                config.Set("cache.cleanupIntervalMinutes", settings.cacheCleanupIntervalMinutes);
 
                 // Batch Settings
                 config.Set("batch.size", settings.batchSize);
@@ -150,17 +151,21 @@ namespace RimAI.Framework.Core
             }
 
             // Cache size validation
-            if (settings.enableCaching)
+            if (settings.cacheSize < 100 || settings.cacheSize > 10000)
             {
-                if (settings.cacheSize < 10 || settings.cacheSize > 10000)
-                {
-                    errors.Add("Cache size must be between 10 and 10000");
-                }
+                errors.Add("Cache size must be between 100 and 10000");
+            }
 
-                if (settings.cacheTtlMinutes < 1 || settings.cacheTtlMinutes > 1440)
-                {
-                    errors.Add("Cache TTL must be between 1 and 1440 minutes");
-                }
+            // Cache memory validation
+            if (settings.cacheMaxMemoryMB < 50 || settings.cacheMaxMemoryMB > 2048)
+            {
+                errors.Add("Cache memory limit must be between 50 MB and 2048 MB");
+            }
+
+            // Cache cleanup interval validation
+            if (settings.cacheCleanupIntervalMinutes < 1 || settings.cacheCleanupIntervalMinutes > 60)
+            {
+                errors.Add("Cache cleanup interval must be between 1 and 60 minutes");
             }
 
             // Batch settings validation
@@ -182,111 +187,27 @@ namespace RimAI.Framework.Core
         }
 
         /// <summary>
-        /// Gets performance preset configurations.
+        /// 应用性能预设
         /// </summary>
-        public static Dictionary<string, Action<RimAISettings>> GetPresets()
+        public static void ApplyPreset(RimAISettings settings, string presetName)
         {
-            return new Dictionary<string, Action<RimAISettings>>
+            if (RimAISettingsWindow.PresetConfigurations.ContainsKey(presetName))
             {
-                {
-                    "Performance", (settings) => {
-                        settings.enableCaching = true;
-                        settings.cacheSize = 2000;
-                        settings.cacheTtlMinutes = 60;
-                        settings.maxConcurrentRequests = 8;
-                        settings.batchSize = 10;
-                        settings.batchTimeoutSeconds = 1;
-                        settings.timeoutSeconds = 20;
-                        settings.retryCount = 2;
-                        settings.enableHealthCheck = true;
-                        settings.enableMemoryMonitoring = true;
-                        settings.memoryThresholdMB = 200;
-                        settings.enableDetailedLogging = false;
-                        settings.logLevel = 1; // Info
-                    }
-                },
-                {
-                    "Quality", (settings) => {
-                        settings.temperature = 0.3f;
-                        settings.maxTokens = 2000;
-                        settings.timeoutSeconds = 60;
-                        settings.retryCount = 5;
-                        settings.enableCaching = false;  // No caching for highest quality
-                        settings.maxConcurrentRequests = 3;
-                        settings.batchSize = 3;
-                        settings.batchTimeoutSeconds = 5;
-                        settings.enableDetailedLogging = true;
-                        settings.logLevel = 0; // Debug
-                        settings.enableHealthCheck = true;
-                        settings.healthCheckIntervalMinutes = 2;
-                    }
-                },
-                {
-                    "Balanced", (settings) => {
-                        settings.temperature = 0.7f;
-                        settings.maxTokens = 1000;
-                        settings.timeoutSeconds = 30;
-                        settings.retryCount = 3;
-                        settings.enableCaching = true;
-                        settings.cacheSize = 1000;
-                        settings.cacheTtlMinutes = 30;
-                        settings.maxConcurrentRequests = 5;
-                        settings.batchSize = 5;
-                        settings.batchTimeoutSeconds = 2;
-                        settings.enableDetailedLogging = false;
-                        settings.logLevel = 1; // Info
-                        settings.enableHealthCheck = true;
-                        settings.healthCheckIntervalMinutes = 5;
-                        settings.enableMemoryMonitoring = true;
-                        settings.memoryThresholdMB = 100;
-                    }
-                },
-                {
-                    "Conservative", (settings) => {
-                        settings.temperature = 0.1f;
-                        settings.maxTokens = 500;
-                        settings.timeoutSeconds = 90;
-                        settings.retryCount = 5;
-                        settings.enableCaching = true;
-                        settings.cacheSize = 500;
-                        settings.cacheTtlMinutes = 120;
-                        settings.maxConcurrentRequests = 2;
-                        settings.batchSize = 2;
-                        settings.batchTimeoutSeconds = 10;
-                        settings.enableDetailedLogging = true;
-                        settings.logLevel = 0; // Debug
-                        settings.enableHealthCheck = true;
-                        settings.healthCheckIntervalMinutes = 1;
-                        settings.enableMemoryMonitoring = true;
-                        settings.memoryThresholdMB = 50;
-                    }
-                }
-            };
+                RimAISettingsWindow.PresetConfigurations[presetName](settings);
+                Log.Message($"[RimAI Settings] Applied preset: {presetName}");
+            }
+            else
+            {
+                Log.Warning($"[RimAI Settings] Unknown preset: {presetName}");
+            }
         }
 
         /// <summary>
-        /// Applies a preset configuration to settings.
+        /// 获取所有可用的预设
         /// </summary>
-        public static bool ApplyPreset(RimAISettings settings, string presetName)
+        public static Dictionary<string, Action<RimAISettings>> GetPresets()
         {
-            try
-            {
-                var presets = GetPresets();
-                if (presets.ContainsKey(presetName))
-                {
-                    presets[presetName](settings);
-                    Log.Message($"[RimAI Settings] Applied {presetName} preset");
-                    return true;
-                }
-                
-                Log.Warning($"[RimAI Settings] Unknown preset: {presetName}");
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[RimAI Settings] Failed to apply preset {presetName}: {ex.Message}");
-                return false;
-            }
+            return RimAISettingsWindow.PresetConfigurations;
         }
 
         /// <summary>
@@ -318,6 +239,8 @@ namespace RimAI.Framework.Core
                     $"enableCaching={settings.enableCaching}",
                     $"cacheSize={settings.cacheSize}",
                     $"cacheTtlMinutes={settings.cacheTtlMinutes}",
+                    $"cacheMaxMemoryMB={settings.cacheMaxMemoryMB}",
+                    $"cacheCleanupIntervalMinutes={settings.cacheCleanupIntervalMinutes}",
                     "",
                     "# Batch Settings",
                     $"batchSize={settings.batchSize}",
@@ -363,7 +286,7 @@ namespace RimAI.Framework.Core
                     $"Temperature: {settings.temperature:F1}",
                     $"Max Tokens: {settings.maxTokens}",
                     $"Streaming: {(settings.enableStreaming ? "Enabled" : "Disabled")}",
-                    $"Caching: {(settings.enableCaching ? $"Enabled ({settings.cacheSize} entries, {settings.cacheTtlMinutes}min TTL)" : "Disabled")}",
+                    $"Caching: {(settings.enableCaching ? $"Enabled ({settings.cacheSize} entries, {settings.cacheTtlMinutes}min TTL, {settings.cacheMaxMemoryMB}MB limit)" : "Disabled")}",
                     $"Concurrent Requests: {settings.maxConcurrentRequests}",
                     $"Batch Size: {settings.batchSize}",
                     $"Health Checks: {(settings.enableHealthCheck ? $"Enabled ({settings.healthCheckIntervalMinutes}min interval)" : "Disabled")}",

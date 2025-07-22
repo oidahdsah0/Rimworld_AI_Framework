@@ -140,15 +140,15 @@ namespace RimAI.Framework.Configuration
                 ["performance.retryCount"] = 3,
                 ["performance.maxConcurrentRequests"] = 5,
                 
-                // 缓存设置 - 立即修复：降低缓存大小和TTL
+                // 缓存设置 - 现代硬件优化配置
                 ["cache.enabled"] = true,
-                ["cache.size"] = 200,                    // 从1000降低到200
-                ["cache.ttlMinutes"] = 15,               // 从30分钟降低到15分钟
-                ["cache.cleanupIntervalMinutes"] = 1,    // 从2分钟降低到1分钟
-                ["cache.maxMemoryMB"] = 50,              // 新增：内存限制50MB
-                ["cache.minHitRate"] = 0.1,              // 新增：最低命中率
-                ["cache.autoCleanup"] = true,            // 新增：自动清理
-                
+                ["cache.size"] = 500,                    // 提高缓存大小，适应现代硬件
+                ["cache.ttlMinutes"] = 30,               // 增加TTL，减少API调用
+                ["cache.cleanupIntervalMinutes"] = 2,    // 适中的清理频率
+                ["cache.maxMemoryMB"] = 200,             // 提高内存限制，适应现代硬件
+                ["cache.minHitRate"] = 0.1,              // 最低命中率
+                ["cache.autoCleanup"] = true,            // 自动清理
+
                 // 批处理设置
                 ["batch.size"] = 5,
                 ["batch.timeoutSeconds"] = 2,
@@ -167,19 +167,9 @@ namespace RimAI.Framework.Configuration
                 ["embedding.enabled"] = false,
                 // ["embedding.key"] = "", // 移除默认值，如果需要embedding key必须由用户提供
                 ["embedding.endpoint"] = "https://api.openai.com/v1",
-                ["embedding.model"] = "text-embedding-3-small",
+                ["embedding.model"] = "text-embedding-3-small"
                 
-                // 遗留设置（保持向后兼容）
-                ["Logging.Level"] = "Info",
-                ["Logging.EnableDebug"] = false,
-                ["Http.Timeout"] = 30000,
-                ["Http.RetryCount"] = 3,
-                ["Http.MaxConnections"] = 20,
-                ["Cache.MaxSize"] = 200,                 // 更新遗留设置
-                ["Cache.DefaultExpiration"] = 900000,    // 15分钟，更新遗留设置
-                ["Performance.EnableBatching"] = true,
-                ["Performance.EnableCaching"] = true,
-                ["Security.ValidateSSL"] = true
+                // 注意：移除所有遗留的Cache.*设置，统一使用cache.*前缀
             };
             
             foreach (var kvp in defaults)

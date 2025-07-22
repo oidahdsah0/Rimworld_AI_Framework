@@ -32,8 +32,10 @@
   <RimAI.Framework.Settings.CacheHitRate>Процент попаданий в кэш: {0:P2}</RimAI.Framework.Settings.CacheHitRate>
   <RimAI.Framework.Settings.CacheHits>Попадания в кэш: {0}</RimAI.Framework.Settings.CacheHits>
   <RimAI.Framework.Settings.CacheMisses>Промахи кэша: {0}</RimAI.Framework.Settings.CacheMisses>
-  <RimAI.Framework.Settings.CacheSize>Размер кэша (записи): {0}</RimAI.Framework.Settings.CacheSize>
-  <RimAI.Framework.Settings.CacheTTL>TTL кэша (минуты): {0}</RimAI.Framework.Settings.CacheTTL>
+  <RimAI.Framework.Settings.CacheSize>Размер кэша (записей): {0}</RimAI.Framework.Settings.CacheSize>
+  <RimAI.Framework.Settings.CacheTTL>TTL кэша (минут): {0}</RimAI.Framework.Settings.CacheTTL>
+  <RimAI.Framework.Settings.CacheMemoryLimit>Лимит памяти кэша (МБ): {0}</RimAI.Framework.Settings.CacheMemoryLimit>
+  <RimAI.Framework.Settings.CacheCleanupInterval>Интервал очистки кэша (минут): {0}</RimAI.Framework.Settings.CacheCleanupInterval>
   <!-- Settings Category -->
   <RimAI.Framework.Settings.Category>RimAI Framework</RimAI.Framework.Settings.Category>
   <!-- Settings -->
