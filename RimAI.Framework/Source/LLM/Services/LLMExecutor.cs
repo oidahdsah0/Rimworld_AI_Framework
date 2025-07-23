@@ -10,6 +10,7 @@ using RimAI.Framework.Configuration;
 using RimAI.Framework.Core;
 using RimAI.Framework.LLM.Models;
 using Verse;
+using System.Linq;
 
 namespace RimAI.Framework.LLM.Services
 {
@@ -351,50 +352,85 @@ namespace RimAI.Framework.LLM.Services
         private object BuildRequestBody(UnifiedLLMRequest request, bool streaming)
         {
             var options = request.Options ?? new LLMRequestOptions();
-            
-            // 使用ApplyGlobalDefaults已经设置好的值，不再重复获取
-            // 如果options中没有值，使用统一的获取方法确保正确的优先级
-            var temperature = options.Temperature ?? _settings?.temperature ?? 0.7f;
-            var model = options.Model ?? GetModelName(); // 使用统一的获取方法
+            var model = options.Model ?? GetModelName();
+
+            var messages = new List<object>
+            {
+                new { role = "user", content = request.Prompt }
+            };
 
             var body = new Dictionary<string, object>
             {
                 ["model"] = model,
-                ["messages"] = new[]
-                {
-                    new { role = "user", content = request.Prompt }
-                },
-                ["stream"] = streaming,
-                ["temperature"] = temperature
+                ["messages"] = messages,
+                ["stream"] = streaming
             };
 
-            if (options.MaxTokens.HasValue)
+            // Apply optional parameters with explicit checks
+            if (options.Temperature.HasValue) body["temperature"] = options.Temperature.Value;
+            if (options.MaxTokens.HasValue) body["max_tokens"] = options.MaxTokens.Value;
+            if (options.TopP.HasValue) body["top_p"] = options.TopP.Value;
+            if (options.FrequencyPenalty.HasValue) body["frequency_penalty"] = options.FrequencyPenalty.Value;
+            if (options.PresencePenalty.HasValue) body["presence_penalty"] = options.PresencePenalty.Value;
+
+            // Definitive Fix 3.0: Use Reflection to robustly handle cross-assembly types without breaking architecture.
+            if (options.AdditionalParameters != null && options.AdditionalParameters.TryGetValue("tools", out var toolsObject))
             {
-                body["max_tokens"] = options.MaxTokens.Value;
+                try
+                {
+                    if (toolsObject is System.Collections.IEnumerable toolList && toolList.Cast<object>().Any())
+                    {
+                        var apiTools = new List<object>();
+                        foreach (object tool in toolList)
+                        {
+                            var functionProperty = tool.GetType().GetProperty("Function");
+                            if (functionProperty == null) continue;
+                            object functionObject = functionProperty.GetValue(tool);
+                            if (functionObject == null) continue;
+
+                            var nameProp = functionObject.GetType().GetProperty("Name");
+                            var descProp = functionObject.GetType().GetProperty("Description");
+                            var paramsProp = functionObject.GetType().GetProperty("Parameters");
+
+                            string name = nameProp?.GetValue(functionObject) as string;
+                            string description = descProp?.GetValue(functionObject) as string;
+                            object parameters = paramsProp?.GetValue(functionObject);
+
+                            if (string.IsNullOrEmpty(name)) continue;
+
+                            apiTools.Add(new
+                            {
+                                type = "function",
+                                function = new
+                                {
+                                    name = name,
+                                    description = description,
+                                    parameters = parameters
+                                }
+                            });
+                        }
+
+                        if (apiTools.Any())
+                        {
+                            body["tools"] = apiTools;
+                            body["tool_choice"] = "auto";
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning($"[RimAI] Failed to process 'tools' parameter via reflection. It might have an unexpected structure. Error: {ex.Message}");
+                }
             }
 
-            // Add any additional parameters from options
-            if (options.TopP.HasValue)
-            {
-                body["top_p"] = options.TopP.Value;
-            }
-
-            if (options.FrequencyPenalty.HasValue)
-            {
-                body["frequency_penalty"] = options.FrequencyPenalty.Value;
-            }
-
-            if (options.PresencePenalty.HasValue)
-            {
-                body["presence_penalty"] = options.PresencePenalty.Value;
-            }
-
-            // Add all custom parameters from AdditionalParameters
-            if (options.AdditionalParameters != null && options.AdditionalParameters.Count > 0)
+            // Add any other non-core parameters from AdditionalParameters
+            if (options.AdditionalParameters != null)
             {
                 foreach (var param in options.AdditionalParameters)
                 {
-                    // Avoid overwriting core parameters that are already set
+                    // Skip parameters that are now handled explicitly to avoid conflicts
+                    if (param.Key == "tools" || param.Key == "tool_choice") continue;
+                    
                     if (!body.ContainsKey(param.Key))
                     {
                         body[param.Key] = param.Value;
