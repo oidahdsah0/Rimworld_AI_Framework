@@ -149,69 +149,6 @@ namespace RimAI.Framework.LLM.Models
     }
 
     /// <summary>
-    /// Unified response model for all LLM operations
-    /// </summary>
-    public class LLMResponse
-    {
-        public string Content { get; set; }
-        public bool IsSuccess { get; set; }
-        public string Error { get; set; }
-        public string RequestId { get; set; }
-        public DateTime CompletedAt { get; set; }
-        public TimeSpan Duration { get; set; }
-        public Dictionary<string, object> Metadata { get; set; }
-
-        public LLMResponse()
-        {
-            CompletedAt = DateTime.UtcNow;
-            Metadata = new Dictionary<string, object>();
-        }
-
-        public static LLMResponse Success(string responseContent, string requestId = null)
-        {
-            return new LLMResponse
-            {
-                Content = responseContent,
-                IsSuccess = true,
-                RequestId = requestId
-            };
-        }
-
-        public static LLMResponse Failed(string errorMessage, string requestId = null)
-        {
-            return new LLMResponse
-            {
-                Error = errorMessage,
-                IsSuccess = false,
-                RequestId = requestId
-            };
-        }
-
-        public static LLMResponse Failure(string errorMessage, string requestId = null)
-        {
-            return Failed(errorMessage, requestId);
-        }
-
-        /// <summary>
-        /// Add metadata to the response (fluent interface)
-        /// </summary>
-        public LLMResponse WithMetadata(string key, object value)
-        {
-            Metadata[key] = value;
-            return this;
-        }
-
-        /// <summary>
-        /// Set content for the response (fluent interface)
-        /// </summary>
-        public LLMResponse WithContent(string content)
-        {
-            Content = content;
-            return this;
-        }
-    }
-
-    /// <summary>
     /// Enhanced request options with builder pattern support
     /// </summary>
     public class LLMRequestOptions

@@ -596,7 +596,7 @@ namespace RimAI.Framework.LLM
                 }
                 
                 Interlocked.Increment(ref _failedRequests);
-                Warning("Request failed: {0}", response.Error);
+                Warning("Request failed: {0}", response.ErrorMessage);
                 return null;
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

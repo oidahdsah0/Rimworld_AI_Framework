@@ -241,7 +241,7 @@ namespace RimAI.Framework.LLM.Services
             };
 
             var response = await ExecuteAsync(testRequest);
-            return (response.IsSuccess, response.IsSuccess ? "Connection successful" : response.Error);
+            return (response.IsSuccess, response.IsSuccess ? "Connection successful" : response.ErrorMessage);
         }
 
         #region Private Implementation Methods
@@ -249,9 +249,8 @@ namespace RimAI.Framework.LLM.Services
         private async Task<LLMResponse> ExecuteNonStreamingInternalAsync(UnifiedLLMRequest request)
         {
             var requestBody = BuildRequestBody(request, false);
-            var jsonBody = JsonConvert.SerializeObject(requestBody);
+            var jsonBody = JsonConvert.SerializeObject(requestBody, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             
-            // 使用配置优先级获取API配置 - CRITICAL FIX
             var apiEndpoint = GetApiEndpoint();
             var apiKey = GetApiKey();
             
@@ -264,16 +263,12 @@ namespace RimAI.Framework.LLM.Services
 
             if (httpResponse.success)
             {
-                var content = ParseChatCompletionResponse(httpResponse.responseBody);
-                return LLMResponse.Success(content, request.RequestId)
-                    .WithMetadata("status_code", httpResponse.statusCode)
-                    .WithMetadata("model", request.Options?.Model ?? _settings.modelName)
-                    .WithMetadata("temperature", request.Options?.Temperature ?? _settings.temperature);
+                var llmResponse = ParseChatCompletionResponse(httpResponse.responseBody, request.RequestId);
+                return llmResponse;
             }
 
             return LLMResponse.Failed($"HTTP {httpResponse.statusCode}: {httpResponse.errorContent}", request.RequestId)
-                .WithMetadata("status_code", httpResponse.statusCode)
-                .WithMetadata("error_content", httpResponse.errorContent);
+                .WithMetadata("status_code", httpResponse.statusCode);
         }
 
         private async Task<LLMResponse> ExecuteStreamingInternalAsync(UnifiedLLMRequest request)
@@ -322,8 +317,8 @@ namespace RimAI.Framework.LLM.Services
 
                     try
                     {
-                        var chunk = JsonConvert.DeserializeObject<StreamingChatCompletionChunk>(jsonData);
-                        var content = chunk?.choices?[0]?.delta?.content;
+                        var chunk = JsonConvert.DeserializeObject<LLMResponse>(jsonData);
+                        var content = chunk?.Choices?[0]?.Delta?.Content;
                         
                         if (!string.IsNullOrEmpty(content))
                         {
@@ -438,28 +433,24 @@ namespace RimAI.Framework.LLM.Services
             return (true, null);
         }
 
-        private string ParseChatCompletionResponse(string jsonResponse)
+        private LLMResponse ParseChatCompletionResponse(string jsonResponse, string requestId)
         {
             try
             {
-                var responseObject = JsonConvert.DeserializeObject<ChatCompletionResponse>(jsonResponse);
+                var responseObject = JsonConvert.DeserializeObject<LLMResponse>(jsonResponse);
                 
-                if (responseObject?.choices != null && responseObject.choices.Count > 0)
+                if (responseObject == null)
                 {
-                    var firstChoice = responseObject.choices[0];
-                    if (firstChoice?.message != null && !string.IsNullOrEmpty(firstChoice.message.content))
-                    {
-                        return firstChoice.message.content;
-                    }
+                    Log.Error($"RimAI Framework: Failed to deserialize response. Response was null. Raw JSON: {jsonResponse}");
+                    return LLMResponse.Failed("Failed to deserialize response.", requestId);
                 }
-                
-                Log.Error($"RimAI Framework: Response format unexpected. Response: {jsonResponse}");
-                return null;
+
+                return responseObject;
             }
             catch (Exception ex)
             {
-                Log.Error($"RimAI Framework: Error parsing response: {ex.Message}");
-                return null;
+                Log.Error($"RimAI Framework: Error parsing response: {ex.Message}. Raw JSON: {jsonResponse}");
+                return LLMResponse.Failed($"Error parsing response: {ex.Message}", requestId);
             }
         }
 
