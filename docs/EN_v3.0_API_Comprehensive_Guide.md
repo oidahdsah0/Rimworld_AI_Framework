@@ -14,13 +14,29 @@ using RimAI.Framework.API;
 using RimAI.Framework.LLM.Models;
 ```
 
-## 📝 Message Processing APIs
+## 1. Basic API vs. Advanced API
 
-### 1. SendMessageAsync - Standard Message Processing
+To meet the needs of different developers, RimAI v3.0 offers two core APIs:
+
+- **Basic API (`SendMessageAsync`)**:
+  - **Returns**: `string`
+  - **Features**: Simple, direct, for quickly getting text results.
+  - **Use Case**: Ideal for simple requests where details about errors, token usage, or other metadata are not critical.
+
+- **Advanced API (`SendRequestAsync`)**:
+  - **Returns**: `LLMResponse` object
+  - **Features**: Powerful, providing detailed success/failure status, error messages, and metadata.
+  - **Use Case**: Recommended for production-grade features that require reliable error handling and access to response metadata (like token consumption).
+
+---
+
+## 2. SendMessageAsync - Basic Message Sending (returns string)
+
+This method is the fastest way to perform simple interactions with the AI. It directly returns the AI's response text, or `null` if an error occurs.
 
 #### Method Signature
 ```csharp
-public static async Task<LLMResponse> SendMessageAsync(
+public static async Task<string> SendMessageAsync(
     string message, 
     LLMRequestOptions options = null
 )
@@ -37,19 +53,10 @@ public static async Task<LLMResponse> SendMessageAsync(
 - Request configuration options, uses defaults when null
 - See [LLMRequestOptions Details](#llmrequestoptions-comprehensive-parameters)
 
-#### Return Value: LLMResponse
-```csharp
-public class LLMResponse
-{
-    public string Content { get; set; }           // Response content
-    public bool IsSuccess { get; set; }           // Success indicator
-    public string ErrorMessage { get; set; }     // Error details (if any)
-    public TimeSpan ResponseTime { get; set; }   // Response latency
-    public int TokensUsed { get; set; }          // Token consumption
-    public bool FromCache { get; set; }          // Cache hit indicator
-    public string RequestId { get; set; }        // Unique request identifier
-}
-```
+#### Return Value: string
+- Returns the AI-generated response content as a string
+- Returns null if the request fails
+- Framework handles errors and retry logic internally
 
 #### Usage Examples
 
@@ -57,11 +64,9 @@ public class LLMResponse
 ```csharp
 // Simplest possible call
 var response = await RimAIAPI.SendMessageAsync("Hello, AI!");
-if (response.IsSuccess)
+if (!string.IsNullOrEmpty(response))
 {
-    Log.Message($"AI Response: {response.Content}");
-    Log.Message($"Latency: {response.ResponseTime.TotalMilliseconds}ms");
-    Log.Message($"Cache Hit: {response.FromCache}");
+    Log.Message($"AI Response: {response}");
 }
 ```
 
@@ -86,14 +91,14 @@ var response = await RimAIAPI.SendMessageAsync(
 try
 {
     var response = await RimAIAPI.SendMessageAsync("Hello");
-    if (!response.IsSuccess)
+    if (string.IsNullOrEmpty(response))
     {
-        Log.Error($"Request failed: {response.ErrorMessage}");
+        Log.Error("Request failed: No response received");
         return;
     }
     
     // Process successful response
-    ProcessResponse(response.Content);
+    ProcessResponse(response);
 }
 catch (RimAIException ex)
 {
@@ -105,7 +110,7 @@ catch (Exception ex)
 }
 ```
 
-### 2. SendMessageStreamAsync - Streaming Message Processing
+### 3. SendMessageStreamAsync - Streaming Message Processing
 
 #### Method Signature
 ```csharp
@@ -199,11 +204,78 @@ await RimAIAPI.SendMessageStreamAsync(
 );
 ```
 
-### 3. SendBatchRequestAsync - Batch Processing
+### 3. SendRequestAsync - Advanced Message Sending (returns LLMResponse)
+
+This method offers more powerful functionality and finer control by returning an `LLMResponse` object containing all response details. **This is the recommended method for most production-grade features.**
 
 #### Method Signature
 ```csharp
-public static async Task<List<LLMResponse>> SendBatchRequestAsync(
+public static async Task<LLMResponse> SendRequestAsync(
+    string prompt,
+    LLMRequestOptions options = null,
+    CancellationToken cancellationToken = default
+)
+```
+
+#### Return Value: LLMResponse
+
+The `LLMResponse` object contains all the detailed information about the request's response:
+```csharp
+public class LLMResponse
+{
+    // Core Content
+    public string Content { get; }           // The main extracted response text
+    public List<ToolCall> ToolCalls { get; } // List of tool calls requested by the AI
+
+    // Status & Error Handling
+    public bool IsSuccess { get; }           // Whether the request was successful
+    public string ErrorMessage { get; }     // Detailed error message on failure
+
+    // Metadata
+    public string Id { get; set; }              // Unique ID of the response
+    public string Model { get; set; }           // The model name used
+    public Usage Usage { get; set; }           // Token usage statistics
+    public string RequestId { get; }         // Internal request ID
+}
+
+public class Usage
+{
+    public int PromptTokens { get; set; }     // Number of input tokens
+    public int CompletionTokens { get; set; } // Number of output tokens
+    public int TotalTokens { get; set; }      // Total tokens
+}
+```
+
+#### Usage Example
+
+**Reliable Request with Error Handling**
+```csharp
+var response = await RimAIAPI.SendRequestAsync("Generate a backstory for a space merchant");
+
+if (response.IsSuccess)
+{
+    Log.Message($"Success! AI Response: {response.Content}");
+    
+    // You can also check token usage
+    if (response.Usage != null)
+    {
+        Log.Message($"This request consumed {response.Usage.TotalTokens} tokens.");
+    }
+}
+else
+{
+    // Know exactly what went wrong
+    Log.Error($"AI request failed: {response.ErrorMessage}");
+}
+```
+
+---
+
+### 4. SendBatchRequestAsync - Batch Processing
+
+#### Method Signature
+```csharp
+public static async Task<List<string>> SendBatchRequestAsync(
     List<string> messages,
     LLMRequestOptions options = null
 )
@@ -219,8 +291,9 @@ public static async Task<List<LLMResponse>> SendBatchRequestAsync(
 **options (LLMRequestOptions, optional)**
 - Configuration applied to all requests
 
-#### Return Value: List<LLMResponse>
-- Response list in same order as input messages
+#### Return Value: List<string>
+- Response content string list in same order as input messages
+- Failed requests have null values at corresponding positions
 - Continues processing even if individual requests fail
 
 #### Usage Examples
@@ -273,8 +346,8 @@ var options = new LLMRequestOptions
 var reports = await RimAIAPI.SendBatchRequestAsync(dataQueries, options);
 
 // Parallel result processing
-Parallel.ForEach(reports.Where(r => r.IsSuccess), response => {
-    ProcessAnalysisReport(response.Content);
+Parallel.ForEach(reports.Where(r => !string.IsNullOrEmpty(r)), response => {
+    ProcessAnalysisReport(response);
 });
 ```
 
@@ -721,7 +794,7 @@ public async Task SafeAIRequestAsync(string message)
     try
     {
         var response = await RimAIAPI.SendMessageAsync(message);
-        if (response.IsSuccess)
+        if (!string.IsNullOrEmpty(response))
         {
             // Success handling
         }
@@ -773,7 +846,7 @@ public class AIManager
 {
     private static DateTime lastCacheClean = DateTime.MinValue;
     
-    public async Task<LLMResponse> ProcessRequestAsync(string message)
+    public async Task<string> ProcessRequestAsync(string message)
     {
         // Clean cache every hour
         if (DateTime.Now - lastCacheClean > TimeSpan.FromHours(1))
@@ -790,14 +863,14 @@ public class AIManager
 ### 4. Error Handling Strategies
 
 ```csharp
-public async Task<LLMResponse> ResilientRequestAsync(string message, int maxRetries = 3)
+public async Task<string> ResilientRequestAsync(string message, int maxRetries = 3)
 {
     for (int attempt = 0; attempt < maxRetries; attempt++)
     {
         try
         {
             var response = await RimAIAPI.SendMessageAsync(message);
-            if (response.IsSuccess)
+            if (!string.IsNullOrEmpty(response))
                 return response;
                 
             // Wait before retry on failure

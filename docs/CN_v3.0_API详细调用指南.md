@@ -14,13 +14,29 @@ using RimAI.Framework.API;
 using RimAI.Framework.LLM.Models;
 ```
 
-## 📝 消息发送API
+## 1. 基础API vs 高级API
 
-### 1. SendMessageAsync - 标准消息发送
+为了满足不同开发者的需求，RimAI v3.0 提供了两种核心API：
+
+- **基础API (`SendMessageAsync`)**: 
+  - **返回**: `string`
+  - **特点**: 简单、直接，快速获取文本结果。
+  - **适用场景**: 适用于不关心错误细节、Token消耗等元数据的简单请求。
+  
+- **高级API (`SendRequestAsync`)**: 
+  - **返回**: `LLMResponse` 对象
+  - **特点**: 功能强大，提供详细的成功/失败状态、错误信息和元数据。
+  - **适用场景**: 推荐用于需要可靠错误处理、访问响应元数据（如Token使用情况）的生产级功能。
+
+---
+
+## 2. SendMessageAsync - 基础消息发送 (返回 string)
+
+此方法是与AI进行简单交互的最快方式。它直接返回AI的响应文本，如果发生错误则返回`null`。
 
 #### 方法签名
 ```csharp
-public static async Task<LLMResponse> SendMessageAsync(
+public static async Task<string> SendMessageAsync(
     string message, 
     LLMRequestOptions options = null
 )
@@ -37,19 +53,10 @@ public static async Task<LLMResponse> SendMessageAsync(
 - 请求配置选项，null时使用默认配置
 - 详细参数见 [LLMRequestOptions](#llmrequestoptions-详细参数)
 
-#### 返回值：LLMResponse
-```csharp
-public class LLMResponse
-{
-    public string Content { get; set; }           // 响应内容
-    public bool IsSuccess { get; set; }           // 是否成功
-    public string ErrorMessage { get; set; }     // 错误消息(如果有)
-    public TimeSpan ResponseTime { get; set; }   // 响应时间
-    public int TokensUsed { get; set; }          // 使用的Token数量
-    public bool FromCache { get; set; }          // 是否来自缓存
-    public string RequestId { get; set; }        // 请求唯一标识
-}
-```
+#### 返回值：string
+- 返回AI生成的响应内容字符串
+- 如果请求失败，返回null
+- 框架内部已处理错误和重试机制
 
 #### 使用示例
 
@@ -57,11 +64,9 @@ public class LLMResponse
 ```csharp
 // 最简单的调用方式
 var response = await RimAIAPI.SendMessageAsync("Hello, AI!");
-if (response.IsSuccess)
+if (!string.IsNullOrEmpty(response))
 {
-    Log.Message($"AI回复: {response.Content}");
-    Log.Message($"响应时间: {response.ResponseTime.TotalMilliseconds}ms");
-    Log.Message($"来自缓存: {response.FromCache}");
+    Log.Message($"AI回复: {response}");
 }
 ```
 
@@ -86,14 +91,14 @@ var response = await RimAIAPI.SendMessageAsync(
 try
 {
     var response = await RimAIAPI.SendMessageAsync("你好");
-    if (!response.IsSuccess)
+    if (string.IsNullOrEmpty(response))
     {
-        Log.Error($"请求失败: {response.ErrorMessage}");
+        Log.Error("请求失败：未收到响应");
         return;
     }
     
     // 处理成功响应
-    ProcessResponse(response.Content);
+    ProcessResponse(response);
 }
 catch (RimAIException ex)
 {
@@ -199,11 +204,78 @@ await RimAIAPI.SendMessageStreamAsync(
 );
 ```
 
-### 3. SendBatchRequestAsync - 批量请求处理
+### 3. SendRequestAsync - 高级消息发送 (返回 LLMResponse)
+
+此方法提供了更强大的功能和更精细的控制，返回一个包含所有响应细节的`LLMResponse`对象。**这是推荐用于大多数生产级功能的方法。**
 
 #### 方法签名
 ```csharp
-public static async Task<List<LLMResponse>> SendBatchRequestAsync(
+public static async Task<LLMResponse> SendRequestAsync(
+    string prompt,
+    LLMRequestOptions options = null,
+    CancellationToken cancellationToken = default
+)
+```
+
+#### 返回值：LLMResponse
+
+`LLMResponse` 对象包含了所有关于请求响应的详细信息：
+```csharp
+public class LLMResponse
+{
+    // 核心内容
+    public string Content { get; }           // 提取出的主要响应文本
+    public List<ToolCall> ToolCalls { get; } // AI请求的工具调用列表
+
+    // 状态与错误处理
+    public bool IsSuccess { get; }           // 请求是否成功
+    public string ErrorMessage { get; }     // 失败时的详细错误信息
+
+    // 元数据
+    public string Id { get; set; }              // 响应的唯一ID
+    public string Model { get; set; }           // 使用的模型名称
+    public Usage Usage { get; set; }           // Token使用情况统计
+    public string RequestId { get; }         // 内部请求ID
+}
+
+public class Usage
+{
+    public int PromptTokens { get; set; }     // 输入的Token数
+    public int CompletionTokens { get; set; } // 输出的Token数
+    public int TotalTokens { get; set; }      // 总Token数
+}
+```
+
+#### 使用示例
+
+**可靠的请求与错误处理**
+```csharp
+var response = await RimAIAPI.SendRequestAsync("生成一个关于太空商船的背景故事");
+
+if (response.IsSuccess)
+{
+    Log.Message($"成功！AI回复: {response.Content}");
+    
+    // 你还可以检查Token使用情况
+    if (response.Usage != null)
+    {
+        Log.Message($"本次请求消耗了 {response.Usage.TotalTokens} 个Token。");
+    }
+}
+else
+{
+    // 精确地知道错误原因
+    Log.Error($"AI请求失败: {response.ErrorMessage}");
+}
+```
+
+---
+
+### 4. SendBatchRequestAsync - 批量请求处理
+
+#### 方法签名
+```csharp
+public static async Task<List<string>> SendBatchRequestAsync(
     List<string> messages,
     LLMRequestOptions options = null
 )
@@ -219,8 +291,9 @@ public static async Task<List<LLMResponse>> SendBatchRequestAsync(
 **options (LLMRequestOptions, 可选)**
 - 应用于所有请求的配置选项
 
-#### 返回值：List<LLMResponse>
-- 返回响应列表，顺序与输入消息对应
+#### 返回值：List<string>
+- 返回响应内容字符串列表，顺序与输入消息对应
+- 失败的请求在列表中对应位置为null
 - 即使某个请求失败，其他请求仍会继续处理
 
 #### 使用示例
@@ -273,8 +346,8 @@ var options = new LLMRequestOptions
 var reports = await RimAIAPI.SendBatchRequestAsync(dataQueries, options);
 
 // 并行处理结果
-Parallel.ForEach(reports.Where(r => r.IsSuccess), response => {
-    ProcessAnalysisReport(response.Content);
+Parallel.ForEach(reports.Where(r => !string.IsNullOrEmpty(r)), response => {
+    ProcessAnalysisReport(response);
 });
 ```
 
@@ -721,7 +794,7 @@ public async Task SafeAIRequestAsync(string message)
     try
     {
         var response = await RimAIAPI.SendMessageAsync(message);
-        if (response.IsSuccess)
+        if (!string.IsNullOrEmpty(response))
         {
             // 成功处理
         }
@@ -773,7 +846,7 @@ public class AIManager
 {
     private static DateTime lastCacheClean = DateTime.MinValue;
     
-    public async Task<LLMResponse> ProcessRequestAsync(string message)
+    public async Task<string> ProcessRequestAsync(string message)
     {
         // 每小时清理一次缓存
         if (DateTime.Now - lastCacheClean > TimeSpan.FromHours(1))
@@ -790,14 +863,14 @@ public class AIManager
 ### 4. 错误处理策略
 
 ```csharp
-public async Task<LLMResponse> ResilientRequestAsync(string message, int maxRetries = 3)
+public async Task<string> ResilientRequestAsync(string message, int maxRetries = 3)
 {
     for (int attempt = 0; attempt < maxRetries; attempt++)
     {
         try
         {
             var response = await RimAIAPI.SendMessageAsync(message);
-            if (response.IsSuccess)
+            if (!string.IsNullOrEmpty(response))
                 return response;
                 
             // 失败时等待后重试

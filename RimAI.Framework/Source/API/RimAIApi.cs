@@ -301,6 +301,56 @@ namespace RimAI.Framework.API
 
         #endregion
 
+        #region Advanced Messaging Methods
+
+        /// <summary>
+        /// Sends a message and returns a detailed LLMResponse object,
+        /// providing full access to success status, error messages, and metadata.
+        /// This is the recommended method for robust implementations.
+        /// </summary>
+        /// <param name="prompt">The message to send to the AI service.</param>
+        /// <param name="options">Optional parameters for the request.</param>
+        /// <param name="cancellationToken">Token to cancel the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the detailed <see cref="LLMResponse"/> object.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="prompt"/> is null or empty.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the framework is not initialized.</exception>
+        /// <example>
+        /// <code>
+        /// var response = await RimAIAPI.SendRequestAsync("Generate a character bio");
+        /// if (response.IsSuccess)
+        /// {
+        ///     Log.Message($"Content: {response.Content}");
+        ///     Log.Message($"Tokens: {response.Usage?.TotalTokens ?? 0}");
+        /// }
+        /// else
+        /// {
+        ///     Log.Error($"Request failed: {response.ErrorMessage}");
+        /// }
+        /// </code>
+        /// </example>
+        public static async Task<LLMResponse> SendRequestAsync(
+            string prompt,
+            LLMRequestOptions options = null,
+            CancellationToken cancellationToken = default)
+        {
+            ValidatePrompt(prompt, nameof(prompt));
+
+            if (!ValidateFramework())
+                return LLMResponse.Failed("Framework not initialized");
+
+            try
+            {
+                return await LLMManager.Instance.SendRequestAsync(prompt, options, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                RimAILogger.Error("Failed to send request: {0}", ex.Message);
+                return LLMResponse.Failed($"An exception occurred: {ex.Message}");
+            }
+        }
+
+        #endregion
+
         #region System Operations
 
         /// <summary>

@@ -310,6 +310,33 @@ namespace RimAI.Framework.LLM
         }
 
         /// <summary>
+        /// Sends a message with full response details.
+        /// </summary>
+        public async Task<LLMResponse> SendRequestAsync(string prompt, LLMRequestOptions options = null, CancellationToken cancellationToken = default)
+        {
+            if (_disposed)
+            {
+                Debug("SendMessage called on disposed LLMManager");
+                return LLMResponse.Failed("LLMManager is disposed");
+            }
+
+            if (!ValidateRequest(prompt))
+            {
+                return LLMResponse.Failed("Invalid request");
+            }
+
+            var request = new UnifiedLLMRequest
+            {
+                Prompt = prompt,
+                Options = options ?? new LLMRequestOptions(),
+                CancellationToken = cancellationToken,
+                RequestId = Guid.NewGuid().ToString()
+            };
+
+            return await _executor.ExecuteAsync(request);
+        }
+
+        /// <summary>
         /// Convenience method for creative requests
         /// </summary>
         public async Task<string> SendCreativeMessageAsync(string prompt, double temperature = 1.2, CancellationToken cancellationToken = default)
