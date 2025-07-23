@@ -351,6 +351,246 @@ Parallel.ForEach(reports.Where(r => !string.IsNullOrEmpty(r)), response => {
 });
 ```
 
+---
+
+### 5. GetFunctionCallAsync - Get Function Call Suggestions
+
+This advanced API allows you to provide the model with a list of tools (functions) you've defined. Based on the user's `prompt`, the model intelligently decides which tool to call and with what arguments. This enables the creation of complex AI agents that can interact with your game world or other systems.
+
+**Core Idea**: You define the tools, the AI decides when and how to use them.
+
+#### Method Signature
+```csharp
+// Note: Use a using alias to avoid conflicts with Verse.Tool
+using AITool = RimAI.Framework.LLM.Models.Tool;
+
+public static async Task<List<FunctionCallResult>> GetFunctionCallAsync(
+    string prompt,
+    List<AITool> tools,
+    CancellationToken cancellationToken = default
+)
+```
+
+#### Parameters
+
+**prompt (string, required)**
+- The user's input, which the model will use to decide whether to call a tool.
+
+**tools (List<AITool>, required)**
+- A list of available tools you provide to the model.
+- This is a critical parameter that defines the model's capabilities.
+
+**cancellationToken (CancellationToken, optional)**
+- Used to cancel the request.
+
+#### Return Value: `List<FunctionCallResult>`
+- A list containing zero or more `FunctionCallResult` objects.
+- Returns `null` if the model decides no tool should be called, or if an error occurs.
+- The structure of `FunctionCallResult` is as follows:
+```csharp
+public class FunctionCallResult
+{
+    public string ToolId { get; set; }       // A unique ID for the tool call
+    public string FunctionName { get; set; } // The name of the suggested function to call
+    public string Arguments { get; set; }    // A JSON string of the function's arguments
+}
+```
+
+#### Data Model: Defining a Tool
+A tool consists of its type (always "function") and a function definition.
+
+```csharp
+// The AITool, FunctionDefinition, and other models are in the
+// RimAI.Framework.LLM.Models namespace.
+
+var myTool = new AITool
+{
+    Type = "function",
+    Function = new FunctionDefinition
+    {
+        Name = "your_function_name", // A unique name for the function
+        Description = "A clear description of what this function does", // The model uses this to decide when to use it
+        Parameters = new FunctionParameters
+        {
+            Type = "object",
+            Properties = new Dictionary<string, ParameterProperty>
+            {
+                // Define your parameters
+                { "param1", new ParameterProperty { Type = "string", Description = "Description of param1" } },
+                { "param2", new ParameterProperty { Type = "number", Description = "Description of param2" } }
+            },
+            Required = new List<string> { "param1" } // A list of required parameters
+        }
+    }
+};
+```
+
+#### Usage Example: Building an In-Game Calculator
+
+Let's say we want the AI to be able to answer math questions, but instead of calculating itself, it should call our game's precise calculation methods.
+
+**Step 1: Define the Tool**
+```csharp
+using AITool = RimAI.Framework.LLM.Models.Tool;
+using RimAI.Framework.LLM.Models; // For FunctionDefinition, etc.
+
+// Create a multiplication tool
+var multiplyTool = new AITool
+{
+    Type = "function",
+    Function = new FunctionDefinition
+    {
+        Name = "multiply",
+        Description = "Calculate the product of two numbers",
+        Parameters = new FunctionParameters
+        {
+            Type = "object",
+            Properties = new Dictionary<string, ParameterProperty>
+            {
+                { "a", new ParameterProperty { Type = "number", Description = "The first number" } },
+                { "b", new ParameterProperty { Type = "number", Description = "The second number" } }
+            },
+            Required = new List<string> { "a", "b" }
+        }
+    }
+};
+
+var tools = new List<AITool> { multiplyTool };
+```
+
+**Step 2: Call the API**
+```csharp
+var prompt = "Could you please tell me, if I have 128 units of silver, and each is worth 5.5, what is the total value?";
+
+List<FunctionCallResult> suggestedCalls = await RimAIAPI.GetFunctionCallAsync(prompt, tools);
+```
+
+**Step 3: Process the Result and Execute the Local Method**
+```csharp
+if (suggestedCalls != null && suggestedCalls.Count > 0)
+{
+    foreach (var call in suggestedCalls)
+    {
+        Log.Message($"AI suggested calling function: {call.FunctionName}");
+        Log.Message($"Arguments (JSON): {call.Arguments}");
+
+        if (call.FunctionName == "multiply")
+        {
+            // You'll need a class to deserialize the arguments into
+            // e.g., public class MultiplyArgs { public double a { get; set; } public double b { get; set; } }
+            var args = JsonConvert.DeserializeObject<MultiplyArgs>(call.Arguments);
+            
+            // Execute your own local C# method
+            double result = MyLocalCalculator.Multiply(args.a, args.b);
+            
+            Log.Message($"Local calculation result: {result}");
+            
+            // Next steps: You could send this result back to the AI to provide a natural language response to the user.
+        }
+    }
+}
+else
+{
+    Log.Message("The AI did not suggest calling any function.");
+}
+```
+
+#### Complete Example: Multi-Tool Selection
+
+This more complex example demonstrates how to define multiple tools and let the AI automatically select the most appropriate one for different user questions.
+
+**Step 1: Define All Tools**
+```csharp
+using AITool = RimAI.Framework.LLM.Models.Tool;
+using RimAI.Framework.LLM.Models;
+using System.Collections.Generic;
+
+var tools = new List<AITool>
+{
+    // Tool 1: Multiplication
+    new AITool { Function = new FunctionDefinition {
+        Name = "mul",
+        Description = "Calculate the product of two numbers",
+        Parameters = new FunctionParameters {
+            Properties = new Dictionary<string, ParameterProperty> {
+                { "a", new ParameterProperty { Type = "number", Description = "The first number" } },
+                { "b", new ParameterProperty { Type = "number", Description = "The second number" } }
+            },
+            Required = new List<string> { "a", "b" }
+        }
+    }},
+    // Tool 2: Comparison
+    new AITool { Function = new FunctionDefinition {
+        Name = "compare",
+        Description = "Compare two numbers to see which is greater",
+        Parameters = new FunctionParameters {
+            Properties = new Dictionary<string, ParameterProperty> {
+                { "a", new ParameterProperty { Type = "number", Description = "The first number" } },
+                { "b", new ParameterProperty { Type = "number", Description = "The second number" } }
+            },
+            Required = new List<string> { "a", "b" }
+        }
+    }},
+    // Tool 3: Letter Count
+    new AITool { Function = new FunctionDefinition {
+        Name = "count_letter_in_string",
+        Description = "Count the occurrences of a letter in a string",
+        Parameters = new FunctionParameters {
+            Properties = new Dictionary<string, ParameterProperty> {
+                { "a", new ParameterProperty { Type = "string", Description = "The source string" } },
+                { "b", new ParameterProperty { Type = "string", Description = "The letter to count" } }
+            },
+            Required = new List<string> { "a", "b" }
+        }
+    }}
+};
+```
+
+**Step 2: Call the API with Different Prompts**
+```csharp
+var prompts = new List<string>
+{
+    "How many times does the letter 'r' appear in 'strawberry'?",
+    "Which is smaller, 9.11 or 9.9?"
+};
+
+foreach (var prompt in prompts)
+{
+    Log.Message($"\n--- Processing new prompt: {prompt} ---");
+    var suggestedCalls = await RimAIAPI.GetFunctionCallAsync(prompt, tools);
+
+    if (suggestedCalls != null && suggestedCalls.Count > 0)
+    {
+        var call = suggestedCalls.First();
+        Log.Message($"AI suggested calling: '{call.FunctionName}'");
+        Log.Message($"With arguments: {call.Arguments}");
+        
+        // Here, you would call your local C# method based on call.FunctionName
+        // and use the result for the next step (e.g., calling the AI again for a final response).
+    }
+    else
+    {
+        Log.Message("The AI did not suggest a function call; it might have answered directly.");
+        // Or, send the prompt to SendMessageAsync to get a direct reply.
+        var directResponse = await RimAIAPI.SendMessageAsync(prompt);
+        Log.Message($"AI direct response: {directResponse}");
+    }
+}
+```
+
+**Expected Output**
+```
+--- Processing new prompt: How many times does the letter 'r' appear in 'strawberry'? ---
+AI suggested calling: 'count_letter_in_string'
+With arguments: {"a": "strawberry", "b": "r"}
+
+--- Processing new prompt: Which is smaller, 9.11 or 9.9? ---
+AI suggested calling: 'compare'
+With arguments: {"a": 9.11, "b": 9.9}
+```
+
+This powerful feature connects the AI's natural language understanding with your code's execution capabilities, opening up new possibilities for creating smarter and more interactive mod features.
+
 ## ⚙️ LLMRequestOptions Comprehensive Parameters
 
 ### Core Parameters

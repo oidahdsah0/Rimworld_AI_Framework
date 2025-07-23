@@ -17,11 +17,15 @@ namespace RimAI.Framework.LLM.Models
         public string RequestId { get; set; }
         public DateTime CreatedAt { get; set; }
 
+        public List<Tool> Tools { get; set; }
+        public string ToolChoice { get; set; }
+
         public UnifiedLLMRequest()
         {
             RequestId = Guid.NewGuid().ToString("N")[..8];
             CreatedAt = DateTime.UtcNow;
             Options = new LLMRequestOptions();
+            Tools = new List<Tool>();
         }
 
         /// <summary>
@@ -89,6 +93,18 @@ namespace RimAI.Framework.LLM.Models
                 return this;
             }
 
+            public Builder WithTools(List<Tool> tools)
+            {
+                _request.Tools = tools;
+                return this;
+            }
+
+            public Builder WithToolChoice(string toolChoice)
+            {
+                _request.ToolChoice = toolChoice;
+                return this;
+            }
+
             public UnifiedLLMRequest Build()
             {
                 if (string.IsNullOrWhiteSpace(_request.Prompt))
@@ -145,6 +161,16 @@ namespace RimAI.Framework.LLM.Models
                     .WithCancellation(cancellationToken)
                     .Build();
             }
+            
+            public static UnifiedLLMRequest FunctionCall(string prompt, List<Tool> tools, CancellationToken cancellationToken = default)
+            {
+                return Create()
+                    .WithPrompt(prompt)
+                    .WithTools(tools)
+                    .WithToolChoice("auto")
+                    .WithCancellation(cancellationToken)
+                    .Build();
+            }
         }
     }
 
@@ -162,6 +188,8 @@ namespace RimAI.Framework.LLM.Models
         public bool ForceJsonMode { get; set; } = false;
         public object JsonSchema { get; set; }
         public string Model { get; set; }
+        public List<Tool> Tools { get; set; }
+        public string ToolChoice { get; set; }
         public Dictionary<string, object> AdditionalParameters { get; set; }
 
         /// <summary>
@@ -172,6 +200,7 @@ namespace RimAI.Framework.LLM.Models
         public LLMRequestOptions()
         {
             AdditionalParameters = new Dictionary<string, object>();
+            Tools = new List<Tool>();
         }
 
         /// <summary>
@@ -183,6 +212,7 @@ namespace RimAI.Framework.LLM.Models
             EnableStreaming = enableStreaming;
             HasExplicitStreamingSetting = true;
             AdditionalParameters = new Dictionary<string, object>();
+            Tools = new List<Tool>();
         }
 
         /// <summary>
@@ -290,9 +320,15 @@ namespace RimAI.Framework.LLM.Models
         /// <summary>
         /// Set tools/functions for function calling
         /// </summary>
-        public LLMRequestOptions WithTools(object tools)
+        public LLMRequestOptions WithTools(List<Tool> tools)
         {
-            AdditionalParameters["tools"] = tools;
+            Tools = tools;
+            return this;
+        }
+
+        public LLMRequestOptions WithToolChoice(string toolChoice)
+        {
+            ToolChoice = toolChoice;
             return this;
         }
 

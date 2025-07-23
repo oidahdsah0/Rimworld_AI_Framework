@@ -351,6 +351,246 @@ Parallel.ForEach(reports.Where(r => !string.IsNullOrEmpty(r)), response => {
 });
 ```
 
+---
+
+### 5. GetFunctionCallAsync - 获取函数调用建议
+
+此高级API允许你向模型提供一系列你定义的工具（函数），并让模型根据用户的`prompt`智能地决定调用哪个工具，以及使用什么参数。这使得构建能够与游戏世界或其他系统进行实际交互的复杂AI代理成为可能。
+
+**核心思想**：你定义工具，AI决定何时以及如何使用它们。
+
+#### 方法签名
+```csharp
+// 注意：为避免与Verse.Tool冲突，请使用using别名
+using AITool = RimAI.Framework.LLM.Models.Tool;
+
+public static async Task<List<FunctionCallResult>> GetFunctionCallAsync(
+    string prompt,
+    List<AITool> tools,
+    CancellationToken cancellationToken = default
+)
+```
+
+#### 参数详解
+
+**prompt (string, 必需)**
+- 用户的输入，模型将基于此内容决定是否调用工具。
+
+**tools (List<AITool>, 必需)**
+- 你提供给模型的一系列可用工具。
+- 这是一个关键参数，定义了模型的能力边界。
+
+**cancellationToken (CancellationToken, 可选)**
+- 用于取消请求。
+
+#### 返回值：`List<FunctionCallResult>`
+- 一个包含零个或多个`FunctionCallResult`对象的列表。
+- 如果模型认为不需要调用任何工具，或者发生错误，返回`null`。
+- `FunctionCallResult`的结构如下：
+```csharp
+public class FunctionCallResult
+{
+    public string ToolId { get; set; }       // 工具调用的唯一ID
+    public string FunctionName { get; set; } // 建议调用的函数名
+    public string Arguments { get; set; }    // JSON格式的函数参数字符串
+}
+```
+
+#### 数据模型：定义一个工具 (Tool)
+一个工具由其类型（始终是 "function"）和一个函数定义组成。
+
+```csharp
+// AITool, FunctionDefinition等模型均在
+// RimAI.Framework.LLM.Models 命名空间下
+
+var myTool = new AITool
+{
+    Type = "function",
+    Function = new FunctionDefinition
+    {
+        Name = "your_function_name", // 函数的唯一名称
+        Description = "这个函数是做什么的清晰描述", // 模型会根据描述来决定何时使用它
+        Parameters = new FunctionParameters
+        {
+            Type = "object",
+            Properties = new Dictionary<string, ParameterProperty>
+            {
+                // 定义你的参数
+                { "param1", new ParameterProperty { Type = "string", Description = "参数1的描述" } },
+                { "param2", new ParameterProperty { Type = "number", Description = "参数2的描述" } }
+            },
+            Required = new List<string> { "param1" } // 必需的参数列表
+        }
+    }
+};
+```
+
+#### 使用示例：构建一个游戏内计算器
+
+假设我们想让AI能够回答数学问题，但我们不希望它自己计算，而是调用我们游戏中的精确计算方法。
+
+**第一步：定义工具**
+```csharp
+using AITool = RimAI.Framework.LLM.Models.Tool;
+using RimAI.Framework.LLM.Models; // 引入FunctionDefinition等模型
+
+// 创建一个乘法工具
+var multiplyTool = new AITool
+{
+    Type = "function",
+    Function = new FunctionDefinition
+    {
+        Name = "multiply",
+        Description = "计算两个数的乘积",
+        Parameters = new FunctionParameters
+        {
+            Type = "object",
+            Properties = new Dictionary<string, ParameterProperty>
+            {
+                { "a", new ParameterProperty { Type = "number", Description = "第一个数字" } },
+                { "b", new ParameterProperty { Type = "number", Description = "第二个数字" } }
+            },
+            Required = new List<string> { "a", "b" }
+        }
+    }
+};
+
+var tools = new List<AITool> { multiplyTool };
+```
+
+**第二步：调用API**
+```csharp
+var prompt = "请帮我计算一下，如果我有128个单位的白银，每个单位价值5.5元，总价值是多少？";
+
+List<FunctionCallResult> suggestedCalls = await RimAIAPI.GetFunctionCallAsync(prompt, tools);
+```
+
+**第三步：处理结果并执行本地方法**
+```csharp
+if (suggestedCalls != null && suggestedCalls.Count > 0)
+{
+    foreach (var call in suggestedCalls)
+    {
+        Log.Message($"AI建议调用函数: {call.FunctionName}");
+        Log.Message($"参数 (JSON): {call.Arguments}");
+
+        if (call.FunctionName == "multiply")
+        {
+            // 你需要一个类来反序列化参数
+            // 例如：public class MultiplyArgs { public double a { get; set; } public double b { get; set; } }
+            var args = JsonConvert.DeserializeObject<MultiplyArgs>(call.Arguments);
+            
+            // 执行你自己的本地C#方法
+            double result = MyLocalCalculator.Multiply(args.a, args.b);
+            
+            Log.Message($"本地计算结果: {result}");
+            
+            // 后续步骤：你可以将执行结果再发给AI，让它以自然语言回复用户。
+        }
+    }
+}
+else
+{
+    Log.Message("AI没有建议调用任何函数。");
+}
+```
+
+#### 完整示例：多工具选择
+
+这个更复杂的示例展示了如何定义多个工具，并让AI根据不同的用户问题自动选择最合适的一个。
+
+**第一步：定义所有工具**
+```csharp
+using AITool = RimAI.Framework.LLM.Models.Tool;
+using RimAI.Framework.LLM.Models;
+using System.Collections.Generic;
+
+var tools = new List<AITool>
+{
+    // 工具1: 乘法
+    new AITool { Function = new FunctionDefinition {
+        Name = "mul",
+        Description = "计算两个数的乘积",
+        Parameters = new FunctionParameters {
+            Properties = new Dictionary<string, ParameterProperty> {
+                { "a", new ParameterProperty { Type = "number", Description = "第一个数字" } },
+                { "b", new ParameterProperty { Type = "number", Description = "第二个数字" } }
+            },
+            Required = new List<string> { "a", "b" }
+        }
+    }},
+    // 工具2: 比较大小
+    new AITool { Function = new FunctionDefinition {
+        Name = "compare",
+        Description = "比较两个数字的大小",
+        Parameters = new FunctionParameters {
+            Properties = new Dictionary<string, ParameterProperty> {
+                { "a", new ParameterProperty { Type = "number", Description = "第一个数字" } },
+                { "b", new ParameterProperty { Type = "number", Description = "第二个数字" } }
+            },
+            Required = new List<string> { "a", "b" }
+        }
+    }},
+    // 工具3: 统计字符
+    new AITool { Function = new FunctionDefinition {
+        Name = "count_letter_in_string",
+        Description = "统计一个字符串中某个字母出现的次数",
+        Parameters = new FunctionParameters {
+            Properties = new Dictionary<string, ParameterProperty> {
+                { "a", new ParameterProperty { Type = "string", Description = "源字符串" } },
+                { "b", new ParameterProperty { Type = "string", Description = "要计数的字母" } }
+            },
+            Required = new List<string> { "a", "b" }
+        }
+    }}
+};
+```
+
+**第二步：针对不同问题调用API**
+```csharp
+var prompts = new List<string>
+{
+    "用中文回答：strawberry中有多少个r?",
+    "用中文回答：9.11和9.9，哪个小?"
+};
+
+foreach (var prompt in prompts)
+{
+    Log.Message($"\n--- 处理新问题: {prompt} ---");
+    var suggestedCalls = await RimAIAPI.GetFunctionCallAsync(prompt, tools);
+
+    if (suggestedCalls != null && suggestedCalls.Count > 0)
+    {
+        var call = suggestedCalls.First();
+        Log.Message($"AI建议调用: '{call.FunctionName}'");
+        Log.Message($"参数: {call.Arguments}");
+        
+        // 在这里，你可以根据call.FunctionName调用你本地的C#方法
+        // 并用返回的结果进行下一步操作（比如再次调用AI生成最终回复）
+    }
+    else
+    {
+        Log.Message("AI没有建议任何函数调用，可能直接回答了问题。");
+        // 或者直接把prompt发给SendMessageAsync获取最终回复
+        var directResponse = await RimAIAPI.SendMessageAsync(prompt);
+        Log.Message($"AI直接回复: {directResponse}");
+    }
+}
+```
+
+**预期输出**
+```
+--- 处理新问题: 用中文回答：strawberry中有多少个r? ---
+AI建议调用: 'count_letter_in_string'
+参数: {"a": "strawberry", "b": "r"}
+
+--- 处理新问题: 用中文回答：9.11和9.9，哪个小? ---
+AI建议调用: 'compare'
+参数: {"a": 9.11, "b": 9.9}
+```
+
+这个功能非常强大，它将AI的自然语言理解能力和你的代码执行能力连接了起来，为创造更智能、更具交互性的MOD功能开辟了新的可能性。
+
 ## ⚙️ LLMRequestOptions 详细参数
 
 ### 基础参数

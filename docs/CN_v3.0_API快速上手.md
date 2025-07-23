@@ -69,6 +69,26 @@ var translations = await RimAIAPI.SendBatchRequestAsync(
 );
 ```
 
+### 🤖 函数调用 (Function Calling)
+```csharp
+// 让AI决定是否以及如何调用你提供的工具（函数）
+var tools = new List<AITool> { /* ... 定义你的工具 ... */ };
+var prompt = "128乘以5.5等于多少？";
+
+// AI会返回它认为应该调用的函数名和参数
+var functionCallResults = await RimAIAPI.GetFunctionCallAsync(prompt, tools);
+
+if (functionCallResults != null)
+{
+    foreach(var call in functionCallResults)
+    {
+        Log.Message($"函数名: {call.FunctionName}");
+        Log.Message($"参数 (JSON): {call.Arguments}");
+        // 接下来，你需要自己执行这个函数
+    }
+}
+```
+
 ---
 
 ## 🎛️ 预设选项快速使用

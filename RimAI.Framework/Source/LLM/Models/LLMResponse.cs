@@ -146,25 +146,4 @@ namespace RimAI.Framework.LLM.Models
         [JsonProperty("total_tokens")]
         public int TotalTokens { get; set; }
     }
-    
-    public class ToolCall
-    {
-        [JsonProperty("id")]
-        public string Id { get; set; }
-
-        [JsonProperty("type")]
-        public string Type { get; set; }
-
-        [JsonProperty("function")]
-        public FunctionCall Function { get; set; }
-    }
-
-    public class FunctionCall
-    {
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("arguments")]
-        public string Arguments { get; set; }
-    }
 }

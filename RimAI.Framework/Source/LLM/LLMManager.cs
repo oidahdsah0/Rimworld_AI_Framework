@@ -13,6 +13,7 @@ using RimAI.Framework.LLM.Models;
 using RimAI.Framework.LLM.Services;
 using Verse;
 using static RimAI.Framework.Core.RimAILogger;
+using AITool = RimAI.Framework.LLM.Models.Tool;
 
 namespace RimAI.Framework.LLM
 {
@@ -361,6 +362,54 @@ namespace RimAI.Framework.LLM
         {
             var options = LLMRequestOptions.Json(schema, temperature);
             return await SendMessageAsync(prompt, options, cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets a function call suggestion from the LLM based on a prompt and a list of available tools.
+        /// </summary>
+        /// <param name="prompt">The user's prompt.</param>
+        /// <param name="tools">A list of tools the model can choose to call.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>A list of function call results, or null if no call was suggested or an error occurred.</returns>
+        public async Task<List<FunctionCallResult>> GetFunctionCallAsync(string prompt, List<AITool> tools, CancellationToken cancellationToken = default)
+        {
+            if (_disposed)
+            {
+                Debug("GetFunctionCallAsync called on disposed LLMManager");
+                return null;
+            }
+
+            if (!ValidateRequest(prompt) || tools == null || tools.Count == 0)
+            {
+                Warning("Invalid request for GetFunctionCallAsync. Prompt must be valid and tools list must not be empty.");
+                return null;
+            }
+
+            var request = UnifiedLLMRequest.Factory.FunctionCall(prompt, tools, cancellationToken);
+
+            var response = await _executor.ExecuteAsync(request);
+
+            if (response.IsSuccess && response.ToolCalls != null && response.ToolCalls.Count > 0)
+            {
+                var results = new List<FunctionCallResult>();
+                foreach (var toolCall in response.ToolCalls)
+                {
+                    results.Add(new FunctionCallResult
+                    {
+                        ToolId = toolCall.Id,
+                        FunctionName = toolCall.Function.Name,
+                        Arguments = toolCall.Function.Arguments
+                    });
+                }
+                return results;
+            }
+
+            if (!response.IsSuccess)
+            {
+                Warning("GetFunctionCallAsync failed: {0}", response.ErrorMessage);
+            }
+
+            return null;
         }
 
         /// <summary>

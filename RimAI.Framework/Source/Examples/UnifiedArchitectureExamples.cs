@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 using RimAI.Framework.API;
 using RimAI.Framework.LLM.Models;
 using Verse;
+using RimAI.Framework.Core;
+using RimAI.Framework.LLM;
+using AITool = RimAI.Framework.LLM.Models.Tool;
 
 namespace RimAI.Framework.Examples
 {
@@ -456,6 +459,9 @@ namespace RimAI.Framework.Examples
                 await ComprehensiveUsageExample();
                 summary.Add("✅ Comprehensive Usage");
 
+                // Example 6: Function Calling
+                await RunFunctionCallingExample();
+
                 summary.Add("🎉 All examples completed!");
             }
             catch (Exception ex)
@@ -468,6 +474,98 @@ namespace RimAI.Framework.Examples
             Log.Message($"[RimAI Examples] === Example Summary ===\n{result}");
             
             return result;
+        }
+
+        /// <summary>
+        /// Example 6: Demonstrates how to use the Function Calling API.
+        /// The model is given a user prompt and a list of tools it can use.
+        /// The API returns the model's decision on which function to call and with what arguments.
+        /// </summary>
+        public static async Task RunFunctionCallingExample()
+        {
+            Log.Message("--- Running Function Calling Example ---");
+
+            // 1. Get the LLMManager instance
+            var llmManager = LLMManager.Instance;
+
+            // 2. Define the list of tools (functions) available to the model.
+            //    This structure mirrors the JSON structure required by modern LLM APIs.
+            var tools = new List<AITool>
+            {
+                new AITool
+                {
+                    Type = "function",
+                    Function = new FunctionDefinition
+                    {
+                        Name = "multiply",
+                        Description = "Calculate the product of two numbers",
+                        Parameters = new FunctionParameters
+                        {
+                            Type = "object",
+                            Properties = new Dictionary<string, ParameterProperty>
+                            {
+                                { "a", new ParameterProperty { Type = "number", Description = "The first number." } },
+                                { "b", new ParameterProperty { Type = "number", Description = "The second number." } }
+                            },
+                            Required = new List<string> { "a", "b" }
+                        }
+                    }
+                },
+                new AITool
+                {
+                    Type = "function",
+                    Function = new FunctionDefinition
+                    {
+                        Name = "get_character_mood",
+                        Description = "Get the current mood of a character in the colony.",
+                        Parameters = new FunctionParameters
+                        {
+                            Type = "object",
+                            Properties = new Dictionary<string, ParameterProperty>
+                            {
+                                { "characterName", new ParameterProperty { Type = "string", Description = "The name of the character." } }
+                            },
+                            Required = new List<string> { "characterName" }
+                        }
+                    }
+                }
+            };
+
+            // 3. Create a prompt that is likely to trigger one of the defined function calls.
+            string prompt = "Can you please tell me what 128 times 5.5 is?";
+
+            // 4. Call the async method and await the result.
+            //    The method will return a list of suggested function calls, or null.
+            Log.Message($"[Function Calling] Sending prompt: '{prompt}'");
+            List<FunctionCallResult> functionCallResults = await llmManager.GetFunctionCallAsync(prompt, tools);
+
+            // 5. Process the results.
+            if (functionCallResults != null && functionCallResults.Count > 0)
+            {
+                foreach (var result in functionCallResults)
+                {
+                    // The API returns the function name and a JSON string of arguments.
+                    Log.Message($"[Function Calling] LLM suggested a function call:");
+                    Log.Message($"  Function Name: {result.FunctionName}");
+                    Log.Message($"  Arguments (JSON): {result.Arguments}");
+
+                    // At this point, the developer is responsible for executing the actual function.
+                    // You would typically deserialize the arguments JSON and call your local C# method.
+                    // For example:
+                    // if (result.FunctionName == "multiply")
+                    // {
+                    //     var args = JsonConvert.DeserializeObject<YourMultiplyArgsClass>(result.Arguments);
+                    //     var product = YourLocalMultiplyImplementation(args.a, args.b);
+                    //     Log.Message($"  Execution result: {product}");
+                    // }
+                }
+            }
+            else
+            {
+                Log.Message("[Function Calling] The LLM did not suggest a function call for this prompt.");
+            }
+
+            Log.Message("--- Function Calling Example Finished ---");
         }
 
         #endregion

@@ -144,6 +144,34 @@ public class ItemDescriptionGenerator
 }
 ```
 
+### Scenario 4: Function Calling
+```csharp
+// Let the AI decide whether to call functions you provide.
+// Note: An alias is recommended to avoid conflict with Verse.Tool
+using AITool = RimAI.Framework.LLM.Models.Tool;
+
+public async Task AskQuestionWithTools()
+{
+    // Define a list of available tools
+    var tools = new List<AITool> 
+    { 
+        /* ... your tool definitions here ... */ 
+    };
+    var prompt = "What is 128 multiplied by 5.5?";
+
+    // The AI returns the function name and arguments
+    var functionCalls = await RimAIAPI.GetFunctionCallAsync(prompt, tools);
+
+    if (functionCalls != null && functionCalls.Count > 0)
+    {
+        var call = functionCalls.First();
+        Log.Message($"AI suggests calling: {call.FunctionName}");
+        Log.Message($"With arguments: {call.Arguments}");
+        // Your logic to execute the function and handle its result would go here
+    }
+}
+```
+
 ---
 
 ## 🔧 Preset Options (Recommended)
