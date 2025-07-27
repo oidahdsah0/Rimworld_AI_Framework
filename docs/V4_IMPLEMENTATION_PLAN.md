@@ -80,14 +80,16 @@ RimAI.Framework/
 
 将上述计划分解为可追踪的具体任务。
 
+注意：在第一轮完成后，必然有第二轮编码、完善、补充。
+
+注解：✅代表已完成；🚧代表施工中；
+
 ### ✅ 阶段零：项目初始化
 
 - [✅] 清理 `Source/` 目录下的旧文件（或将其移动到 `Source/Old/` 备份）。
 - [✅] 根据规划创建新的空目录结构。
 
 ### 🚧 阶段一：配置与基础 (Configuration & Foundation)
-
-注意：在第一轮完成后，必然有第二轮编码、完善、补充。
 
 -   **配置模型**
     - [✅] `Configuration/Models/ProviderTemplate.cs`: 定义提供商模板的数据结构。**需同时包含 `chatApi` 和 `embeddingApi` 的结构。**
@@ -105,50 +107,50 @@ RimAI.Framework/
 ### 🚧 阶段二：执行与翻译 - Chat (Execution & Translation - Chat)
 
 -   **执行层 (通用)**
-    - [ ] `Execution/HttpClientFactory.cs`: 实现一个静态工厂来管理 `HttpClient` 实例。
-    - [ ] `Execution/Models/RetryPolicy.cs`: 定义重试策略的数据模型。
-    - [ ] `Execution/HttpExecutor.cs`: 实现 `ExecuteAsync` 方法，负责发送 `HttpRequestMessage` 并接收 `HttpResponseMessage`，应用 `RetryPolicy`。
+    - [  ] `Execution/HttpClientFactory.cs`: 实现一个静态工厂来管理 `HttpClient` 实例。
+    - [  ] `Execution/Models/RetryPolicy.cs`: 定义重试策略的数据模型。
+    - [  ] `Execution/HttpExecutor.cs`: 实现 `ExecuteAsync` 方法，负责发送 `HttpRequestMessage` 并接收 `HttpResponseMessage`，应用 `RetryPolicy`。
 -   **翻译模型 - Chat**
-    - [ ] `Translation/Models/ToolingModels.cs`: 定义 `ToolDefinition` 和 `ToolCall`。
-    - [ ] `Translation/Models/UnifiedChatModels.cs`: 定义 `UnifiedChatRequest` 和 `UnifiedChatResponse`。
+    - [  ] `Translation/Models/ToolingModels.cs`: 定义 `ToolDefinition` 和 `ToolCall`。
+    - [  ] `Translation/Models/UnifiedChatModels.cs`: 定义 `UnifiedChatRequest` 和 `UnifiedChatResponse`。
 -   **翻译服务 - Chat**
-    - [ ] `Translation/ChatRequestTranslator.cs`: 实现 `Translate(UnifiedChatRequest, MergedConfig)` 方法。
-    - [ ] `Translation/ChatResponseTranslator.cs`: 实现 `TranslateAsync(HttpResponseMessage, MergedConfig)` 方法，需要支持流式解析。
+    - [  ] `Translation/ChatRequestTranslator.cs`: 实现 `Translate(UnifiedChatRequest, MergedConfig)` 方法。
+    - [  ] `Translation/ChatResponseTranslator.cs`: 实现 `TranslateAsync(HttpResponseMessage, MergedConfig)` 方法，需要支持流式解析。
 
 ### 🚧 阶段三：执行与翻译 - Embedding (Execution & Translation - Embedding)
 
 -   **翻译模型 - Embedding**
-    - [ ] `Translation/Models/UnifiedEmbeddingModels.cs`: 定义 `UnifiedEmbeddingRequest` 和 `UnifiedEmbeddingResponse`。
+    - [  ] `Translation/Models/UnifiedEmbeddingModels.cs`: 定义 `UnifiedEmbeddingRequest` 和 `UnifiedEmbeddingResponse`。
 -   **翻译服务 - Embedding**
-    - [ ] `Translation/EmbeddingRequestTranslator.cs`: 实现 `Translate(UnifiedEmbeddingRequest, MergedConfig)` 方法。**需处理原生批量逻辑，将输入列表打包。**
-    - [ ] `Translation/EmbeddingResponseTranslator.cs`: 实现 `TranslateAsync(HttpResponseMessage, MergedConfig)` 方法。**需处理批量响应，将结果列表正确解析。**
+    - [  ] `Translation/EmbeddingRequestTranslator.cs`: 实现 `Translate(UnifiedEmbeddingRequest, MergedConfig)` 方法。**需处理原生批量逻辑，将输入列表打包。**
+    - [  ] `Translation/EmbeddingResponseTranslator.cs`: 实现 `TranslateAsync(HttpResponseMessage, MergedConfig)` 方法。**需处理批量响应，将结果列表正确解析。**
 
 ### 🚧 阶段四：核心协调与整合 (Coordination & Integration)
 
 -   **核心协调器**
-    - [ ] `Core/ChatManager.cs`: 注入所需服务，实现 `ProcessRequestAsync` 方法，按顺序调用 Chat 相关服务。
-    - [ ] `Core/EmbeddingManager.cs`: 注入所需服务，实现 `ProcessRequestAsync` 方法，按顺序调用 Embedding 相关服务。
+    - [  ] `Core/ChatManager.cs`: 注入所需服务，实现 `ProcessRequestAsync` 方法，按顺序调用 Chat 相关服务。
+    - [  ] `Core/EmbeddingManager.cs`: 注入所需服务，实现 `ProcessRequestAsync` 方法，按顺序调用 Embedding 相关服务。
 -   **依赖注入**
-    - [ ] `Core/Lifecycle/FrameworkDI.cs`: 创建一个静态类，包含一个“一次性”的 `Assemble()` 方法。
-    - [ ] `Core/Lifecycle/FrameworkDI.cs`: 在 `Assemble()` 方法中，实例化并连接所有服务 (`SettingsManager`, 所有`Translators`, `HttpExecutor`, `ChatManager`, `EmbeddingManager` 等)。
-    - [ ] `Core/Lifecycle/FrameworkDI.cs`: 提供静态属性来访问已组装好的 `ChatManager` 和 `EmbeddingManager` 实例。
+    - [  ] `Core/Lifecycle/FrameworkDI.cs`: 创建一个静态类，包含一个“一次性”的 `Assemble()` 方法。
+    - [  ] `Core/Lifecycle/FrameworkDI.cs`: 在 `Assemble()` 方法中，实例化并连接所有服务 (`SettingsManager`, 所有`Translators`, `HttpExecutor`, `ChatManager`, `EmbeddingManager` 等)。
+    - [  ] `Core/Lifecycle/FrameworkDI.cs`: 提供静态属性来访问已组装好的 `ChatManager` 和 `EmbeddingManager` 实例。
 
 ### 🚧 阶段五：API门面与完善 (Facade & Polish)
 
 -   **公共 API**
-    - [ ] `API/RimAIApi.cs`: 创建一个静态类作为公共门面，并在静态构造函数中调用 `FrameworkDI.Assemble()`。
-    - [ ] `API/RimAIApi.cs`: 创建 Chat 相关公共方法 (`GetCompletionAsync`, `StreamCompletionAsync` 等)。
-    - [ ] `API/RimAIApi.cs`: **[新增]** 创建 Embedding 相关公共方法 (`GetEmbeddingsAsync`)。
-    - [ ] `API/RimAIApi.cs`: **[新增]** 为 Chat 和 Embedding 创建批量处理的公共方法 (`GetCompletionsAsync`, `GetEmbeddingsAsync` 的重载)。
+    - [  ] `API/RimAIApi.cs`: 创建一个静态类作为公共门面，并在静态构造函数中调用 `FrameworkDI.Assemble()`。
+    - [  ] `API/RimAIApi.cs`: 创建 Chat 相关公共方法 (`GetCompletionAsync`, `StreamCompletionAsync` 等)。
+    - [  ] `API/RimAIApi.cs`: **[新增]** 创建 Embedding 相关公共方法 (`GetEmbeddingsAsync`)。
+    - [  ] `API/RimAIApi.cs`: **[新增]** 为 Chat 和 Embedding 创建批量处理的公共方法 (`GetCompletionsAsync`, `GetEmbeddingsAsync` 的重载)。
 -   **批量处理逻辑**
-    - [ ] `Core/ChatManager.cs`: 在 `ProcessBatchAsync` 方法中实现**并发控制**逻辑 (如使用 `SemaphoreSlim`)。
-    - [ ] `Core/EmbeddingManager.cs`: 在 `ProcessBatchAsync` 方法中实现**原生批量分块**逻辑。
+    - [  ] `Core/ChatManager.cs`: 在 `ProcessBatchAsync` 方法中实现**并发控制**逻辑 (如使用 `SemaphoreSlim`)。
+    - [  ] `Core/EmbeddingManager.cs`: 在 `ProcessBatchAsync` 方法中实现**原生批量分块**逻辑。
 -   **缓存**
-    - [ ] `Caching/ResponseCache.cs`: 实现一个简单的、线程安全的内存缓存服务。
-    - [ ] `Core/ChatManager.cs` & `EmbeddingManager.cs`: 注入 `ResponseCache` 服务，并在处理非流式请求时检查和更新缓存。
+    - [  ] `Caching/ResponseCache.cs`: 实现一个简单的、线程安全的内存缓存服务。
+    - [  ] `Core/ChatManager.cs` & `EmbeddingManager.cs`: 注入 `ResponseCache` 服务，并在处理非流式请求时检查和更新缓存。
 -   **最终审查**
-    - [ ] 审查所有公共API，确保没有内部类型泄露。
-    - [ ] 添加 XML 注释到所有公共类和方法。
+    - [  ] 审查所有公共API，确保没有内部类型泄露。
+    - [  ] 添加 XML 注释到所有公共类和方法。
 
 ---
 
