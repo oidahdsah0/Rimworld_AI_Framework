@@ -14,8 +14,6 @@
   <ItemGroup>
     <!-- RimWorld and other references via NuGet packages -->
     <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4518" />
-    <!-- Use Newtonsoft.Json for JSON handling -->
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -68,11 +66,6 @@
     <Message Text="Step 3: Copying compiled DLL to $(ModDir)\Assemblies" Importance="high" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModDir)\Assemblies" />
     <Copy SourceFiles="$(ProjectDir)$(OutDir)$(AssemblyName).pdb" DestinationFolder="$(ModDir)\Assemblies" Condition="Exists('$(ProjectDir)$(OutDir)$(AssemblyName).pdb')" />
-
-    <!-- Step 4: Rename Newtonsoft.Json.dll to ensure it loads before our mod -->
-    <Message Text="Step 4: Renaming Newtonsoft.Json.dll for proper load order" Importance="high" />
-    <Move SourceFiles="$(ProjectDir)$(OutDir)Newtonsoft.Json.dll" DestinationFiles="$(ProjectDir)$(OutDir)000_Newtonsoft.Json.dll" Condition="Exists('$(ProjectDir)$(OutDir)Newtonsoft.Json.dll')" />
-    <Copy SourceFiles="$(ProjectDir)$(OutDir)000_Newtonsoft.Json.dll" DestinationFolder="$(ModDir)\Assemblies" Condition="Exists('$(ProjectDir)$(OutDir)000_Newtonsoft.Json.dll')" />
 
     <Message Text="RimAI Framework successfully deployed!" Importance="high" />
   </Target>
