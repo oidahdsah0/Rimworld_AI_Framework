@@ -48,7 +48,7 @@ namespace RimAI.Framework.UI
         // Scroll view state
         private bool _lastEmbeddingConfigEnabled = false;
         private Vector2 _scrollPosition = Vector2.zero;
-        private float _viewHeight = 800f;
+        private float _viewHeight = 1200f;
 
         public RimAIFrameworkMod(ModContentPack content) : base(content)
         {
