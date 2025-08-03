@@ -20,6 +20,7 @@ namespace RimAI.Framework.Configuration.Models
         [JsonProperty("modelOverride")] public string ModelOverride { get; set; }
         [JsonProperty("endpointOverride")] public string EndpointOverride { get; set; }
         [JsonProperty("customHeaders")] public Dictionary<string, string> CustomHeaders { get; set; }
+        [JsonProperty("staticParametersOverride")] public JObject StaticParametersOverride { get; set; }
     }
 
     // --- Merged Config Model ---

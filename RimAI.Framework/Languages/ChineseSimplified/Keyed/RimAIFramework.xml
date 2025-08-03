@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimAI.SettingsCategory>RimAI 框架</RimAI.SettingsCategory>
+  <RimAI.ChatService>聊天服务</RimAI.ChatService>
+  <RimAI.EmbeddingService>向量嵌入服务</RimAI.EmbeddingService>
+  <RimAI.EnableEmbedding>启用向量嵌入</RimAI.EnableEmbedding>
+  <RimAI.NoProviders>未找到可用提供商。</RimAI.NoProviders>
+  <RimAI.SelectProvider>选择提供商…</RimAI.SelectProvider>
+  <RimAI.PlsSelectProvider>请选择一个提供商。</RimAI.PlsSelectProvider>
+  <RimAI.Save>保存</RimAI.Save>
+  <RimAI.Test>测试</RimAI.Test>
+  <RimAI.ApiKey>API 密钥：</RimAI.ApiKey>
+  <RimAI.Endpoint>接口地址：</RimAI.Endpoint>
+  <RimAI.Model>模型：</RimAI.Model>
+  <RimAI.Temperature>模型温度：{0}</RimAI.Temperature>
+  <RimAI.Concurrency>并发上限：{0}</RimAI.Concurrency>
+  <RimAI.ChatSaved>聊天设置已保存。</RimAI.ChatSaved>
+  <RimAI.EmbedSaved>向量嵌入设置已保存。</RimAI.EmbedSaved>
+  <RimAI.ApiMissing>API 密钥为空。</RimAI.ApiMissing>
+  <RimAI.CannotTestEmptyKey>无法在 API 密钥为空时进行测试。</RimAI.CannotTestEmptyKey>
+  <RimAI.Testing>正在测试，请稍候…</RimAI.Testing>
+  <RimAI.ChatSuccess>聊天服务连接成功！</RimAI.ChatSuccess>
+  <RimAI.ChatFailed>聊天服务连接失败：{0}</RimAI.ChatFailed>
+  <RimAI.ChatError>聊天测试出现错误：{0}</RimAI.ChatError>
+  <RimAI.EmbedSuccess>向量嵌入连接成功！</RimAI.EmbedSuccess>
+  <RimAI.EmbedFailed>向量嵌入连接失败：{0}</RimAI.EmbedFailed>
+  <RimAI.EmbedError>向量嵌入测试出现错误：{0}</RimAI.EmbedError>
+  <RimAI.ChatTestHint>测试当前保存的聊天提供商。</RimAI.ChatTestHint>
+  <RimAI.EmbedTestHint>测试当前保存的向量嵌入提供商。</RimAI.EmbedTestHint>
+  <RimAI.TopP>Top-P：{0}</RimAI.TopP>
+  <RimAI.CustomHeaders>自定义请求头 (JSON)：</RimAI.CustomHeaders>
+  <RimAI.StaticParamsOverride>静态参数覆盖 (JSON)：</RimAI.StaticParamsOverride>
+  <RimAI.TypicalP>Typical-P：{0}</RimAI.TypicalP>
+  <RimAI.MaxTokens>最大 Token 数：{0}</RimAI.MaxTokens>
+</LanguageData>

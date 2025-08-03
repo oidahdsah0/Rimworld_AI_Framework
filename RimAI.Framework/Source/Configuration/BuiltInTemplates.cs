@@ -25,8 +25,18 @@ namespace RimAI.Framework.Configuration
                 {
                     Endpoint = "https://api.openai.com/v1/chat/completions",
                     DefaultModel = "gpt-4o",
-                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0 }),
-                    RequestPaths = new ChatRequestPaths { Model = "model", Messages = "messages", Temperature = "temperature", TopP = "top_p", Stream = "stream", Tools = "tools", ToolChoice = "tool_choice" },
+                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 1024 }),
+                    RequestPaths = new ChatRequestPaths {
+                        Model = "model",
+                        Messages = "messages",
+                        Temperature = "temperature",
+                        TopP = "top_p",
+                        TypicalP = "typical_p",
+                        MaxTokens = "max_tokens",
+                        Stream = "stream",
+                        Tools = "tools",
+                        ToolChoice = "tool_choice"
+                    },
                     ResponsePaths = new ChatResponsePaths { Choices = "choices", Content = "message.content", ToolCalls = "message.tool_calls", FinishReason = "finish_reason" },
                     ToolPaths = new ToolPaths { Root = "tools", Type = "type", FunctionRoot = "function", FunctionName = "name", FunctionDescription = "description", FunctionParameters = "parameters" },
                     JsonMode = new JsonModeConfig { Path = "response_format", Value = JObject.FromObject(new { type = "json_object" }) }
@@ -43,8 +53,17 @@ namespace RimAI.Framework.Configuration
                 {
                     Endpoint = "https://api.anthropic.com/v1/messages",
                     DefaultModel = "claude-3-opus-20240229",
-                    DefaultParameters = JObject.FromObject(new { temperature = 0.7 }),
-                    RequestPaths = new ChatRequestPaths { Model = "model", Messages = "messages", Temperature = "temperature", Stream = "stream", Tools = "tools" },
+                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 4096 }),
+                    RequestPaths = new ChatRequestPaths {
+                        Model = "model",
+                        Messages = "messages",
+                        Temperature = "temperature",
+                        TopP = "top_p", // Claude 可能支持
+                        TypicalP = "typical_p",
+                        MaxTokens = "max_tokens",
+                        Stream = "stream",
+                        Tools = "tools"
+                    },
                     ResponsePaths = new ChatResponsePaths { Content = "content[0].text", FinishReason = "stop_reason", ToolCalls = "content" },
                     ToolPaths = new ToolPaths { Root = "tools", Type = "type", FunctionName = "name", FunctionDescription = "description", FunctionParameters = "input_schema" },
                     JsonMode = null

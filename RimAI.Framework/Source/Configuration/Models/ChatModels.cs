@@ -22,6 +22,8 @@ namespace RimAI.Framework.Configuration.Models
         [JsonProperty("endpointOverride")] public string EndpointOverride { get; set; }
         [JsonProperty("temperature")] public float? Temperature { get; set; }
         [JsonProperty("topP")] public float? TopP { get; set; }
+        [JsonProperty("typicalP")] public float? TypicalP { get; set; }
+        [JsonProperty("maxTokens")] public int? MaxTokens { get; set; }
         [JsonProperty("concurrencyLimit")] public int? ConcurrencyLimit { get; set; }
         [JsonProperty("customHeaders")] public Dictionary<string, string> CustomHeaders { get; set; }
         [JsonProperty("staticParametersOverride")] public JObject StaticParametersOverride { get; set; }
@@ -65,6 +67,8 @@ namespace RimAI.Framework.Configuration.Models
         [JsonProperty("messages")] public string Messages { get; set; }
         [JsonProperty("temperature")] public string Temperature { get; set; }
         [JsonProperty("top_p")] public string TopP { get; set; }
+        [JsonProperty("typical_p")] public string TypicalP { get; set; }
+        [JsonProperty("max_tokens")] public string MaxTokens { get; set; }
         [JsonProperty("stream")] public string Stream { get; set; }
         [JsonProperty("tools")] public string Tools { get; set; }
         [JsonProperty("toolChoice")] public string ToolChoice { get; set; }

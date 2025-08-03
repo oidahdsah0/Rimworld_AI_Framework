@@ -30,8 +30,16 @@ namespace RimAI.Framework.Translation
                 requestBody[config.Template.ChatApi.RequestPaths.Temperature] = temperature.Value;
 
             var topP = config.User.TopP ?? config.Template.ChatApi.DefaultParameters?["top_p"]?.Value<float>();
-            if (topP.HasValue)
+            if (topP.HasValue && config.Template.ChatApi.RequestPaths.TopP != null)
                 requestBody[config.Template.ChatApi.RequestPaths.TopP] = topP.Value;
+
+            var typicalP = config.User.TypicalP ?? config.Template.ChatApi.DefaultParameters?["typical_p"]?.Value<float>();
+            if (typicalP.HasValue && config.Template.ChatApi.RequestPaths.TypicalP != null)
+                requestBody[config.Template.ChatApi.RequestPaths.TypicalP] = typicalP.Value;
+
+            var maxTokens = config.User.MaxTokens ?? config.Template.ChatApi.DefaultParameters?["max_tokens"]?.Value<int>();
+            if (maxTokens.HasValue && config.Template.ChatApi.RequestPaths.MaxTokens != null)
+                requestBody[config.Template.ChatApi.RequestPaths.MaxTokens] = maxTokens.Value;
 
             // 3. Messages
             var messagesArray = new JArray();
@@ -75,7 +83,11 @@ namespace RimAI.Framework.Translation
             if (config.User.CustomHeaders != null)
             {
                 foreach (var header in config.User.CustomHeaders)
+                {
+                    // 用户自定义同名 Header 覆盖模板 Header
+                    if (request.Headers.Contains(header.Key)) request.Headers.Remove(header.Key);
                     request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
             }
 
             // 7. Authentication
