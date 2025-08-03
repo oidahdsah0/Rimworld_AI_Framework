@@ -17,43 +17,31 @@
 // =====================================================================================================================
 
 // 引入所有需要被“组装”的组件的命名空间
+
 using RimAI.Framework.Configuration;
 using RimAI.Framework.Execution;
 using RimAI.Framework.Translation;
 
 namespace RimAI.Framework.Core.Lifecycle
 {
-    /// <summary>
-    /// 负责创建和组装所有框架服务的静态 DI 容器。
-    /// "static" 类意味着不能创建它的实例，它的所有成员都直接通过类名访问。
-    /// </summary>
     public static class FrameworkDI
     {
-        // [C# 知识点] "public static" 属性：
-        //  - public: 允许从项目中的任何地方访问。
-        //  - static: 表示这个属性属于 FrameworkDI 类本身，而不是它的某个实例。
-        //  - { get; private set; }: 表示这个属性可以被外部读取 (get)，但只能被 FrameworkDI 类内部设置 (private set)。
-        //    这确保了只有 Assemble() 方法能改变它们的值。
-
-        /// <summary>
-        /// 获取已组装好的、全局唯一的 ChatManager 实例。
-        /// </summary>
+        // ... (ChatManager 和 EmbeddingManager 属性保持不变) ...
         public static ChatManager ChatManager { get; private set; }
-
-        /// <summary>
-        /// 获取已组装好的、全局唯一的 EmbeddingManager 实例。
-        /// </summary>
         public static EmbeddingManager EmbeddingManager { get; private set; }
+
+        // [新增属性]
+        /// <summary>
+        /// 获取已组装好的、全局唯一的 SettingsManager 实例。
+        /// 我们将它暴露出来，以便 API 门面可以查询默认配置。
+        /// </summary>
+        public static SettingsManager SettingsManager { get; private set; }
         
         private static bool _isAssembled = false;
         private static readonly object _lock = new object();
 
-        /// <summary>
-        /// “一次性”组装方法。它会创建所有服务实例并解决它们之间的依赖关系。
-        /// </summary>
         public static void Assemble()
         {
-            // 增加一个锁和布尔标记，确保即使在多线程环境下，组装过程也只执行一次。
             lock (_lock)
             {
                 if (_isAssembled)
@@ -63,17 +51,16 @@ namespace RimAI.Framework.Core.Lifecycle
 
                 // --- 开始组装 ---
 
-                // [阶段 1: 创建无依赖或只有外部依赖的基础服务]
-                // 这些是“零件”，它们不依赖于框架中的其他服务。
-                var settingsManager = new SettingsManager();
+                // [阶段 1: 创建基础服务]
+                // 将 settingsManager 的变量名从局部变量提升，以便后续可以赋值给静态属性
+                var settingsManager = new SettingsManager(); 
                 var httpExecutor = new HttpExecutor();
                 var chatRequestTranslator = new ChatRequestTranslator();
                 var chatResponseTranslator = new ChatResponseTranslator();
                 var embeddingRequestTranslator = new EmbeddingRequestTranslator();
                 var embeddingResponseTranslator = new EmbeddingResponseTranslator();
 
-                // [阶段 2: 创建协调器 (Manager)，并注入它们所需的依赖]
-                // 这是“组装”步骤。我们将上面创建的“零件”作为构造函数参数“递”给 Manager。
+                // [阶段 2: 创建协调器]
                 var chatManager = new ChatManager(
                     settingsManager,
                     chatRequestTranslator,
@@ -88,7 +75,9 @@ namespace RimAI.Framework.Core.Lifecycle
                     embeddingResponseTranslator
                 );
 
-                // [阶段 3: 将组装好的最终产品，放入公共静态属性中，供外部访问]
+                // [阶段 3: 将组装好的产品放入公共静态属性]
+                // [修改] 同时存储 SettingsManager 的实例
+                SettingsManager = settingsManager; 
                 ChatManager = chatManager;
                 EmbeddingManager = embeddingManager;
                 

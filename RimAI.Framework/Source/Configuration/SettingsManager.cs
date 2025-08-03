@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using RimAI.Framework.Configuration.Models;
+using RimAI.Framework.Shared.Models; // 【新增】引入 Result<T>，用于更健壮的错误处理。
 using RimAI.Framework.Shared.Logging;
 
 namespace RimAI.Framework.Configuration
@@ -35,9 +36,13 @@ namespace RimAI.Framework.Configuration
         // new ...() 确保它被创建时是一个空字典，而不是 null。
         private readonly Dictionary<string, ProviderTemplate> _providerTemplates = new Dictionary<string, ProviderTemplate>();
 
-        // 【新增部分】用于存储所有用户配置的字典。
+        // 用于存储所有用户配置的字典。
         // 它的结构和作用与 _providerTemplates 非常相似。
         private readonly Dictionary<string, UserConfig> _userConfigs = new Dictionary<string, UserConfig>();
+        
+        // 【新增字段】用于存储从全局配置中读取的默认提供商ID。
+        private string _defaultChatProviderId;
+        private string _defaultEmbeddingProviderId;
 
         // --- 构造函数 ---
 
@@ -47,17 +52,58 @@ namespace RimAI.Framework.Configuration
         /// </summary>
         public SettingsManager()
         {
-            // 首先加载所有的提供商模板文件。
+            // 【新增】首先加载全局设置，确定默认的提供商。
+            LoadGlobalSettings();
+            
+            // 接着加载所有的提供商模板文件。
             LoadProviderTemplates();
 
-            // 【新增部分】紧接着加载所有的用户配置文件。
+            // 然后加载所有的用户配置文件。
             LoadUserConfigs();
 
             // 最后，记录一下我们成功加载了所有配置。
             RimAILogger.Log("SettingsManager: Initialized successfully. All configurations loaded.");
         }
+        
+        // --- 新增公共方法 ---
+
+        /// <summary>
+        /// 获取用户在 Framework 设置中配置的默认聊天提供商 ID。
+        /// </summary>
+        /// <returns>默认提供商的 ID 字符串。</returns>
+        public string GetDefaultChatProviderId()
+        {
+            return _defaultChatProviderId;
+        }
+
+        /// <summary>
+        /// 获取用户在 Framework 设置中配置的默认 Embedding 提供商 ID。
+        /// </summary>
+        /// <returns>默认提供商的 ID 字符串。</returns>
+        public string GetDefaultEmbeddingProviderId()
+        {
+            return _defaultEmbeddingProviderId;
+        }
 
         // --- 私有方法 ---
+
+        // 【新增方法】
+        /// <summary>
+        /// 加载全局设置，例如默认的提供商。
+        /// 【注意】为了简化当前开发，我们暂时在这里“硬编码”默认值。
+        /// 未来这里会替换为读取 "global_settings.json" 文件的逻辑。
+        /// </summary>
+        private void LoadGlobalSettings()
+        {
+            // --- 硬编码占位符 ---
+            // 假设我们从配置文件中读到，用户将 "openai" 设置为了默认提供商。
+            _defaultChatProviderId = "openai";
+            _defaultEmbeddingProviderId = "openai";
+            // --------------------
+
+            RimAILogger.Log($"SettingsManager: Default chat provider set to '{_defaultChatProviderId}'.");
+            RimAILogger.Log($"SettingsManager: Default embedding provider set to '{_defaultEmbeddingProviderId}'.");
+        }
 
         /// <summary>
         /// 加载所有 provider_template_*.json 文件，解析它们，并存入 _providerTemplates 字典。
@@ -98,7 +144,7 @@ namespace RimAI.Framework.Configuration
 
                     // 以 providerId 为键，template 对象为值，存入字典。
                     _providerTemplates[providerId] = template;
-                    RimAILogger.Log($"SettingsManager: Successfully loaded template from: {filePath}");
+                    RimAILogger.Log($"SettingsManager: Successfully loaded template for '{providerId}' from: {filePath}");
                 }
                 catch (Exception ex)
                 {
@@ -108,7 +154,6 @@ namespace RimAI.Framework.Configuration
         }
 
         /// <summary>
-        /// 【新增方法】
         /// 加载所有 user_config_*.json 文件，解析它们，并存入 _userConfigs 字典。
         /// 这个方法的逻辑与 LoadProviderTemplates 高度相似。
         /// </summary>
@@ -142,7 +187,7 @@ namespace RimAI.Framework.Configuration
 
                     // 以 userId 为键，userConfig 对象为值，存入字典。
                     _userConfigs[userId] = userConfig;
-                    RimAILogger.Log($"SettingsManager: Successfully loaded user config from: {filePath}");
+                    RimAILogger.Log($"SettingsManager: Successfully loaded user config for '{userId}' from: {filePath}");
                 }
                 catch (Exception ex)
                 {
@@ -150,23 +195,21 @@ namespace RimAI.Framework.Configuration
                 }
             }
         }
-
-        // --- 公共方法 (下一步实现) ---
+        
+        // --- 公共方法 ---
 
         /// <summary>
-        /// 根据提供商ID，查找对应的模板和用户配置，并将它们合并成一个 MergedConfig 对象。
-        /// 这是我们下一步要实现的核心功能。
+        /// 【修改】根据提供商ID，查找对应的模板和用户配置，并将它们合并成一个 MergedConfig 对象。
         /// </summary>
         /// <param name="providerId">提供商的唯一标识符，例如 "openai"。</param>
-        /// <returns>一个包含所有配置信息的合并对象，或者在找不到时返回 null。</returns>
-        public MergedConfig GetMergedConfig(string providerId)
+        /// <returns>一个封装了 MergedConfig 或错误的 Result 对象，提供了更清晰的错误处理方式。</returns>
+        public Result<MergedConfig> GetMergedConfig(string providerId)
         {
             // 安全检查：验证传入的 providerId 是否有效。
             // string.IsNullOrWhiteSpace 是一个健壮的检查，能同时处理 null、空字符串 "" 和只包含空格的字符串 " "。
             if (string.IsNullOrWhiteSpace(providerId))
             {
-                RimAILogger.Warning("SettingsManager: Invalid provider ID provided.");
-                return null;
+                return Result<MergedConfig>.Failure("SettingsManager: Invalid provider ID provided (null or empty).");
             }
 
             // 查找 ProviderTemplate：
@@ -174,16 +217,14 @@ namespace RimAI.Framework.Configuration
             // 如果键不存在，它返回 false 且不会抛出异常。
             if (!_providerTemplates.TryGetValue(providerId, out var providerTemplate))
             {
-                RimAILogger.Warning($"SettingsManager: Provider template not found for ID: {providerId}");
-                return null;
+                return Result<MergedConfig>.Failure($"SettingsManager: Provider template not found for ID: {providerId}");
             }
 
-            // 3. 查找 UserConfig：
+            // 查找 UserConfig：
             // 同样，安全地查找用户配置。
             if (!_userConfigs.TryGetValue(providerId, out var userConfig))
             {
-                RimAILogger.Warning($"SettingsManager: User config not found for ID: {providerId}");
-                return null;
+                return Result<MergedConfig>.Failure($"SettingsManager: User config not found for ID: {providerId}");
             }
 
             // 合并与返回：
@@ -191,12 +232,14 @@ namespace RimAI.Framework.Configuration
             // 这里使用了 "对象初始化器" 语法，非常简洁。
             var mergedConfig = new MergedConfig
             {
-                Provider = template,
+                Provider = providerTemplate,
                 User = userConfig
             };
 
             RimAILogger.Log($"SettingsManager: Successfully created merged config for '{providerId}'.");
-            return mergedConfig;
+            
+            // 使用 Result.Success 包装成功的结果，这是最佳实践。
+            return Result<MergedConfig>.Success(mergedConfig);
         }
     }
 }

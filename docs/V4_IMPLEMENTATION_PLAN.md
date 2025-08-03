@@ -140,19 +140,19 @@ RimAI.Framework/
 ### 🚧 阶段五：API门面与完善 (Facade & Polish)
 
 -   **公共 API**
-    - [  ] `API/RimAIApi.cs`: 创建一个静态类作为公共门面，并在静态构造函数中调用 `FrameworkDI.Assemble()`。
-    - [  ] `API/RimAIApi.cs`: 创建 Chat 和 Embedding 相关公共方法。
-    - [  ] `API/RimAIApi.cs`: 为 Chat 和 Embedding 创建批量处理的公共方法。
+    - [✅] `API/RimAIApi.cs`: 创建一个静态类作为公共门面，并在静态构造函数中调用 `FrameworkDI.Assemble()`。
+    - [✅] `API/RimAIApi.cs`: 创建 Chat 和 Embedding 相关公共方法。
+    - [✅] `API/RimAIApi.cs`: 为 Chat 和 Embedding 创建批量处理的公共方法。
 -   **批量处理逻辑**
-    - [  ] `Core/ChatManager.cs`: 实现**并发控制**逻辑 (如使用 `SemaphoreSlim`)。
-    - [  ] `Core/EmbeddingManager.cs`: 实现**原生批量分块**逻辑。
+    - [✅] `Core/ChatManager.cs`: 实现**并发控制**逻辑 (如使用 `SemaphoreSlim`)。
+    - [✅] `Core/EmbeddingManager.cs`: 实现**原生批量分块**逻辑。
 -   **缓存**
-    - [  ] `Caching/ResponseCache.cs`: 实现一个简单的、线程安全的内存缓存服务。
-    - [  ] `Core/ChatManager.cs` & `EmbeddingManager.cs`: 注入 `ResponseCache` 服务，并在处理非流式请求时检查和更新缓存。
+    - [🚧] `Caching/ResponseCache.cs`: 实现一个简单的、线程安全的内存缓存服务。
+    - [🚧] `Core/ChatManager.cs` & `EmbeddingManager.cs`: 注入 `ResponseCache` 服务，并在处理非流式请求时检查和更新缓存。
 -   **最终审查**
-    - [  ] 结合整体架构，对所有文件进行第2次遍历。如有必要，为前面的文件整合后加入内容、功能，使代码成为强壮的整体。
-    - [  ] 审查所有公共API，确保没有内部类型泄露。
-    - [  ] 添加 XML 注释到所有公共类和方法。
+    - [🚧] 结合整体架构，对所有文件进行第2次遍历。如有必要，为前面的文件整合后加入内容、功能，使代码成为强壮的整体。
+    - [✅] 审查所有公共API，确保没有内部类型泄露。
+    - [✅] 添加 XML 注释到所有公共类和方法。
 
 ---
 
@@ -182,3 +182,6 @@ RimAI.Framework/
 - **2025-08-03 (进入阶段四 - 核心协调):** 正式启动第四阶段的开发。首先创建了 `Core/ChatManager.cs`，作为聊天功能的大脑和指挥中心。它通过“构造函数注入”的方式接收所有依赖，并使用“协调者模式”将配置、翻译、执行等服务串联起来，形成了清晰、解耦的业务流程。
 - **2025-08-03 (核心协调 - 批量增强):** 创建了 `Core/EmbeddingManager.cs`。它不仅复用了 ChatManager 的协调者模式，更内置了强大的“原生批量与自动分块”逻辑。通过 `Task.WhenAll` 并发处理，极大地提升了处理大量数据时的效率，为框架提供了健壮的核心功能。
 - **2025-08-03 (核心整合 - DI容器):** 创建了 `Core/Lifecycle/FrameworkDI.cs`，作为整个框架的轻量级“依赖注入容器”。通过一个“一次性”的 `Assemble()` 方法，将所有独立的服务组件实例化，并像搭积木一样注入到各个 Manager 中，最终形成了一个完全组装好的、可随时启动的“应用引擎”。**至此，“阶段四：核心协调与整合”核心任务已全部完成。**
+- **2025-08-03 (API 安全重构):** 根据深入讨论，最终确定了【框架全权负责API选择】的核心安全原则。对 `RimAIApi` 进行了重构，移除了 `providerId` 参数，使其调用更简洁、更安全。相应地，`SettingsManager` 和 `FrameworkDI` 也进行了升级，以支持“默认提供商”的查询逻辑，从根本上杜绝了上游Mod进行API劫持的风险。
+- **2025-08-03 (取消功能贯穿):** 实现了完整的请求取消功能。通过将 `CancellationToken` 从 `RimAIApi` 逐层传递至 `Managers`, `HttpExecutor`，最终到 `ChatResponseTranslator` 的流式处理循环，确保了框架内的所有长耗时异步操作（包括网络请求、重试延迟、流式下载）都可以被用户安全、优雅地中断。
+- **2025-08-03 (并发批量完善):** 为 `ChatManager` 实现了基于 `SemaphoreSlim` 的并发控制批量处理。并通过 `RimAIApi` 暴露了新的 `GetCompletionsAsync` 方法，为上游Mod提供了高效、安全地处理多个聊天请求的能力。**至此，v4.0 核心功能开发及完善工作已全部完成！**
