@@ -37,6 +37,11 @@ namespace RimAI.Framework.UI
         private bool _isEmbeddingTesting = false;
         private string _embeddingTestStatusMessage = "Test the currently saved embedding provider.";
 
+        // Scroll view state
+        private bool _lastEmbeddingConfigEnabled = false;
+        private Vector2 _scrollPosition = Vector2.zero;
+        private float _viewHeight = 800f;
+
         public RimAIFrameworkMod(ModContentPack content) : base(content)
         {
             FrameworkDI.Assemble();
@@ -48,27 +53,51 @@ namespace RimAI.Framework.UI
         public override void DoSettingsWindowContents(Rect inRect)
         {
             var listing = new Listing_Standard();
-            listing.Begin(inRect);
 
+            // 定义可滚动内容区域，宽度减 16f 预留滚动条
+            Rect viewRect = new Rect(0f, 0f, inRect.width - 16f, _viewHeight);
+            Widgets.BeginScrollView(inRect, ref _scrollPosition, viewRect);
+
+            listing.Begin(viewRect);
+
+            // ----- Chat 区域 -----
             DrawSection(listing, "Chat Service", settings.ActiveChatProviderId, ref _lastChatProviderId,
-                (newId) => settings.ActiveChatProviderId = newId, // Pass setter action
+                (newId) => settings.ActiveChatProviderId = newId,
                 FrameworkDI.SettingsManager.GetAllChatProviderIds(),
                 LoadChatSettings, DrawChatFields, HandleChatSave, HandleChatTest,
                 _isChatTesting, ref _chatTestStatusMessage);
 
             listing.GapLine(24f);
 
-            listing.CheckboxLabeled("Enable Separate Embedding Configuration", ref settings.IsEmbeddingConfigEnabled);
+            // Embedding 开关
+            listing.CheckboxLabeled("Enable Embedding", ref settings.IsEmbeddingConfigEnabled);
+            if (settings.IsEmbeddingConfigEnabled != _lastEmbeddingConfigEnabled)
+            {
+                // 勾选状态变化时复位滚动条
+                _scrollPosition = Vector2.zero;
+                _lastEmbeddingConfigEnabled = settings.IsEmbeddingConfigEnabled;
+            }
+
+            // ----- Embedding 区域 -----
             if (settings.IsEmbeddingConfigEnabled)
             {
                 DrawSection(listing, "Embedding Service", settings.ActiveEmbeddingProviderId, ref _lastEmbeddingProviderId,
-                    (newId) => settings.ActiveEmbeddingProviderId = newId, // Pass setter action
+                    (newId) => settings.ActiveEmbeddingProviderId = newId,
                     FrameworkDI.SettingsManager.GetAllEmbeddingProviderIds(),
                     LoadEmbeddingSettings, DrawEmbeddingFields, HandleEmbeddingSave, HandleEmbeddingTest,
                     _isEmbeddingTesting, ref _embeddingTestStatusMessage);
             }
 
+            // 记录内容高度并限制滚动范围
+            if (Event.current.type == EventType.Layout)
+            {
+                _viewHeight = Mathf.Max(_viewHeight, listing.CurHeight);
+                float maxScroll = Mathf.Max(0f, _viewHeight - inRect.height);
+                _scrollPosition.y = Mathf.Clamp(_scrollPosition.y, 0f, maxScroll);
+            }
+
             listing.End();
+            Widgets.EndScrollView();
         }
 
         private void DrawSection(
