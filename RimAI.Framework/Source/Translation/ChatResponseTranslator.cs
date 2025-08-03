@@ -15,19 +15,55 @@ namespace RimAI.Framework.Translation
 {
     public class ChatResponseTranslator
     {
+        // --- 公共 API ---
+
+        /// <summary>
+        /// (非流式) 将完整的 HttpResponseMessage 翻译成 UnifiedChatResponse。
+        /// </summary>
         public async Task<UnifiedChatResponse> TranslateAsync(HttpResponseMessage httpResponse, MergedChatConfig config, CancellationToken cancellationToken)
         {
             if (httpResponse.Content.Headers.ContentType?.MediaType == "text/event-stream")
             {
-                return await TranslateStreamAsync(httpResponse, config, cancellationToken);
+                // 如果是流式响应，则在内部进行拼接
+                return await TranslateAndAggregateStreamAsync(httpResponse, config, cancellationToken);
             }
             return await TranslateStandardAsync(httpResponse, config, cancellationToken);
         }
 
+        /// <summary>
+        /// (流式) 将 HttpResponseMessage 翻译成 UnifiedChatChunk 的异步流。
+        /// </summary>
+        public async IAsyncEnumerable<UnifiedChatChunk> TranslateStreamAsync(HttpResponseMessage httpResponse, MergedChatConfig config, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await foreach (var (jObject, finishReason) in ProcessSseStream(httpResponse, config, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (jObject != null)
+                {
+                    var chunk = ParseJObjectToChunk(jObject, config);
+                    if (chunk != null)
+                    {
+                        yield return chunk;
+                    }
+                }
+                
+                if (!string.IsNullOrEmpty(finishReason))
+                {
+                    var finalChunk = ParseJObjectToChunk(jObject, config) ?? new UnifiedChatChunk();
+                    finalChunk.FinishReason = finishReason;
+                    yield return finalChunk;
+                }
+            }
+        }
+
+        // --- 内部翻译逻辑 ---
+
         private async Task<UnifiedChatResponse> TranslateStandardAsync(HttpResponseMessage httpResponse, MergedChatConfig config, CancellationToken cancellationToken)
         {
+            // 【修复 #1】: 移除 ReadAsStringAsync 的 CancellationToken 参数以兼容旧版 .NET Framework
             var jsonString = await httpResponse.Content.ReadAsStringAsync();
-            cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested(); // 在读取后检查取消状态
 
             if (string.IsNullOrWhiteSpace(jsonString))
                 return new UnifiedChatResponse { Message = new ChatMessage { Content = "Error: Empty response from server." } };
@@ -35,7 +71,7 @@ namespace RimAI.Framework.Translation
             try
             {
                 var jObject = JObject.Parse(jsonString);
-                return ParseSingleJObject(jObject, config);
+                return ParseJObjectToFinalResponse(jObject, config);
             }
             catch (JsonReaderException ex)
             {
@@ -43,50 +79,66 @@ namespace RimAI.Framework.Translation
                 return new UnifiedChatResponse { Message = new ChatMessage { Content = $"Error: Invalid JSON response from server. Details: {ex.Message}" } };
             }
         }
-
-        private async Task<UnifiedChatResponse> TranslateStreamAsync(HttpResponseMessage httpResponse, MergedChatConfig config, CancellationToken cancellationToken)
+        
+        private async Task<UnifiedChatResponse> TranslateAndAggregateStreamAsync(HttpResponseMessage httpResponse, MergedChatConfig config, CancellationToken cancellationToken)
         {
             var finalMessage = new ChatMessage { Role = "assistant", Content = "" };
             string finalFinishReason = "stream_end";
 
-            await foreach (var (jObject, finishReason) in ProcessSseStream(httpResponse, config, cancellationToken))
+            await foreach (var chunk in TranslateStreamAsync(httpResponse, config, cancellationToken))
             {
-                if (jObject != null)
-                {
-                    var partialResponse = ParseSingleJObject(jObject, config);
-                    if (partialResponse?.Message?.Content != null)
-                        finalMessage.Content += partialResponse.Message.Content;
-                    if (partialResponse?.Message?.ToolCalls != null)
-                        finalMessage.ToolCalls = partialResponse.Message.ToolCalls;
-                }
-                if (!string.IsNullOrEmpty(finishReason))
-                    finalFinishReason = finishReason;
+                if (chunk.ContentDelta != null)
+                    finalMessage.Content += chunk.ContentDelta;
+                if (chunk.ToolCalls != null)
+                    finalMessage.ToolCalls = chunk.ToolCalls;
+                if (!string.IsNullOrEmpty(chunk.FinishReason))
+                    finalFinishReason = chunk.FinishReason;
             }
             
             return new UnifiedChatResponse { Message = finalMessage, FinishReason = finalFinishReason };
         }
 
-        private UnifiedChatResponse ParseSingleJObject(JObject jObject, MergedChatConfig config)
+        private UnifiedChatResponse ParseJObjectToFinalResponse(JObject jObject, MergedChatConfig config)
         {
-            // 【修复】通过 config.Template.ChatApi 访问路径
-            var choiceToken = jObject.SelectToken(config.Template.ChatApi.ResponsePaths.Choices);
-            var firstChoice = choiceToken?.FirstOrDefault();
+            var firstChoice = jObject.SelectToken(config.Template.ChatApi.ResponsePaths.Choices)?.FirstOrDefault();
             if (firstChoice == null)
             {
-                // Handle cases where response is not in a 'choices' array (e.g. error messages)
                 var errorContent = jObject.SelectToken("error.message")?.ToString();
-                if (errorContent != null)
-                    return new UnifiedChatResponse { Message = new ChatMessage { Content = errorContent } };
-                return null;
+                return new UnifiedChatResponse { Message = new ChatMessage { Role = "assistant", Content = errorContent ?? jObject.ToString() }};
             }
 
-            var content = firstChoice.SelectToken(config.Template.ChatApi.ResponsePaths.Content)?.ToString();
-            var finishReason = firstChoice.SelectToken(config.Template.ChatApi.ResponsePaths.FinishReason)?.ToString();
+            var messageToken = firstChoice.SelectToken("message");
+            var content = messageToken?.SelectToken("content")?.ToString();
+            var toolCallsToken = messageToken?.SelectToken("tool_calls");
             
+            var toolCalls = toolCallsToken?.ToObject<List<ToolCall>>();
+
+            var finishReason = firstChoice.SelectToken(config.Template.ChatApi.ResponsePaths.FinishReason)?.ToString();
+
             return new UnifiedChatResponse
             {
                 FinishReason = finishReason,
-                Message = new ChatMessage { Role = "assistant", Content = content }
+                Message = new ChatMessage { Role = "assistant", Content = content, ToolCalls = toolCalls }
+            };
+        }
+        
+        private UnifiedChatChunk ParseJObjectToChunk(JObject jObject, MergedChatConfig config)
+        {
+            if (jObject == null) return null;
+
+            var firstChoice = jObject.SelectToken(config.Template.ChatApi.ResponsePaths.Choices)?.FirstOrDefault();
+            if (firstChoice == null) return null;
+
+            var deltaToken = firstChoice.SelectToken("delta");
+            var contentDelta = deltaToken?.SelectToken(config.Template.ChatApi.ResponsePaths.Content)?.ToString();
+            var toolCallsToken = deltaToken?.SelectToken("tool_calls");
+
+            var toolCalls = toolCallsToken?.ToObject<List<ToolCall>>();
+
+            return new UnifiedChatChunk
+            {
+                ContentDelta = contentDelta,
+                ToolCalls = toolCalls
             };
         }
 
@@ -100,33 +152,31 @@ namespace RimAI.Framework.Translation
                 cancellationToken.ThrowIfCancellationRequested();
                 var line = await reader.ReadLineAsync();
 
-                if (line != null && line.StartsWith("data: "))
+                if (string.IsNullOrEmpty(line) || !line.StartsWith("data: ")) continue;
+
+                var data = line.Substring(6);
+                if (data == "[DONE]")
                 {
-                    var data = line.Substring(6);
-                    if (data == "[DONE]")
-                    {
-                        yield return (null, "stop");
-                        break;
-                    }
+                    yield return (null, "stop");
+                    break;
+                }
 
-                    // 【修复】将 try-catch 和 jObject 的声明都放在循环内部，确保作用域正确
-                    JObject jObject = null;
-                    try
-                    {
-                        jObject = JObject.Parse(data);
-                    }
-                    catch (JsonException) 
-                    {
-                        // 忽略非JSON数据行，例如心跳包或注释
-                        continue; 
-                    }
+                // 【修复 #2】: 将 yield return 移出 try-catch 块
+                JObject jObject = null;
+                try
+                {
+                    jObject = JObject.Parse(data);
+                }
+                catch (JsonException) 
+                { 
+                    continue; 
+                }
 
-                    if (jObject != null)
-                    {
-                        var finishReason = jObject.SelectToken(config.Template.ChatApi.ResponsePaths.Choices)?.FirstOrDefault()
-                                           ?.SelectToken(config.Template.ChatApi.ResponsePaths.FinishReason)?.ToString();
-                        yield return (jObject, finishReason);
-                    }
+                if (jObject != null)
+                {
+                    var finishReason = jObject.SelectToken(config.Template.ChatApi.ResponsePaths.Choices)?.FirstOrDefault()
+                                               ?.SelectToken(config.Template.ChatApi.ResponsePaths.FinishReason)?.ToString();
+                    yield return (jObject, finishReason);
                 }
             }
         }

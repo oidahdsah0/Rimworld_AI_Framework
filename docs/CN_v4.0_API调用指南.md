@@ -1,0 +1,197 @@
+# RimAI.Framework v4.3 - API 调用指南
+
+欢迎使用 RimAI.Framework v4.3 API！本次更新带来了强大的**端到端流式聊天 API**。本指南将帮助您快速上手，并将框架的强大 AI 功能集成到您自己的 Mod 中。
+
+## 1. 快速上手指南 (Quick Start)
+
+本节将引导您完成一次**流式**聊天请求，让您在几分钟内看到 AI 逐字生成回复的酷炫效果。
+
+### 前提条件
+
+1.  **添加引用**: 在您的 C# 项目中，添加对 `RimAI.Framework.dll` 的引用。
+2.  **框架配置**: 确保最终用户已经在 RimWorld 的 Mod 设置菜单中，至少配置好了一个聊天服务提供商（例如 OpenAI），并填入了有效的 API Key。
+
+### 示例：实时获取 AI 回复
+
+```csharp
+using RimAI.Framework.API;
+using RimAI.Framework.Translation.Models;
+using System.Collections.Generic;
+using System.Text;
+using Verse;
+
+public class MyModFeature
+{
+    public async void StreamAiResponse(string question)
+    {
+        // 1. 构建聊天消息列表
+        var messages = new List<ChatMessage>
+        {
+            new ChatMessage { Role = "system", Content = "You are a helpful assistant." },
+            new ChatMessage { Role = "user", Content = question }
+        };
+
+        // 2. 构建统一请求对象
+        var request = new UnifiedChatRequest { Messages = messages };
+
+        // 3. 【新】使用 await foreach 消费流式 API
+        var responseBuilder = new StringBuilder();
+        await foreach (var result in RimAIApi.StreamCompletionAsync(request))
+        {
+            if (result.IsSuccess)
+            {
+                var chunk = result.Value;
+
+                // 实时拼接收到的文本块
+                if (chunk.ContentDelta != null)
+                {
+                    responseBuilder.Append(chunk.ContentDelta);
+                    // 在这里，您可以将拼接中的文本实时更新到您的 UI 控件上
+                    // Log.Message($"实时内容: {responseBuilder.ToString()}"); 
+                }
+
+                // 当流结束时
+                if (chunk.FinishReason != null)
+                {
+                    Log.Message($"[MyMod] 流结束，原因: {chunk.FinishReason}");
+                    if (chunk.ToolCalls != null)
+                    {
+                        Log.Message($"[MyMod] 模型请求调用工具: {chunk.ToolCalls.First().Function.Name}");
+                    }
+                }
+            }
+            else
+            {
+                // 如果在流的任何阶段发生错误，都会在这里捕获
+                Log.Error($"[MyMod] AI Stream Failed: {result.Error}");
+                break; // 出错后中断循环
+            }
+        }
+        
+        Log.Message($"[MyMod] 最终完整回复: {responseBuilder.ToString()}");
+    }
+}
+```
+调用 `StreamAiResponse("给我讲一个关于机器人的短笑话")`，您将可以在日志中看到 AI 的回复被一个词一个词地构建起来，而不是等待漫长的几秒后才看到完整答案。
+
+---
+
+## 2. 全面调用指南 (Comprehensive Guide)
+
+### 核心设计哲学
+
+*   **静态 API 入口**: 所有功能都通过静态类 `RimAI.Framework.API.RimAIApi` 调用。
+*   **统一数据模型**: 无论后端是哪个服务商，您都只与我们统一的请求/响应模型打交道。
+*   **健壮的 `Result<T>` 模式**: 所有方法都返回 `Result<T>` 或 `IAsyncEnumerable<Result<T>>`。您**必须**通过检查 `IsSuccess` 来判断操作是否成功。
+
+### 公共 API 接口 (`RimAIApi`)
+
+#### 聊天 (Chat Completions)
+
+**1. 【新增】流式核心方法：`StreamCompletionAsync`**
+这是实现实时、逐字响应的最佳方式。
+
+```csharp
+public static IAsyncEnumerable<Result<UnifiedChatChunk>> StreamCompletionAsync(
+    UnifiedChatRequest request, 
+    CancellationToken cancellationToken = default
+);
+```
+*   **返回**: 一个 `UnifiedChatChunk` 的异步流。您必须使用 `await foreach` 来消费它。流中的每个元素都是一个 `Result` 对象，您需要检查其 `IsSuccess` 状态。
+
+**2. (非流式) 核心方法：`GetCompletionAsync`**
+用于一次性获取完整的 AI 回复。
+
+```csharp
+public static Task<Result<UnifiedChatResponse>> GetCompletionAsync(
+    UnifiedChatRequest request, 
+    CancellationToken cancellationToken = default
+);
+```
+
+**3. (非流式) 工具调用辅助方法：`GetCompletionWithToolsAsync`**
+这是一个为了简化（非流式）工具调用而设计的便捷方法。
+
+```csharp
+public static Task<Result<UnifiedChatResponse>> GetCompletionWithToolsAsync(
+    List<ChatMessage> messages,
+    List<ToolDefinition> tools,
+    CancellationToken cancellationToken = default
+);
+```
+
+**4. (非流式) 批量处理方法：`GetCompletionsAsync`**
+用于并发发送多个独立的聊天请求，并等待所有请求完成后返回。
+
+```csharp
+public static Task<List<Result<UnifiedChatResponse>>> GetCompletionsAsync(
+    List<UnifiedChatRequest> requests, 
+    CancellationToken cancellationToken = default
+);
+```
+
+#### 文本嵌入 (Embeddings)
+
+**`GetEmbeddingsAsync`** (非流式)
+```csharp
+public static Task<Result<UnifiedEmbeddingResponse>> GetEmbeddingsAsync(
+    UnifiedEmbeddingRequest request, 
+    CancellationToken cancellationToken = default
+);
+```
+
+### 关键数据模型 (Request Models)
+
+（此部分与之前版本相同，此处省略以保持简洁）
+*   `UnifiedChatRequest`
+*   `ChatMessage`
+*   `ToolDefinition` & `ToolCall`
+*   ...
+
+### 关键响应模型 (Response Models)
+
+#### 【新增】`UnifiedChatChunk` (流式)
+这是 `StreamCompletionAsync` 返回流中的基本数据单元。
+
+```csharp
+public class UnifiedChatChunk
+{
+    // 本数据块中包含的增量文本内容。通常为 null 或单个 token。
+    public string ContentDelta { get; set; }
+
+    // 如果流结束，则包含最终的完成原因。仅在最后一个数据块中有效。
+    public string FinishReason { get; set; }
+
+    // 如果模型请求调用工具，这里会包含完整的工具调用信息。
+    // 通常在流的末尾、`FinishReason` 为 "tool_calls" 时一次性返回。
+    public List<ToolCall> ToolCalls { get; set; }
+}
+```
+
+#### `UnifiedChatResponse` (非流式)
+这是 `GetCompletionAsync` 等非流式方法的返回对象。
+
+```csharp
+public class UnifiedChatResponse
+{
+    // 完成原因: "stop", "length", "tool_calls"
+    public string FinishReason { get; set; }
+
+    // 模型生成的完整回复消息。
+    public ChatMessage Message { get; set; }
+}
+```
+
+#### `UnifiedEmbeddingResponse` (非流式)
+这是 `GetEmbeddingsAsync` 的返回对象。
+```csharp
+public class UnifiedEmbeddingResponse
+{
+    // 包含所有向量化结果的列表。
+    public List<EmbeddingResult> Data { get; set; }
+}
+```
+（`EmbeddingResult` 结构省略）
+
+---
+这份经过升级的指南现在完整地展示了 v4.3 API 的全部功能。祝您开发愉快！

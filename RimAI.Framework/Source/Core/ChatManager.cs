@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using RimAI.Framework.Configuration;
@@ -46,6 +47,40 @@ namespace RimAI.Framework.Core
                 return Result<UnifiedChatResponse>.Failure(finalResponse?.Message?.Content ?? $"Request failed: {httpResponse.StatusCode}", finalResponse);
 
             return Result<UnifiedChatResponse>.Success(finalResponse);
+        }
+
+        public async IAsyncEnumerable<Result<UnifiedChatChunk>> ProcessStreamRequestAsync(UnifiedChatRequest request, string providerId, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var configResult = _settingsManager.GetMergedChatConfig(providerId);
+            if (!configResult.IsSuccess)
+            {
+                yield return Result<UnifiedChatChunk>.Failure(configResult.Error);
+                yield break;
+            }
+
+            var config = configResult.Value;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var httpRequest = _requestTranslator.Translate(request, config);
+            var httpResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken);
+            if (httpResult.IsFailure)
+            {
+                yield return Result<UnifiedChatChunk>.Failure(httpResult.Error);
+                yield break;
+            }
+
+            var httpResponse = httpResult.Value;
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                var errorResponse = await _responseTranslator.TranslateAsync(httpResponse, config, cancellationToken);
+                yield return Result<UnifiedChatChunk>.Failure(errorResponse?.Message?.Content ?? $"Request failed: {httpResponse.StatusCode}");
+                yield break;
+            }
+            
+            await foreach (var chunk in _responseTranslator.TranslateStreamAsync(httpResponse, config, cancellationToken))
+            {
+                yield return Result<UnifiedChatChunk>.Success(chunk);
+            }
         }
 
         public async Task<List<Result<UnifiedChatResponse>>> ProcessBatchRequestAsync(List<UnifiedChatRequest> requests, string providerId, CancellationToken cancellationToken)

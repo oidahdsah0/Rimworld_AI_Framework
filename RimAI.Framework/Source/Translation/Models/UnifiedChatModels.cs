@@ -65,7 +65,7 @@ namespace RimAI.Framework.Translation.Models
     #region 统一聊天响应 (Unified Chat Response)
 
     /// <summary>
-    /// 我们框架内部统一的聊天响应模型。
+    /// 我们框架内部统一的聊天响应模型 (非流式)。
     /// 所有来自外部API的响应都会被翻译成这个标准格式。
     /// </summary>
     public class UnifiedChatResponse
@@ -80,6 +80,28 @@ namespace RimAI.Framework.Translation.Models
         /// 模型生成的回复消息。
         /// </summary>
         public ChatMessage Message { get; set; }
+    }
+
+    /// <summary>
+    /// 【新增】代表聊天响应流中的单个数据块 (Chunk)。
+    /// </summary>
+    public class UnifiedChatChunk
+    {
+        /// <summary>
+        /// 本数据块中包含的增量文本内容。通常为 null 或单个 token。
+        /// </summary>
+        public string ContentDelta { get; set; }
+
+        /// <summary>
+        /// 如果流结束，则包含最终的完成原因。仅在最后一个数据块中有效。
+        /// </summary>
+        public string FinishReason { get; set; }
+
+        /// <summary>
+        /// 如果模型请求调用工具，这里会包含完整的工具调用信息。
+        /// 通常在流的末尾、`FinishReason` 为 "tool_calls" 时一次性返回。
+        /// </summary>
+        public List<ToolCall> ToolCalls { get; set; }
     }
 
     #endregion
