@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimAI.SettingsCategory>Фреймворк RimAI</RimAI.SettingsCategory>
+  <RimAI.ChatService>Сервис чата</RimAI.ChatService>
+  <RimAI.EmbeddingService>Сервис векторных эмбеддингов</RimAI.EmbeddingService>
+  <RimAI.EnableEmbedding>Включить векторные эмбеддинги</RimAI.EnableEmbedding>
+  <RimAI.NoProviders>Доступные провайдеры не найдены.</RimAI.NoProviders>
+  <RimAI.SelectProvider>Выбрать провайдера…</RimAI.SelectProvider>
+  <RimAI.PlsSelectProvider>Пожалуйста, выберите провайдера.</RimAI.PlsSelectProvider>
+  <RimAI.Save>Сохранить</RimAI.Save>
+  <RimAI.Test>Тест</RimAI.Test>
+  <RimAI.ApiKey>API-ключ:</RimAI.ApiKey>
+  <RimAI.Endpoint>Точка доступа (URL API):</RimAI.Endpoint>
+  <RimAI.Model>Модель:</RimAI.Model>
+  <RimAI.Temperature>Температура: {0}</RimAI.Temperature>
+  <RimAI.Concurrency>Ограничение параллелизма: {0}</RimAI.Concurrency>
+  <RimAI.ChatSaved>Настройки чата сохранены.</RimAI.ChatSaved>
+  <RimAI.EmbedSaved>Настройки эмбеддингов сохранены.</RimAI.EmbedSaved>
+  <RimAI.ApiMissing>API-ключ пуст.</RimAI.ApiMissing>
+  <RimAI.CannotTestEmptyKey>Нельзя тестировать без API-ключа.</RimAI.CannotTestEmptyKey>
+  <RimAI.Testing>Тестирование, пожалуйста подождите…</RimAI.Testing>
+  <RimAI.ChatSuccess>Подключение к сервису чата успешно!</RimAI.ChatSuccess>
+  <RimAI.ChatFailed>Не удалось подключиться к сервису чата: {0}</RimAI.ChatFailed>
+  <RimAI.ChatError>Ошибка во время теста чата: {0}</RimAI.ChatError>
+  <RimAI.EmbedSuccess>Подключение к сервису эмбеддингов успешно!</RimAI.EmbedSuccess>
+  <RimAI.EmbedFailed>Не удалось подключиться к сервису эмбеддингов: {0}</RimAI.EmbedFailed>
+  <RimAI.EmbedError>Ошибка во время теста эмбеддингов: {0}</RimAI.EmbedError>
+  <RimAI.ChatTestHint>Протестировать сохранённого провайдера чата.</RimAI.ChatTestHint>
+  <RimAI.EmbedTestHint>Протестировать сохранённого провайдера эмбеддингов.</RimAI.EmbedTestHint>
+  <RimAI.TopP>Top-P: {0}</RimAI.TopP>
+  <RimAI.CustomHeaders>Пользовательские заголовки (JSON):</RimAI.CustomHeaders>
+  <RimAI.StaticParamsOverride>Переопределение статических параметров (JSON):</RimAI.StaticParamsOverride>
+  <RimAI.TypicalP>Typical-P: {0}</RimAI.TypicalP>
+  <RimAI.MaxTokens>Максимальное число токенов: {0}</RimAI.MaxTokens>
+</LanguageData>

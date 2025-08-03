@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimAI.SettingsCategory>RimAI Framework</RimAI.SettingsCategory>
+  <RimAI.ChatService>Chat Service</RimAI.ChatService>
+  <RimAI.EmbeddingService>Embedding Service</RimAI.EmbeddingService>
+  <RimAI.EnableEmbedding>Enable Embeddings</RimAI.EnableEmbedding>
+  <RimAI.NoProviders>No providers found.</RimAI.NoProviders>
+  <RimAI.SelectProvider>Select Provider…</RimAI.SelectProvider>
+  <RimAI.PlsSelectProvider>Please select a provider.</RimAI.PlsSelectProvider>
+  <RimAI.Save>Save</RimAI.Save>
+  <RimAI.Test>Test</RimAI.Test>
+  <RimAI.ApiKey>API Key:</RimAI.ApiKey>
+  <RimAI.Endpoint>Endpoint (API URL):</RimAI.Endpoint>
+  <RimAI.Model>Model:</RimAI.Model>
+  <RimAI.Temperature>Temperature: {0}</RimAI.Temperature>
+  <RimAI.Concurrency>Concurrency Limit: {0}</RimAI.Concurrency>
+  <RimAI.ChatSaved>Chat settings saved.</RimAI.ChatSaved>
+  <RimAI.EmbedSaved>Embedding settings saved.</RimAI.EmbedSaved>
+  <RimAI.ApiMissing>API key is empty.</RimAI.ApiMissing>
+  <RimAI.CannotTestEmptyKey>Cannot test with an empty API key.</RimAI.CannotTestEmptyKey>
+  <RimAI.Testing>Testing, please wait…</RimAI.Testing>
+  <RimAI.ChatSuccess>Chat service connected successfully!</RimAI.ChatSuccess>
+  <RimAI.ChatFailed>Failed to connect to chat service: {0}</RimAI.ChatFailed>
+  <RimAI.ChatError>Error while testing chat: {0}</RimAI.ChatError>
+  <RimAI.EmbedSuccess>Embedding service connected successfully!</RimAI.EmbedSuccess>
+  <RimAI.EmbedFailed>Failed to connect to embedding service: {0}</RimAI.EmbedFailed>
+  <RimAI.EmbedError>Error while testing embedding: {0}</RimAI.EmbedError>
+  <RimAI.ChatTestHint>Test the currently saved chat provider.</RimAI.ChatTestHint>
+  <RimAI.EmbedTestHint>Test the currently saved embedding provider.</RimAI.EmbedTestHint>
+  <RimAI.TopP>Top-P: {0}</RimAI.TopP>
+  <RimAI.CustomHeaders>Custom Headers (JSON):</RimAI.CustomHeaders>
+  <RimAI.StaticParamsOverride>Static Parameter Override (JSON):</RimAI.StaticParamsOverride>
+  <RimAI.TypicalP>Typical-P: {0}</RimAI.TypicalP>
+  <RimAI.MaxTokens>Max Tokens: {0}</RimAI.MaxTokens>
+</LanguageData>

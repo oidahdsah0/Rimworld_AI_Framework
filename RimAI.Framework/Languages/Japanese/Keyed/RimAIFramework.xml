@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimAI.SettingsCategory>RimAI フレームワーク</RimAI.SettingsCategory>
+  <RimAI.ChatService>チャットサービス</RimAI.ChatService>
+  <RimAI.EmbeddingService>ベクトル埋め込みサービス</RimAI.EmbeddingService>
+  <RimAI.EnableEmbedding>ベクトル埋め込みを有効にする</RimAI.EnableEmbedding>
+  <RimAI.NoProviders>利用可能なプロバイダーが見つかりません。</RimAI.NoProviders>
+  <RimAI.SelectProvider>プロバイダーを選択…</RimAI.SelectProvider>
+  <RimAI.PlsSelectProvider>プロバイダーを選択してください。</RimAI.PlsSelectProvider>
+  <RimAI.Save>保存</RimAI.Save>
+  <RimAI.Test>テスト</RimAI.Test>
+  <RimAI.ApiKey>API キー:</RimAI.ApiKey>
+  <RimAI.Endpoint>エンドポイント (API URL):</RimAI.Endpoint>
+  <RimAI.Model>モデル:</RimAI.Model>
+  <RimAI.Temperature>温度: {0}</RimAI.Temperature>
+  <RimAI.Concurrency>同時実行上限: {0}</RimAI.Concurrency>
+  <RimAI.ChatSaved>チャット設定を保存しました。</RimAI.ChatSaved>
+  <RimAI.EmbedSaved>埋め込み設定を保存しました。</RimAI.EmbedSaved>
+  <RimAI.ApiMissing>API キーが空です。</RimAI.ApiMissing>
+  <RimAI.CannotTestEmptyKey>API キーが空の状態ではテストできません。</RimAI.CannotTestEmptyKey>
+  <RimAI.Testing>テスト中です。しばらくお待ちください…</RimAI.Testing>
+  <RimAI.ChatSuccess>チャットサービスへの接続に成功しました！</RimAI.ChatSuccess>
+  <RimAI.ChatFailed>チャットサービスへの接続に失敗しました: {0}</RimAI.ChatFailed>
+  <RimAI.ChatError>チャットテスト中にエラーが発生しました: {0}</RimAI.ChatError>
+  <RimAI.EmbedSuccess>埋め込みサービスへの接続に成功しました！</RimAI.EmbedSuccess>
+  <RimAI.EmbedFailed>埋め込みサービスへの接続に失敗しました: {0}</RimAI.EmbedFailed>
+  <RimAI.EmbedError>埋め込みテスト中にエラーが発生しました: {0}</RimAI.EmbedError>
+  <RimAI.ChatTestHint>現在保存されているチャットプロバイダーをテストします。</RimAI.ChatTestHint>
+  <RimAI.EmbedTestHint>現在保存されている埋め込みプロバイダーをテストします。</RimAI.EmbedTestHint>
+  <RimAI.TopP>Top-P: {0}</RimAI.TopP>
+  <RimAI.CustomHeaders>カスタムヘッダー (JSON):</RimAI.CustomHeaders>
+  <RimAI.StaticParamsOverride>静的パラメータの上書き (JSON):</RimAI.StaticParamsOverride>
+  <RimAI.TypicalP>Typical-P: {0}</RimAI.TypicalP>
+  <RimAI.MaxTokens>最大トークン数: {0}</RimAI.MaxTokens>
+</LanguageData>

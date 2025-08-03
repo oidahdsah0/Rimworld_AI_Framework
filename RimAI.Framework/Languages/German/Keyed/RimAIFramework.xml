@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimAI.SettingsCategory>RimAI Framework</RimAI.SettingsCategory>
+  <RimAI.ChatService>Chat-Dienst</RimAI.ChatService>
+  <RimAI.EmbeddingService>Vektor-Einbettungsdienst</RimAI.EmbeddingService>
+  <RimAI.EnableEmbedding>Vektor-Einbettung aktivieren</RimAI.EnableEmbedding>
+  <RimAI.NoProviders>Keine verfügbaren Anbieter gefunden.</RimAI.NoProviders>
+  <RimAI.SelectProvider>Anbieter auswählen…</RimAI.SelectProvider>
+  <RimAI.PlsSelectProvider>Bitte wählen Sie einen Anbieter aus.</RimAI.PlsSelectProvider>
+  <RimAI.Save>Speichern</RimAI.Save>
+  <RimAI.Test>Testen</RimAI.Test>
+  <RimAI.ApiKey>API-Schlüssel:</RimAI.ApiKey>
+  <RimAI.Endpoint>Endpunkt (API-URL):</RimAI.Endpoint>
+  <RimAI.Model>Modell:</RimAI.Model>
+  <RimAI.Temperature>Temperatur: {0}</RimAI.Temperature>
+  <RimAI.Concurrency>Gleichzeitigkeitslimit: {0}</RimAI.Concurrency>
+  <RimAI.ChatSaved>Chateinstellungen gespeichert.</RimAI.ChatSaved>
+  <RimAI.EmbedSaved>Einbettungseinstellungen gespeichert.</RimAI.EmbedSaved>
+  <RimAI.ApiMissing>API-Schlüssel ist leer.</RimAI.ApiMissing>
+  <RimAI.CannotTestEmptyKey>Testen ohne API-Schlüssel nicht möglich.</RimAI.CannotTestEmptyKey>
+  <RimAI.Testing>Test läuft, bitte warten…</RimAI.Testing>
+  <RimAI.ChatSuccess>Chat-Dienst erfolgreich verbunden!</RimAI.ChatSuccess>
+  <RimAI.ChatFailed>Verbindung zum Chat-Dienst fehlgeschlagen: {0}</RimAI.ChatFailed>
+  <RimAI.ChatError>Fehler beim Chat-Test: {0}</RimAI.ChatError>
+  <RimAI.EmbedSuccess>Einbettungsdienst erfolgreich verbunden!</RimAI.EmbedSuccess>
+  <RimAI.EmbedFailed>Verbindung zum Einbettungsdienst fehlgeschlagen: {0}</RimAI.EmbedFailed>
+  <RimAI.EmbedError>Fehler beim Einbettungstest: {0}</RimAI.EmbedError>
+  <RimAI.ChatTestHint>Den aktuell gespeicherten Chat-Anbieter testen.</RimAI.ChatTestHint>
+  <RimAI.EmbedTestHint>Den aktuell gespeicherten Einbettungs-Anbieter testen.</RimAI.EmbedTestHint>
+  <RimAI.TopP>Top-P: {0}</RimAI.TopP>
+  <RimAI.CustomHeaders>Benutzerdefinierte Header (JSON):</RimAI.CustomHeaders>
+  <RimAI.StaticParamsOverride>Überschreiben statischer Parameter (JSON):</RimAI.StaticParamsOverride>
+  <RimAI.TypicalP>Typical-P: {0}</RimAI.TypicalP>
+  <RimAI.MaxTokens>Maximale Token-Anzahl: {0}</RimAI.MaxTokens>
+</LanguageData>

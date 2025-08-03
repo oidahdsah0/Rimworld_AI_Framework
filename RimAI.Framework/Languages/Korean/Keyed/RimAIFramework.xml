@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimAI.SettingsCategory>RimAI 프레임워크</RimAI.SettingsCategory>
+  <RimAI.ChatService>채팅 서비스</RimAI.ChatService>
+  <RimAI.EmbeddingService>벡터 임베딩 서비스</RimAI.EmbeddingService>
+  <RimAI.EnableEmbedding>벡터 임베딩 활성화</RimAI.EnableEmbedding>
+  <RimAI.NoProviders>사용 가능한 공급자를 찾을 수 없습니다.</RimAI.NoProviders>
+  <RimAI.SelectProvider>공급자 선택…</RimAI.SelectProvider>
+  <RimAI.PlsSelectProvider>공급자를 선택해 주세요.</RimAI.PlsSelectProvider>
+  <RimAI.Save>저장</RimAI.Save>
+  <RimAI.Test>테스트</RimAI.Test>
+  <RimAI.ApiKey>API 키:</RimAI.ApiKey>
+  <RimAI.Endpoint>엔드포인트 (API URL):</RimAI.Endpoint>
+  <RimAI.Model>모델:</RimAI.Model>
+  <RimAI.Temperature>온도: {0}</RimAI.Temperature>
+  <RimAI.Concurrency>동시 실행 제한: {0}</RimAI.Concurrency>
+  <RimAI.ChatSaved>채팅 설정이 저장되었습니다.</RimAI.ChatSaved>
+  <RimAI.EmbedSaved>임베딩 설정이 저장되었습니다.</RimAI.EmbedSaved>
+  <RimAI.ApiMissing>API 키가 비어 있습니다.</RimAI.ApiMissing>
+  <RimAI.CannotTestEmptyKey>API 키가 없어 테스트할 수 없습니다.</RimAI.CannotTestEmptyKey>
+  <RimAI.Testing>테스트 중입니다. 잠시만 기다려 주세요…</RimAI.Testing>
+  <RimAI.ChatSuccess>채팅 서비스에 성공적으로 연결되었습니다!</RimAI.ChatSuccess>
+  <RimAI.ChatFailed>채팅 서비스 연결 실패: {0}</RimAI.ChatFailed>
+  <RimAI.ChatError>채팅 테스트 중 오류 발생: {0}</RimAI.ChatError>
+  <RimAI.EmbedSuccess>임베딩 서비스에 성공적으로 연결되었습니다!</RimAI.EmbedSuccess>
+  <RimAI.EmbedFailed>임베딩 서비스 연결 실패: {0}</RimAI.EmbedFailed>
+  <RimAI.EmbedError>임베딩 테스트 중 오류 발생: {0}</RimAI.EmbedError>
+  <RimAI.ChatTestHint>현재 저장된 채팅 공급자를 테스트합니다.</RimAI.ChatTestHint>
+  <RimAI.EmbedTestHint>현재 저장된 임베딩 공급자를 테스트합니다.</RimAI.EmbedTestHint>
+  <RimAI.TopP>Top-P: {0}</RimAI.TopP>
+  <RimAI.CustomHeaders>커스텀 헤더 (JSON):</RimAI.CustomHeaders>
+  <RimAI.StaticParamsOverride>정적 파라미터 재정의 (JSON):</RimAI.StaticParamsOverride>
+  <RimAI.TypicalP>Typical-P: {0}</RimAI.TypicalP>
+  <RimAI.MaxTokens>최대 토큰 수: {0}</RimAI.MaxTokens>
+</LanguageData>
