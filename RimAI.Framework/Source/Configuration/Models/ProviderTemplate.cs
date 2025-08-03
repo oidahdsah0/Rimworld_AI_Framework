@@ -2,6 +2,7 @@
 // 引入 System.Collections.Generic 来使用 Dictionary。
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq; // [新增] 引入 JObject
 
 namespace RimAI.Framework.Configuration.Models
 {
@@ -26,10 +27,9 @@ namespace RimAI.Framework.Configuration.Models
         [JsonProperty("embeddingApi")]
         public EmbeddingApiConfig EmbeddingApi { get; set; }
 
-        // 使用 Dictionary<string, object> 来接收灵活的、任意嵌套的JSON对象。
-        // 这对于 staticParameters 这种“逃生舱口”性质的字段至关重要。
+        // 【修改】将类型从 Dictionary<string, object> 改为 JObject
         [JsonProperty("staticParameters")]
-        public Dictionary<string, object> StaticParameters { get; set; }
+        public JObject StaticParameters { get; set; }
     }
 
     #region 子配置模型 (Nested Configuration Models)
@@ -60,9 +60,9 @@ namespace RimAI.Framework.Configuration.Models
         [JsonProperty("defaultModel")]
         public string DefaultModel { get; set; }
 
-        // 对应 JSON 中的 "defaultParameters" 对象，用于存放如 temperature, top_p 等参数的默认值。
+        // 【修改】将类型从 Dictionary<string, object> 改为 JObject
         [JsonProperty("defaultParameters")]
-        public Dictionary<string, object> DefaultParameters { get; set; }
+        public JObject DefaultParameters { get; set; }
 
         [JsonProperty("requestPaths")]
         public ChatRequestPaths RequestPaths { get; set; }
@@ -168,9 +168,9 @@ namespace RimAI.Framework.Configuration.Models
         [JsonProperty("path")]
         public string Path { get; set; }
 
-        // 使用 object 类型来接收任意类型的JSON值，无论是简单字符串还是复杂对象。
+        // 【修改】将类型从 object 改为 JToken，JToken 是所有 JSON 值的基类
         [JsonProperty("value")]
-        public object Value { get; set; }
+        public JToken Value { get; set; }
     }
 
     // --- Embedding API 的路径定义 ---

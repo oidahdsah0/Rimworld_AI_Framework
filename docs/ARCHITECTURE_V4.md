@@ -238,3 +238,38 @@ graph TD
     4.  每个任务在开始执行前，都必须先从 `SemaphoreSlim` 获取一个许可。
     5.  任务完成（或失败）后，必须释放许可。
     6.  这确保了在任何时刻，最多只有 `concurrencyLimit` 个HTTP请求在同时进行。
+
+
+---
+
+## 6. [新增] UI 与配置服务的交互模型
+
+框架不仅要提供强大的后端 API，还必须为用户提供一个清晰、健壮的配置界面。UI 的交互逻辑与后端配置服务 (`SettingsManager`) 紧密协作，遵循以下原则：
+
+### 6.1 启动守卫与“待配置”状态
+
+*   **“待配置”模式**: `SettingsManager` 在初始化时，会检查是否存在**至少一个**有效的、完整的提供商配置（即，同时存在对应的 `provider_template_*.json` 和 `user_config_*.json` 文件，且 `user_config.json` 中包含有效的 API Key）。
+*   **启动守卫 (Startup Guard)**:
+    *   如果不存在任何一个有效的配置，`SettingsManager` 会将框架置于**“非活动” (Inactive)** 状态。
+    *   在此状态下，任何对 `RimAIApi` 公共方法的调用，都会被一个**启动守卫**立刻拦截，并直接返回一个明确的错误结果，例如 `Result.Failure("RimAI Framework is not configured. Please set up at least one AI provider in the mod settings.")`。
+    *   这个守卫机制从根本上杜绝了在未配置状态下执行任何网络请求的可能性。
+*   **UI 引导**: Mod 的设置界面在检测到框架处于“非活动”状态时，应明确引导用户去选择并完成第一个提供商的配置。此时，界面不应显示任何“已激活”的提供商。
+
+### 6.2 动态配置切换
+
+*   **UI 触发**: 用户在设置界面的“供应商选择”下拉菜单中做出新的选择时，UI 代码将触发以下流程。
+*   **查询 `SettingsManager`**: UI 代码以新选择的 `providerId` 为参数，调用 `SettingsManager` 来检查对应的 `user_config_*.json` 是否存在。
+*   **渲染界面**:
+    *   如果配置文件存在，UI 将加载其中的数据（如 API Key, `concurrencyLimit` 等）并填充到对应的输入框中。
+    *   如果配置文件不存在，UI 将清空所有输入框，等待用户首次输入。
+
+### 6.3 配置的持久化 (保存)
+
+*   **用户驱动**: 当用户在 UI 中点击“保存”按钮时，触发持久化流程。
+*   **UI 职责**: UI 代码负责从各个输入框中收集用户输入的数据，并组装成一个 `UserConfig` C# 对象。
+*   **写入文件**: UI 代码随后调用一个**新的、专门的** `SettingsManager.WriteUserConfig(string providerId, UserConfig config)` 方法，将这个 `UserConfig` 对象序列化为 JSON，并写入到对应的 `user_config_*.json` 文件中。
+*   **重新加载**: 保存成功后，UI 应提示 `SettingsManager` 重新加载其内部的配置缓存，以确保系统立即使用最新的设置。
+
+这个模型明确了 **UI 代码** 和 **`SettingsManager`** 之间的职责边界：
+*   **UI (View/Controller)**: 负责用户交互、数据收集、调用服务。
+*   **`SettingsManager` (Service/Model)**: 负责配置文件的【读】和【写】的底层实现，并向上层提供统一的配置数据和状态。

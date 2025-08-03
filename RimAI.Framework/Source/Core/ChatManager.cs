@@ -21,12 +21,11 @@ using RimAI.Framework.Shared.Models;
 using RimAI.Framework.Translation;
 using RimAI.Framework.Translation.Models;
 
-
 namespace RimAI.Framework.Core
 {
     public class ChatManager
     {
-        // ... 成员变量和构造函数保持不变 ...
+        // ... (成员变量和构造函数保持不变) ...
         private readonly SettingsManager _settingsManager;
         private readonly ChatRequestTranslator _requestTranslator;
         private readonly HttpExecutor _httpExecutor;
@@ -44,10 +43,8 @@ namespace RimAI.Framework.Core
             _responseTranslator = responseTranslator;
         }
 
-        // ProcessRequestAsync 方法保持不变
         public async Task<Result<UnifiedChatResponse>> ProcessRequestAsync(UnifiedChatRequest request, string providerId, CancellationToken cancellationToken)
         {
-            // ... 现有实现不变 ...
             var configResult = _settingsManager.GetMergedConfig(providerId);
             if (!configResult.IsSuccess)
             {
@@ -55,72 +52,63 @@ namespace RimAI.Framework.Core
             }
             var config = configResult.Value;
             cancellationToken.ThrowIfCancellationRequested();
+            
             var httpRequest = _requestTranslator.Translate(request, config);
-            var httpResponseResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken);
-            if (!httpResponseResult.IsSuccess)
+
+            // 【逻辑修正】HttpExecutor 返回的 Result<T> 需要被完整处理
+            var httpResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken);
+            if (httpResult.IsFailure)
             {
-                 // 检查我们是否收到了一个失败的响应体，如果是，将其返回
-                if(httpResponseResult.Value != null)
-                {
-                    var errorResponse = await _responseTranslator.TranslateAsync(httpResponseResult.Value, config, cancellationToken);
-                     return Result<UnifiedChatResponse>.Failure(errorResponse.Message.Content, errorResponse);
-                }
-                return Result<UnifiedChatResponse>.Failure(httpResponseResult.Error);
+                // 如果是网络层面的失败 (e.g., 请求被取消, DNS错误), 直接返回失败
+                return Result<UnifiedChatResponse>.Failure(httpResult.Error);
             }
-            var httpResponse = httpResponseResult.Value;
+
+            var httpResponse = httpResult.Value;
+            // 如果 HTTP 请求成功发出了，但服务器返回了非 2xx 的状态码
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                // 我们尝试解析这个失败的响应体，因为它可能包含有价值的错误信息
+                var errorResponse = await _responseTranslator.TranslateAsync(httpResponse, config, cancellationToken);
+                var errorMessage = errorResponse?.Message?.Content ?? $"Request failed with status code {httpResponse.StatusCode}";
+                
+                // 【调用修正】现在这个调用是正确的，因为它匹配我们新增的 Failure 重载
+                return Result<UnifiedChatResponse>.Failure(errorMessage, errorResponse);
+            }
+            
             var finalResponse = await _responseTranslator.TranslateAsync(httpResponse, config, cancellationToken);
             return Result<UnifiedChatResponse>.Success(finalResponse);
         }
 
-        // 【新增方法】
-        /// <summary>
-        /// 使用并发控制来“批量”处理多个独立的聊天请求。
-        /// </summary>
-        /// <param name="requests">一个包含多个聊天请求的列表。</param>
-        /// <param name="providerId">提供商的ID。</param>
-        /// <param name="cancellationToken">用于中断所有并发操作的令牌。</param>
-        /// <returns>一个包含了所有请求结果的列表。</returns>
         public async Task<List<Result<UnifiedChatResponse>>> ProcessBatchRequestAsync(List<UnifiedChatRequest> requests, string providerId, CancellationToken cancellationToken)
         {
             var configResult = _settingsManager.GetMergedConfig(providerId);
             if (!configResult.IsSuccess)
             {
-                // 如果配置加载失败，则所有请求都失败。
                 return requests.Select(r => Result<UnifiedChatResponse>.Failure(configResult.Error)).ToList();
             }
             var config = configResult.Value;
 
-            // [C# 知识点] SemaphoreSlim 是一个轻量级的信号量，用于限制并发访问资源的线程数。
-            // 我们用用户配置的并发数来初始化它。
-            var semaphore = new SemaphoreSlim(config.User.ConcurrencyLimit);
+            // 【访问修正】从 MergedConfig 的根级属性获取 ConcurrencyLimit
+            var semaphore = new SemaphoreSlim(config.ConcurrencyLimit);
             
-            // 创建一个任务列表，用来存放所有即将并发执行的请求任务。
             var tasks = new List<Task<Result<UnifiedChatResponse>>>();
 
             foreach (var request in requests)
             {
-                // 为每个请求创建一个独立的异步任务。
                 tasks.Add(Task.Run(async () =>
                 {
-                    // 在任务开始执行前，必须先等待并获取一个信号量许可。
-                    // 这就像在进入高速公路前，等待ETC抬杆。
                     await semaphore.WaitAsync(cancellationToken);
-                    
                     try
                     {
-                        // 一旦获得许可，就调用我们已经写好的单个请求处理方法。
                         return await ProcessRequestAsync(request, providerId, cancellationToken);
                     }
                     finally
                     {
-                        // [关键] 无论任务是成功还是失败，都必须在 finally 块中释放信号量。
-                        // 这就像离开高速公路时，把ETC通道还给后面的人用。
                         semaphore.Release();
                     }
                 }, cancellationToken));
             }
 
-            // Task.WhenAll 会等待列表中的所有任务完成，并返回它们的结果数组。
             var results = await Task.WhenAll(tasks);
             return results.ToList();
         }

@@ -19,24 +19,19 @@ using RimAI.Framework.Translation;
 using RimAI.Framework.Translation.Models;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading; // 【新增】引入 CancellationToken
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RimAI.Framework.Core
 {
-    /// <summary>
-    /// Embedding 功能总协调器。
-    /// </summary>
     public class EmbeddingManager
     {
+        // ... (成员变量和构造函数保持不变) ...
         private readonly SettingsManager _settingsManager;
         private readonly EmbeddingRequestTranslator _requestTranslator;
         private readonly HttpExecutor _httpExecutor;
         private readonly EmbeddingResponseTranslator _responseTranslator;
 
-        /// <summary>
-        /// 构造函数，通过依赖注入获取所有必要服务。
-        /// </summary>
         public EmbeddingManager(
             SettingsManager settingsManager,
             EmbeddingRequestTranslator requestTranslator,
@@ -49,10 +44,6 @@ namespace RimAI.Framework.Core
             _responseTranslator = responseTranslator;
         }
 
-        /// <summary>
-        /// 处理一个完整的 Embedding 请求流程，内置自动分块和并发处理逻辑。
-        /// </summary>
-        /// <param name="cancellationToken">【新增】用于中断操作的令牌。</param>
         public async Task<Result<UnifiedEmbeddingResponse>> ProcessRequestAsync(UnifiedEmbeddingRequest request, string providerId, CancellationToken cancellationToken)
         {
             var configResult = _settingsManager.GetMergedConfig(providerId);
@@ -62,80 +53,73 @@ namespace RimAI.Framework.Core
             }
             var config = configResult.Value;
 
-            // 在进入任何流程前，先检查一次。
             cancellationToken.ThrowIfCancellationRequested();
 
-            int maxBatchSize = config.EmbeddingApi.MaxBatchSize;
+            // 【访问修正】从 MergedConfig.EmbeddingApi 获取 MaxBatchSize
+            int maxBatchSize = config.EmbeddingApi?.MaxBatchSize ?? 1;
 
             if (request.Inputs.Count <= maxBatchSize)
             {
-                // 【修改】将 cancellationToken 传递给简单路径。
                 return await ProcessSingleBatchAsync(request, config, cancellationToken);
             }
             else
             {
-                // 【修改】将 cancellationToken 传递给并发路径。
                 return await ProcessBatchesConcurrentlyAsync(request, config, cancellationToken);
             }
         }
         
-        /// <summary>
-        /// 私有方法：处理单个批次的请求（简单路径）。
-        /// </summary>
-        /// <param name="cancellationToken">【新增】用于中断操作的令牌。</param>
         private async Task<Result<UnifiedEmbeddingResponse>> ProcessSingleBatchAsync(UnifiedEmbeddingRequest request, Configuration.Models.MergedConfig config, CancellationToken cancellationToken)
         {
-            // 在翻译前检查，减少不必要工作。
             cancellationToken.ThrowIfCancellationRequested();
 
             var httpRequest = _requestTranslator.Translate(request, config);
             
-            // 【修改】将 cancellationToken 传递给 HttpExecutor。
-            var httpResponseResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken);
-            if (!httpResponseResult.IsSuccess)
+            var httpResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken);
+            if (httpResult.IsFailure)
             {
-                return Result<UnifiedEmbeddingResponse>.Failure(httpResponseResult.Error);
+                return Result<UnifiedEmbeddingResponse>.Failure(httpResult.Error);
             }
 
-            // 【修改】将 cancellationToken 传递给 EmbeddingResponseTranslator。
-            // 虽然 Embedding 响应通常不是流式的，但保持 API 一致性是个好习惯。
-            var finalResponse = await _responseTranslator.TranslateAsync(httpResponseResult.Value, config, cancellationToken);
+            var httpResponse = httpResult.Value;
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                 // Embedding API 失败时通常也会返回包含错误信息的JSON体
+                var errorContent = await httpResponse.Content.ReadAsStringAsync();
+                return Result<UnifiedEmbeddingResponse>.Failure($"Request failed with status code {httpResponse.StatusCode}: {errorContent}");
+            }
+
+            // 【调用修正】确保 TranslateAsync 调用了我们即将修复的、有3个参数的版本
+            // (我们目前假设 EmbeddingResponseTranslator.TranslateAsync 也需要一个 token)
+            var finalResponse = await _responseTranslator.TranslateAsync(httpResponse, config, cancellationToken);
             return Result<UnifiedEmbeddingResponse>.Success(finalResponse);
         }
 
-        /// <summary>
-        /// 私有方法：并发处理多个批次的请求（复杂路径）。
-        /// </summary>
-        /// <param name="cancellationToken">【新增】用于中断操作的令牌。</param>
         private async Task<Result<UnifiedEmbeddingResponse>> ProcessBatchesConcurrentlyAsync(UnifiedEmbeddingRequest request, Configuration.Models.MergedConfig config, CancellationToken cancellationToken)
         {
             var allResults = new List<EmbeddingResult>();
+            // 【访问修正】从 MergedConfig.EmbeddingApi 获取 MaxBatchSize
+            int maxBatchSize = config.EmbeddingApi?.MaxBatchSize ?? 1;
+            
+            // 【逻辑修正】创建一个任务列表来存储每个批次的处理任务
             var tasks = new List<Task<Result<UnifiedEmbeddingResponse>>>();
-            int maxBatchSize = config.EmbeddingApi.MaxBatchSize;
 
-            // [步骤 A: 创建所有批次的处理任务]
             for (int i = 0; i < request.Inputs.Count; i += maxBatchSize)
             {
-                // 在创建每个任务前都检查一下，如果已经取消，就没必要创建新任务了。
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var batchInputs = request.Inputs.GetRange(i, System.Math.Min(maxBatchSize, request.Inputs.Count - i));
                 var batchRequest = new UnifiedEmbeddingRequest { Inputs = batchInputs };
 
-                // 【修改】将 cancellationToken 传递给每个并发任务。
                 tasks.Add(ProcessSingleBatchAsync(batchRequest, config, cancellationToken));
             }
 
-            // [步骤 B: 并发执行所有任务]
-            // Task.WhenAll 天生就支持 CancellationToken。如果 token 被取消，
-            // 它会立即停止等待，并抛出 OperationCanceledException，我们将在最外层捕获它。
             var taskResults = await Task.WhenAll(tasks);
 
-            // [步骤 C: 聚合所有结果]
             foreach (var result in taskResults)
             {
-                if (!result.IsSuccess)
+                if (result.IsFailure)
                 {
+                    // 如果任何一个批次失败了，则让整个操作失败，并返回第一个遇到的错误信息。
                     return Result<UnifiedEmbeddingResponse>.Failure($"A batch failed: {result.Error}");
                 }
                 
@@ -144,7 +128,6 @@ namespace RimAI.Framework.Core
             
             allResults = allResults.OrderBy(r => r.Index).ToList();
 
-            // [步骤 D: 返回最终的聚合响应]
             return Result<UnifiedEmbeddingResponse>.Success(new UnifiedEmbeddingResponse { Data = allResults });
         }
     }

@@ -14,44 +14,29 @@ using RimAI.Framework.Translation.Models;
 
 namespace RimAI.Framework.Translation
 {
-    /// <summary>
-    /// 聊天响应翻译器。
-    /// 【重构】现在只有一个公共入口点，能智能处理流式和非流式响应。
-    /// 【新增】完全支持通过 CancellationToken 中断操作。
-    /// </summary>
     public class ChatResponseTranslator
     {
-        /// <summary>
-        /// 将 HTTP 响应翻译成统一聊天响应，能自动处理流式或非流式。
-        /// </summary>
-        /// <param name="httpResponse">从 HttpExecutor 收到的原始 HTTP 响应。</param>
-        /// <param name="config">包含了所有翻译规则的合并后配置。</param>
-        /// <param name="cancellationToken">用于中断操作的令牌。</param>
         public async Task<UnifiedChatResponse> TranslateAsync(HttpResponseMessage httpResponse, MergedConfig config, CancellationToken cancellationToken)
         {
             // 通过检查响应头来判断是否为流式响应。
-            // "text/event-stream" 是 SSE (Server-Sent Events) 的标准MIME类型。
             bool isStreaming = httpResponse.Content.Headers.ContentType?.MediaType == "text/event-stream";
 
             if (!isStreaming)
             {
-                // --- 非流式路径 ---
                 var contentStr = await httpResponse.Content.ReadAsStringAsync();
                 return ParseCompleteResponse(contentStr, config);
             }
             else
             {
-                // --- 流式路径 ---
                 var finalResponse = new UnifiedChatResponse
                 {
                     Message = new ChatMessage { Role = "assistant", Content = "", ToolCalls = new List<ToolCall>() }
                 };
                 var contentBuilder = new StringBuilder();
 
-                await foreach (var chunk in ProcessStreamAsync(httpResponse, config, cancellationToken))
+                // 使用 .WithCancellation(cancellationToken) 来确保取消信号能被异步流正确处理
+                await foreach (var chunk in ProcessStreamAsync(httpResponse, config, cancellationToken).WithCancellation(cancellationToken))
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
                     if (!string.IsNullOrEmpty(chunk.Message?.Content))
                     {
                         contentBuilder.Append(chunk.Message.Content);
@@ -76,9 +61,6 @@ namespace RimAI.Framework.Translation
             }
         }
         
-        /// <summary>
-        /// 私有辅助方法，用于解析一个完整的、非流式的JSON字符串。
-        /// </summary>
         private UnifiedChatResponse ParseCompleteResponse(string jsonContent, MergedConfig config)
         {
             if (string.IsNullOrWhiteSpace(jsonContent))
@@ -86,11 +68,21 @@ namespace RimAI.Framework.Translation
                 return new UnifiedChatResponse { FinishReason = "error", Message = new ChatMessage { Content = "Empty response body." } };
             }
             
-            var contentJson = JObject.Parse(jsonContent);
-            var paths = config.ChatResponsePaths;
+            JObject contentJson;
+            try
+            {
+                contentJson = JObject.Parse(jsonContent);
+            }
+            catch (JsonReaderException)
+            {
+                return new UnifiedChatResponse { FinishReason = "error", Message = new ChatMessage { Content = $"Invalid JSON received: {jsonContent}" } };
+            }
+            
+            var paths = config.ChatApi.ResponsePaths;
 
-            // 【修正】使用正确的 C# null 条件运算符 ?.
+            // 【最终修正】使用正确的 C# null 条件运算符 ?. 和索引器 [0]
             var choice = contentJson.SelectToken(paths.Choices)?[0];
+            
             if (choice == null) return new UnifiedChatResponse { FinishReason = "error", Message = new ChatMessage { Content = "Invalid response structure: 'choices' array not found or is empty." }};
 
             var finishReason = choice.SelectToken(paths.FinishReason)?.ToString();
@@ -124,9 +116,6 @@ namespace RimAI.Framework.Translation
             };
         }
 
-        /// <summary>
-        /// 私有方法，核心的异步流处理器。
-        /// </summary>
         private async IAsyncEnumerable<UnifiedChatResponse> ProcessStreamAsync(HttpResponseMessage httpResponse, MergedConfig config, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             using var stream = await httpResponse.Content.ReadAsStreamAsync();
@@ -135,20 +124,24 @@ namespace RimAI.Framework.Translation
             string line;
             while ((line = await reader.ReadLineAsync()) != null)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (string.IsNullOrWhiteSpace(line)) continue;
 
                 var jsonData = line.StartsWith("data: ") ? line.Substring("data: ".Length) : line;
                 if (jsonData.Trim() == "[DONE]") yield break;
-
+                
+                UnifiedChatResponse partialResponse = null;
                 try
                 {
-                    var partialResponse = ParseCompleteResponse(jsonData, config);
-                    if (partialResponse != null)
-                    {
-                        yield return partialResponse;
-                    }
+                    partialResponse = ParseCompleteResponse(jsonData, config);
                 }
                 catch (JsonException) { /* 忽略无法解析的行 */ }
+
+                if (partialResponse != null)
+                {
+                    yield return partialResponse;
+                }
             }
         }
     }

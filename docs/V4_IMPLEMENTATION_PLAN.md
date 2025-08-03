@@ -25,7 +25,8 @@ RimAI.Framework/
     │   │   ├── ProviderTemplate.cs # [配置-模型] 对应 provider_template_*.json
     │   │   ├── UserConfig.cs    # [配置-模型] 对应 user_config_*.json
     │   │   └── MergedConfig.cs  # [配置-模型] 合并上述两者。
-    │   └── SettingsManager.cs   # [配置-服务] 加载、解析、合并所有配置文件。
+    │   ├── SettingsManager.cs   # [配置-服务] 加载、解析、合并所有配置文件。
+    |   └── BuiltInTemplates.cs  # [配置-服务] 内置的模板原型，代码形式，非Json形式。
     │
     ├── Translation/
     │   ├── Models/
@@ -185,3 +186,55 @@ RimAI.Framework/
 - **2025-08-03 (API 安全重构):** 根据深入讨论，最终确定了【框架全权负责API选择】的核心安全原则。对 `RimAIApi` 进行了重构，移除了 `providerId` 参数，使其调用更简洁、更安全。相应地，`SettingsManager` 和 `FrameworkDI` 也进行了升级，以支持“默认提供商”的查询逻辑，从根本上杜绝了上游Mod进行API劫持的风险。
 - **2025-08-03 (取消功能贯穿):** 实现了完整的请求取消功能。通过将 `CancellationToken` 从 `RimAIApi` 逐层传递至 `Managers`, `HttpExecutor`，最终到 `ChatResponseTranslator` 的流式处理循环，确保了框架内的所有长耗时异步操作（包括网络请求、重试延迟、流式下载）都可以被用户安全、优雅地中断。
 - **2025-08-03 (并发批量完善):** 为 `ChatManager` 实现了基于 `SemaphoreSlim` 的并发控制批量处理。并通过 `RimAIApi` 暴露了新的 `GetCompletionsAsync` 方法，为上游Mod提供了高效、安全地处理多个聊天请求的能力。**至此，v4.0 核心功能开发及完善工作已全部完成！**
+
+---
+
+## 4. UI交互与配置管理施工清单 (补充)
+
+根据架构文档新增的第6章，对 `SettingsManager` 和 `RimAIApi` 的施工要求进行补充，并明确了UI层需要实现的任务。
+
+### 后端服务 (`Source/` 目录内)
+
+-   **`Configuration/SettingsManager.cs` 补充任务:**
+    - [ ] **[状态管理]** 添加一个公共属性 `public bool IsActive { get; private set; }`。在加载所有配置后，根据是否存在至少一个包含有效API Key的 `UserConfig` 来设置其值。
+    - [ ] **[文件写入]** 新增 `WriteUserConfig(string providerId, UserConfig config)` 方法，负责将 `UserConfig` 对象序列化并安全地写入到对应的 `user_config_*.json` 文件。
+    - [ ] **[热重载]** 新增 `ReloadConfigs()` 方法，用于在配置保存后，清空并重新执行所有加载逻辑，以刷新框架的内部状态。
+
+-   **`API/RimAIApi.cs` 补充任务:**
+    - [ ] **[启动守卫]** 在所有公共方法的入口处，添加“启动守卫”逻辑。检查 `FrameworkDI.SettingsManager.IsActive` 属性，如果为 `false`，则立即返回一个表示“未配置”的 `Result.Failure` 对象。
+
+### Mod 主类与 UI 设计 (遵循 RimWorld 标准)
+
+这部分代码通常位于 `Source/` 目录的根级别，例如 `RimAIFrameworkMod.cs`。
+
+-   **1. 继承 `Mod` 类:**
+    - [ ] 创建一个主类，例如 `public class RimAIFrameworkMod : Mod`。
+    - [ ] 在该类中，需要一个字段来存储 Mod 的设置实例，例如 `private RimAIFrameworkSettings settings;`。
+
+-   **2. 实现 `ModSettings`:**
+    - [ ] 创建一个继承自 `ModSettings` 的设置类，例如 `public class RimAIFrameworkSettings : ModSettings`。
+    - [ ] 在这个类中，定义需要被游戏自动保存的变量，例如 `public string ActiveProviderId;`。
+    - [ ] 重写 `ExposeData()` 方法，使用 `Scribe_Values.Look()` 来实现设置的保存和加载。
+
+-   **3. 绘制设置窗口 (`DoSettingsWindowContents`):**
+    - [ ] 在 `RimAIFrameworkMod` 主类中，重写 `public override void DoSettingsWindowContents(Rect inRect)` 方法。
+    - [ ] 使用 `Listing_Standard` 类来方便地、自上而下地排列 UI 元素。
+    - [ ] **[控件]** 按照详细的UI设计图，使用 `Widgets.Label`, `Widgets.Dropdown`, `Widgets.TextField`, `Widgets.ButtonText` 等方法绘制所有界面控件。
+
+-   **4. 实现“测试连接”功能:**
+    - [ ] **[UI]** 在配置区域内，添加一个“Test Connection”按钮和一个用于显示测试结果的 `Label`。
+    - [ ] **[逻辑]** 为按钮绑定一个异步的点击事件。
+    - [ ] **[前端验证]** 在事件处理中，首先检查 API Key 是否为空。如果为空，则在窗口内显示警告，并**调用 `Messages.Message(..., MessageTypeDefOf.CautionInput)`**，然后中止。
+    - [ ] **[后端调用]** 如果验证通过，则创建一个轻量级的 `UnifiedChatRequest`，并调用 `RimAIApi.GetCompletionAsync`。**必须**为此调用创建一个带超时的 `CancellationToken`。
+    - [ ] **[结果反馈]** 根据 `RimAIApi` 返回的 `Result` 对象，更新结果 `Label` 的文本和颜色，并**分别调用 `Messages.Message(..., MessageTypeDefOf.PositiveEvent)` (成功) 或 `Messages.Message(..., MessageTypeDefOf.NegativeEvent)` (失败)** 来弹出全局提示。
+
+-   **5. 实现“保存设置”功能:**
+    - [ ] **[逻辑]** 为“Save Settings”按钮绑定点击事件。
+    - [ ] **[数据收集]** 从各个 `TextField` 中收集用户输入，组装成一个新的 `UserConfig` 对象。
+    - [ ] **[服务调用]** 调用 `FrameworkDI.SettingsManager.WriteUserConfig(...)` 和 `FrameworkDI.SettingsManager.ReloadConfigs()`。
+    - [ ] **[状态保存]** 调用 `settings.Write()` 来保存 `ModSettings`。
+    - [ ] **[成功反馈]** **调用 `Messages.Message("RimAI.SettingsSaved".Translate(), MessageTypeDefOf.PositiveEvent)`**，告知用户保存成功。
+
+-   **6. (可选) 语言文件支持:**
+    - [ ] 在 `Languages/English/Keyed/` 目录下创建 XML 文件，定义所有 UI 上使用的英文字符串，例如 `"RimAI.TestConnectionSuccess": "Connection to {0} was successful."`。
+    - [ ] 在代码中使用 `.Translate()` 方法来调用这些字符串，为未来的多语言翻译做准备。

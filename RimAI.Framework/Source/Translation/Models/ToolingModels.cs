@@ -10,32 +10,14 @@ namespace RimAI.Framework.Translation.Models
     public class ToolDefinition
     {
         /// <summary>
-        /// 工具的名称。必须是 a-z, A-Z, 0-9, _ 之一，最大长度64。
+        /// 工具的类型，几乎总是 "function"。
         /// </summary>
-        public string Name { get; set; }
+        public string Type { get; set; } = "function";
 
         /// <summary>
-        /// 工具的详细描述，告诉模型这个工具是做什么的，在什么情况下应该使用它。
+        /// 描述工具具体内容的 JObject，对于函数来说，它包含 name, description, parameters。
         /// </summary>
-        public string Description { get; set; }
-
-        /// <summary>
-        /// 工具的参数定义，使用 JSON Schema 格式。
-        /// JObject 类型允许我们表示任何复杂的、嵌套的JSON结构。
-        /// </summary>
-        /// <example>
-        /// new JObject {
-        ///   ["type"] = "object",
-        ///   ["properties"] = new JObject {
-        ///     ["location"] = new JObject {
-        ///       ["type"] = "string",
-        ///       ["description"] = "The city and state, e.g. San Francisco, CA"
-        ///     }
-        ///   },
-        ///   ["required"] = new JArray("location")
-        /// }
-        /// </example>
-        public JObject Parameters { get; set; }
+        public JObject Function { get; set; }
     }
 
     /// <summary>
@@ -49,6 +31,11 @@ namespace RimAI.Framework.Translation.Models
         /// 当我们返回工具执行结果时，需要将这个ID一并返回，以便模型知道是哪个调用的结果。
         /// </summary>
         public string Id { get; set; }
+        
+        /// <summary>
+        /// 【新增】工具调用的类型，几乎总是 "function"。
+        /// </summary>
+        public string Type { get; set; }
 
         /// <summary>
         /// 要调用的工具的名称，与 ToolDefinition 中的 Name 相对应。
