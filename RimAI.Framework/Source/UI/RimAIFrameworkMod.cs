@@ -22,6 +22,7 @@ namespace RimAI.Framework.UI
         // Chat
         private string _chatApiKeyBuffer = "";
         private string _chatModelBuffer = "";
+        private string _chatEndpointBuffer = "";
         private float _chatTemperatureBuffer = 0.7f;
         private int _chatConcurrencyLimitBuffer = 5;
         private string _lastChatProviderId = null;
@@ -31,12 +32,14 @@ namespace RimAI.Framework.UI
         // Embedding
         private string _embeddingApiKeyBuffer = "";
         private string _embeddingModelBuffer = "";
+        private string _embeddingEndpointBuffer = "";
         private string _lastEmbeddingProviderId = null;
         private bool _isEmbeddingTesting = false;
         private string _embeddingTestStatusMessage = "Test the currently saved embedding provider.";
 
         public RimAIFrameworkMod(ModContentPack content) : base(content)
         {
+            FrameworkDI.Assemble();
             settings = GetSettings<RimAIFrameworkSettings>();
         }
 
@@ -117,6 +120,8 @@ namespace RimAI.Framework.UI
         private void DrawChatFields(Listing_Standard listing) {
             listing.Label("API Key:");
             _chatApiKeyBuffer = Widgets.TextField(listing.GetRect(30f), _chatApiKeyBuffer);
+            listing.Label("Endpoint URL:");
+            _chatEndpointBuffer = Widgets.TextField(listing.GetRect(30f), _chatEndpointBuffer);
             listing.Label("Model:");
             _chatModelBuffer = Widgets.TextField(listing.GetRect(30f), _chatModelBuffer);
             listing.Label($"Temperature: {_chatTemperatureBuffer:F2}");
@@ -131,6 +136,7 @@ namespace RimAI.Framework.UI
             if (!templateResult.IsSuccess) return;
             var template = templateResult.Value.Template;
             _chatApiKeyBuffer = userConfig?.ApiKey ?? "";
+            _chatEndpointBuffer = userConfig?.EndpointOverride ?? template?.ChatApi?.Endpoint ?? "";
             _chatModelBuffer = userConfig?.ModelOverride ?? template?.ChatApi?.DefaultModel ?? "";
             _chatTemperatureBuffer = userConfig?.Temperature ?? template?.ChatApi?.DefaultParameters?["temperature"]?.Value<float>() ?? 0.7f;
             _chatConcurrencyLimitBuffer = userConfig?.ConcurrencyLimit ?? 5;
@@ -138,7 +144,13 @@ namespace RimAI.Framework.UI
         }
         
         private void HandleChatSave() {
-            var config = new ChatUserConfig { ApiKey = _chatApiKeyBuffer, ModelOverride = _chatModelBuffer, Temperature = _chatTemperatureBuffer, ConcurrencyLimit = _chatConcurrencyLimitBuffer };
+            var config = new ChatUserConfig {
+                ApiKey = _chatApiKeyBuffer,
+                EndpointOverride = _chatEndpointBuffer,
+                ModelOverride = _chatModelBuffer,
+                Temperature = _chatTemperatureBuffer,
+                ConcurrencyLimit = _chatConcurrencyLimitBuffer
+            };
             FrameworkDI.SettingsManager.WriteChatUserConfig(settings.ActiveChatProviderId, config);
             FrameworkDI.SettingsManager.ReloadConfigs();
             settings.Write();
@@ -189,6 +201,8 @@ namespace RimAI.Framework.UI
         private void DrawEmbeddingFields(Listing_Standard listing) {
             listing.Label("API Key:");
             _embeddingApiKeyBuffer = Widgets.TextField(listing.GetRect(30f), _embeddingApiKeyBuffer);
+            listing.Label("Endpoint URL:");
+            _embeddingEndpointBuffer = Widgets.TextField(listing.GetRect(30f), _embeddingEndpointBuffer);
             listing.Label("Model:");
             _embeddingModelBuffer = Widgets.TextField(listing.GetRect(30f), _embeddingModelBuffer);
         }
@@ -199,12 +213,17 @@ namespace RimAI.Framework.UI
             if (!templateResult.IsSuccess) return;
             var template = templateResult.Value.Template;
             _embeddingApiKeyBuffer = userConfig?.ApiKey ?? "";
+            _embeddingEndpointBuffer = userConfig?.EndpointOverride ?? template?.EmbeddingApi?.Endpoint ?? "";
             _embeddingModelBuffer = userConfig?.ModelOverride ?? template?.EmbeddingApi?.DefaultModel ?? "";
             _embeddingTestStatusMessage = "Test the currently saved embedding provider.";
         }
         
         private void HandleEmbeddingSave() {
-            var config = new EmbeddingUserConfig { ApiKey = _embeddingApiKeyBuffer, ModelOverride = _embeddingModelBuffer };
+            var config = new EmbeddingUserConfig {
+                ApiKey = _embeddingApiKeyBuffer,
+                EndpointOverride = _embeddingEndpointBuffer,
+                ModelOverride = _embeddingModelBuffer
+            };
             FrameworkDI.SettingsManager.WriteEmbeddingUserConfig(settings.ActiveEmbeddingProviderId, config);
             FrameworkDI.SettingsManager.ReloadConfigs();
             settings.Write();
