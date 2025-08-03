@@ -4,21 +4,23 @@ using System.Collections.Generic;
 
 namespace RimAI.Framework.Configuration
 {
+    /// <summary>
+    /// 包含所有内置的、硬编码的 AI 服务模板。
+    /// V4.2 重构: 已将统一的 ProviderTemplate 拆分为独立的 ChatTemplate 和 EmbeddingTemplate。
+    /// </summary>
     public static class BuiltInTemplates
     {
-        public static IEnumerable<ProviderTemplate> GetAll()
+        /// <summary>
+        /// 获取所有内置的聊天服务模板。
+        /// </summary>
+        public static IEnumerable<ChatTemplate> GetChatTemplates()
         {
-            // --- OpenAI Template ---
-            yield return new ProviderTemplate
+            // --- OpenAI Chat Template ---
+            yield return new ChatTemplate
             {
                 ProviderName = "OpenAI",
                 ProviderUrl = "https://platform.openai.com/",
-                Http = new HttpConfig
-                {
-                    AuthHeader = "Authorization",
-                    AuthScheme = "Bearer",
-                    Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } }
-                },
+                Http = new HttpConfig { /* ... */ AuthHeader = "Authorization", AuthScheme = "Bearer", Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } } },
                 ChatApi = new ChatApiConfig
                 {
                     Endpoint = "https://api.openai.com/v1/chat/completions",
@@ -28,7 +30,39 @@ namespace RimAI.Framework.Configuration
                     ResponsePaths = new ChatResponsePaths { Choices = "choices", Content = "message.content", ToolCalls = "message.tool_calls", FinishReason = "finish_reason" },
                     ToolPaths = new ToolPaths { Root = "tools", Type = "type", FunctionRoot = "function", FunctionName = "name", FunctionDescription = "description", FunctionParameters = "parameters" },
                     JsonMode = new JsonModeConfig { Path = "response_format", Value = JObject.FromObject(new { type = "json_object" }) }
-                },
+                }
+            };
+
+            // --- Claude Chat Template ---
+            yield return new ChatTemplate
+            {
+                ProviderName = "Claude",
+                ProviderUrl = "https://www.anthropic.com/",
+                Http = new HttpConfig { AuthHeader = "x-api-key", AuthScheme = null, Headers = new Dictionary<string, string> { { "Content-Type", "application/json" }, { "anthropic-version", "2023-06-01" } } },
+                ChatApi = new ChatApiConfig
+                {
+                    Endpoint = "https://api.anthropic.com/v1/messages",
+                    DefaultModel = "claude-3-opus-20240229",
+                    DefaultParameters = JObject.FromObject(new { temperature = 0.7 }),
+                    RequestPaths = new ChatRequestPaths { Model = "model", Messages = "messages", Temperature = "temperature", Stream = "stream", Tools = "tools" },
+                    ResponsePaths = new ChatResponsePaths { Content = "content[0].text", FinishReason = "stop_reason", ToolCalls = "content" },
+                    ToolPaths = new ToolPaths { Root = "tools", Type = "type", FunctionName = "name", FunctionDescription = "description", FunctionParameters = "input_schema" },
+                    JsonMode = null
+                }
+            };
+        }
+
+        /// <summary>
+        /// 获取所有内置的 Embedding 服务模板。
+        /// </summary>
+        public static IEnumerable<EmbeddingTemplate> GetEmbeddingTemplates()
+        {
+            // --- OpenAI Embedding Template ---
+            yield return new EmbeddingTemplate
+            {
+                ProviderName = "OpenAI",
+                ProviderUrl = "https://platform.openai.com/",
+                Http = new HttpConfig { /* ... */ AuthHeader = "Authorization", AuthScheme = "Bearer", Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } } },
                 EmbeddingApi = new EmbeddingApiConfig
                 {
                     Endpoint = "https://api.openai.com/v1/embeddings",
@@ -36,44 +70,11 @@ namespace RimAI.Framework.Configuration
                     MaxBatchSize = 2048,
                     RequestPaths = new EmbeddingRequestPaths { Model = "model", Input = "input" },
                     ResponsePaths = new EmbeddingResponsePaths { DataList = "data", Embedding = "embedding", Index = "index" }
-                },
-                StaticParameters = new JObject()
+                }
             };
 
-            // --- 【新增】Google Gemini Template ---
-            yield return new ProviderTemplate
-            {
-                ProviderName = "Gemini",
-                ProviderUrl = "https://ai.google.dev/",
-                Http = new HttpConfig
-                {
-                    // Gemini API Key in URL, not in header
-                    AuthHeader = null, 
-                    AuthScheme = null,
-                    Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } }
-                },
-                ChatApi = new ChatApiConfig
-                {
-                    // Note: Gemini's endpoint structure is different, API Key is a query parameter
-                    Endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}",
-                    DefaultModel = "gemini-1.5-flash",
-                    DefaultParameters = JObject.FromObject(new { temperature = 0.8 }),
-                    // Gemini uses a different request/response structure
-                    RequestPaths = new ChatRequestPaths { /* ... requires custom translator logic ... */ Messages = "contents" },
-                    ResponsePaths = new ChatResponsePaths { /* ... requires custom translator logic ... */ Content = "candidates[0].content.parts[0].text" },
-                    ToolPaths = null, // Gemini tool calling is different, handle in translator
-                    JsonMode = null   // Gemini JSON mode is different, handle in translator
-                },
-                EmbeddingApi = new EmbeddingApiConfig
-                {
-                    Endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{model}:embedContent?key={apiKey}",
-                    DefaultModel = "text-embedding-004",
-                    MaxBatchSize = 100,
-                    RequestPaths = new EmbeddingRequestPaths { Model = "model", Input = "requests[].content.parts[].text" }, // Example, needs complex translation
-                    ResponsePaths = new EmbeddingResponsePaths { DataList = "embeddings", Embedding = "values" }
-                },
-                StaticParameters = new JObject()
-            };
+            // 未来可以在这里添加其他厂商的 Embedding 模板，例如 Cohere
+            // yield return new EmbeddingTemplate { ProviderName = "Cohere", ... };
         }
     }
 }

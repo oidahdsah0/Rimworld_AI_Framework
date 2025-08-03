@@ -1,146 +1,132 @@
-// 引入必要的命名空间
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using RimAI.Framework.Configuration.Models;
+using RimAI.Framework.Shared.Logging;
 using RimAI.Framework.Translation.Models;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using RimAI.Framework.Configuration.Models;
 
 namespace RimAI.Framework.Translation
 {
     public class ChatResponseTranslator
     {
-        public async Task<UnifiedChatResponse> TranslateAsync(HttpResponseMessage httpResponse, MergedConfig config, CancellationToken cancellationToken)
+        public async Task<UnifiedChatResponse> TranslateAsync(HttpResponseMessage httpResponse, MergedChatConfig config, CancellationToken cancellationToken)
         {
-            // 通过检查响应头来判断是否为流式响应。
-            bool isStreaming = httpResponse.Content.Headers.ContentType?.MediaType == "text/event-stream";
-
-            if (!isStreaming)
+            if (httpResponse.Content.Headers.ContentType?.MediaType == "text/event-stream")
             {
-                var contentStr = await httpResponse.Content.ReadAsStringAsync();
-                return ParseCompleteResponse(contentStr, config);
+                return await TranslateStreamAsync(httpResponse, config, cancellationToken);
             }
-            else
-            {
-                var finalResponse = new UnifiedChatResponse
-                {
-                    Message = new ChatMessage { Role = "assistant", Content = "", ToolCalls = new List<ToolCall>() }
-                };
-                var contentBuilder = new StringBuilder();
-
-                // 使用 .WithCancellation(cancellationToken) 来确保取消信号能被异步流正确处理
-                await foreach (var chunk in ProcessStreamAsync(httpResponse, config, cancellationToken).WithCancellation(cancellationToken))
-                {
-                    if (!string.IsNullOrEmpty(chunk.Message?.Content))
-                    {
-                        contentBuilder.Append(chunk.Message.Content);
-                    }
-                    if (chunk.Message?.ToolCalls != null && chunk.Message.ToolCalls.Any())
-                    {
-                        finalResponse.Message.ToolCalls.AddRange(chunk.Message.ToolCalls);
-                    }
-                    if (!string.IsNullOrEmpty(chunk.FinishReason))
-                    {
-                        finalResponse.FinishReason = chunk.FinishReason;
-                    }
-                }
-
-                finalResponse.Message.Content = contentBuilder.ToString();
-                if (finalResponse.Message.ToolCalls.Count == 0)
-                {
-                    finalResponse.Message.ToolCalls = null;
-                }
-                
-                return finalResponse;
-            }
+            return await TranslateStandardAsync(httpResponse, config, cancellationToken);
         }
-        
-        private UnifiedChatResponse ParseCompleteResponse(string jsonContent, MergedConfig config)
+
+        private async Task<UnifiedChatResponse> TranslateStandardAsync(HttpResponseMessage httpResponse, MergedChatConfig config, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(jsonContent))
-            {
-                return new UnifiedChatResponse { FinishReason = "error", Message = new ChatMessage { Content = "Empty response body." } };
-            }
-            
-            JObject contentJson;
+            var jsonString = await httpResponse.Content.ReadAsStringAsync();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (string.IsNullOrWhiteSpace(jsonString))
+                return new UnifiedChatResponse { Message = new ChatMessage { Content = "Error: Empty response from server." } };
+
             try
             {
-                contentJson = JObject.Parse(jsonContent);
+                var jObject = JObject.Parse(jsonString);
+                return ParseSingleJObject(jObject, config);
             }
-            catch (JsonReaderException)
+            catch (JsonReaderException ex)
             {
-                return new UnifiedChatResponse { FinishReason = "error", Message = new ChatMessage { Content = $"Invalid JSON received: {jsonContent}" } };
+                RimAILogger.Error($"Failed to parse standard JSON response: {ex.Message}. Response body: {jsonString.Substring(0, 500)}");
+                return new UnifiedChatResponse { Message = new ChatMessage { Content = $"Error: Invalid JSON response from server. Details: {ex.Message}" } };
             }
-            
-            var paths = config.ChatApi.ResponsePaths;
+        }
 
-            // 【最终修正】使用正确的 C# null 条件运算符 ?. 和索引器 [0]
-            var choice = contentJson.SelectToken(paths.Choices)?[0];
-            
-            if (choice == null) return new UnifiedChatResponse { FinishReason = "error", Message = new ChatMessage { Content = "Invalid response structure: 'choices' array not found or is empty." }};
+        private async Task<UnifiedChatResponse> TranslateStreamAsync(HttpResponseMessage httpResponse, MergedChatConfig config, CancellationToken cancellationToken)
+        {
+            var finalMessage = new ChatMessage { Role = "assistant", Content = "" };
+            string finalFinishReason = "stream_end";
 
-            var finishReason = choice.SelectToken(paths.FinishReason)?.ToString();
-            var messageContent = choice.SelectToken(paths.Content)?.ToString();
-            var toolCallsToken = choice.SelectToken(paths.ToolCalls);
-            
-            var toolCalls = new List<ToolCall>();
-            if (toolCallsToken is JArray toolCallsArray)
+            await foreach (var (jObject, finishReason) in ProcessSseStream(httpResponse, config, cancellationToken))
             {
-                foreach (var token in toolCallsArray)
+                if (jObject != null)
                 {
-                    toolCalls.Add(new ToolCall
-                    {
-                        Id = token["id"]?.ToString(),
-                        Type = token["type"]?.ToString(),
-                        FunctionName = token["function"]?["name"]?.ToString(),
-                        Arguments = token["function"]?["arguments"]?.ToString()
-                    });
+                    var partialResponse = ParseSingleJObject(jObject, config);
+                    if (partialResponse?.Message?.Content != null)
+                        finalMessage.Content += partialResponse.Message.Content;
+                    if (partialResponse?.Message?.ToolCalls != null)
+                        finalMessage.ToolCalls = partialResponse.Message.ToolCalls;
                 }
+                if (!string.IsNullOrEmpty(finishReason))
+                    finalFinishReason = finishReason;
+            }
+            
+            return new UnifiedChatResponse { Message = finalMessage, FinishReason = finalFinishReason };
+        }
+
+        private UnifiedChatResponse ParseSingleJObject(JObject jObject, MergedChatConfig config)
+        {
+            // 【修复】通过 config.Template.ChatApi 访问路径
+            var choiceToken = jObject.SelectToken(config.Template.ChatApi.ResponsePaths.Choices);
+            var firstChoice = choiceToken?.FirstOrDefault();
+            if (firstChoice == null)
+            {
+                // Handle cases where response is not in a 'choices' array (e.g. error messages)
+                var errorContent = jObject.SelectToken("error.message")?.ToString();
+                if (errorContent != null)
+                    return new UnifiedChatResponse { Message = new ChatMessage { Content = errorContent } };
+                return null;
             }
 
+            var content = firstChoice.SelectToken(config.Template.ChatApi.ResponsePaths.Content)?.ToString();
+            var finishReason = firstChoice.SelectToken(config.Template.ChatApi.ResponsePaths.FinishReason)?.ToString();
+            
             return new UnifiedChatResponse
             {
                 FinishReason = finishReason,
-                Message = new ChatMessage
-                {
-                    Role = "assistant",
-                    Content = messageContent,
-                    ToolCalls = toolCalls.Any() ? toolCalls : null
-                }
+                Message = new ChatMessage { Role = "assistant", Content = content }
             };
         }
 
-        private async IAsyncEnumerable<UnifiedChatResponse> ProcessStreamAsync(HttpResponseMessage httpResponse, MergedConfig config, [EnumeratorCancellation] CancellationToken cancellationToken)
+        private async IAsyncEnumerable<(JObject, string)> ProcessSseStream(HttpResponseMessage httpResponse, MergedChatConfig config, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             using var stream = await httpResponse.Content.ReadAsStreamAsync();
             using var reader = new StreamReader(stream);
-
-            string line;
-            while ((line = await reader.ReadLineAsync()) != null)
+            
+            while (!reader.EndOfStream)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                var line = await reader.ReadLineAsync();
 
-                if (string.IsNullOrWhiteSpace(line)) continue;
-
-                var jsonData = line.StartsWith("data: ") ? line.Substring("data: ".Length) : line;
-                if (jsonData.Trim() == "[DONE]") yield break;
-                
-                UnifiedChatResponse partialResponse = null;
-                try
+                if (line != null && line.StartsWith("data: "))
                 {
-                    partialResponse = ParseCompleteResponse(jsonData, config);
-                }
-                catch (JsonException) { /* 忽略无法解析的行 */ }
+                    var data = line.Substring(6);
+                    if (data == "[DONE]")
+                    {
+                        yield return (null, "stop");
+                        break;
+                    }
 
-                if (partialResponse != null)
-                {
-                    yield return partialResponse;
+                    // 【修复】将 try-catch 和 jObject 的声明都放在循环内部，确保作用域正确
+                    JObject jObject = null;
+                    try
+                    {
+                        jObject = JObject.Parse(data);
+                    }
+                    catch (JsonException) 
+                    {
+                        // 忽略非JSON数据行，例如心跳包或注释
+                        continue; 
+                    }
+
+                    if (jObject != null)
+                    {
+                        var finishReason = jObject.SelectToken(config.Template.ChatApi.ResponsePaths.Choices)?.FirstOrDefault()
+                                           ?.SelectToken(config.Template.ChatApi.ResponsePaths.FinishReason)?.ToString();
+                        yield return (jObject, finishReason);
+                    }
                 }
             }
         }

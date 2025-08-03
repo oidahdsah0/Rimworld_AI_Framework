@@ -10,106 +10,127 @@ using Verse;
 
 namespace RimAI.Framework.Configuration
 {
+    /// <summary>
+    /// V4.2: 彻底重构为管理独立的 Chat 和 Embedding 配置。
+    /// </summary>
     public class SettingsManager
     {
-        private const string ConfigFolderName = "RimAI_Framework"; // 【修正】使用正确的文件夹名
-        private readonly string _userConfigDirectory;
-        private readonly Dictionary<string, ProviderTemplate> _providerTemplates = new Dictionary<string, ProviderTemplate>();
-        private readonly Dictionary<string, UserConfig> _userConfigs = new Dictionary<string, UserConfig>();
+        private const string ConfigFolderName = "RimAI_Framework";
+        private readonly string _configDirectory;
 
-        public bool IsActive { get; private set; } = false;
+        // --- 分离的缓存 ---
+        private readonly Dictionary<string, ChatTemplate> _chatTemplates = new Dictionary<string, ChatTemplate>();
+        private readonly Dictionary<string, EmbeddingTemplate> _embeddingTemplates = new Dictionary<string, EmbeddingTemplate>();
+        private readonly Dictionary<string, ChatUserConfig> _chatUserConfigs = new Dictionary<string, ChatUserConfig>();
+        private readonly Dictionary<string, EmbeddingUserConfig> _embeddingUserConfigs = new Dictionary<string, EmbeddingUserConfig>();
+
+        // --- 分离的状态 ---
+        public bool IsChatActive { get; private set; } = false;
+        public bool IsEmbeddingActive { get; private set; } = false;
 
         public SettingsManager()
         {
-            _userConfigDirectory = Path.Combine(GenFilePaths.ConfigFolderPath, ConfigFolderName);
-            Directory.CreateDirectory(_userConfigDirectory);
+            _configDirectory = Path.Combine(GenFilePaths.ConfigFolderPath, ConfigFolderName);
+            Directory.CreateDirectory(_configDirectory);
             ReloadConfigs();
-            RimAILogger.Log("SettingsManager: Initialized successfully.");
-        }
-        
-        public Result<MergedConfig> GetMergedConfig(string providerId)
-        {
-            if (string.IsNullOrWhiteSpace(providerId))
-                return Result<MergedConfig>.Failure("SettingsManager: Invalid provider ID provided (null or empty).");
-
-            if (!_providerTemplates.TryGetValue(providerId, out var providerTemplate))
-                return Result<MergedConfig>.Failure($"SettingsManager: Provider template not found for ID: {providerId}");
-
-            _userConfigs.TryGetValue(providerId, out var userConfig);
-            var mergedConfig = new MergedConfig { Provider = providerTemplate, User = userConfig ?? new UserConfig() };
-            return Result<MergedConfig>.Success(mergedConfig);
+            RimAILogger.Log("SettingsManager: Initialized successfully with separated configurations.");
         }
 
-        public IEnumerable<string> GetAllProviderIds() => _providerTemplates.Keys;
-        
-        public UserConfig GetUserConfig(string providerId)
-        {
-            _userConfigs.TryGetValue(providerId, out var config);
-            return config;
-        }
-
-        // --- 【新增】方法 ---
-        /// <summary>
-        /// 根据提供商ID获取其内置的、只读的模板。
-        /// </summary>
-        /// <returns>如果找到则返回 ProviderTemplate 对象，否则返回 null。</returns>
-        public ProviderTemplate GetProviderTemplate(string providerId)
-        {
-            _providerTemplates.TryGetValue(providerId, out var template);
-            return template;
-        }
-
-        public void WriteUserConfig(string providerId, UserConfig config)
-        {
-            if (string.IsNullOrEmpty(providerId)) { /* ... */ return; }
-            try {
-                string filePath = Path.Combine(_userConfigDirectory, $"user_config_{providerId}.json");
-                string jsonContent = JsonConvert.SerializeObject(config, Formatting.Indented);
-                File.WriteAllText(filePath, jsonContent);
-            }
-            catch (Exception ex) { RimAILogger.Error($"Failed to write user config for '{providerId}'. Error: {ex.Message}"); }
-        }
-        
+        // --- 热重载 ---
         public void ReloadConfigs()
         {
-            _providerTemplates.Clear(); _userConfigs.Clear();
-            LoadProviderTemplatesFromBuiltIn();
-            LoadUserConfigsFromFileSystem();
+            RimAILogger.Log("SettingsManager: Reloading all configurations...");
+            _chatTemplates.Clear();
+            _embeddingTemplates.Clear();
+            _chatUserConfigs.Clear();
+            _embeddingUserConfigs.Clear();
+
+            LoadChatTemplates();
+            LoadEmbeddingTemplates();
+            LoadChatUserConfigs();
+            LoadEmbeddingUserConfigs();
+            
             UpdateActiveStatus();
+            RimAILogger.Log("SettingsManager: All configurations reloaded.");
         }
 
-        private void LoadProviderTemplatesFromBuiltIn()
+        // --- Chat 配置 API ---
+        public IEnumerable<string> GetAllChatProviderIds() => _chatTemplates.Keys;
+        public ChatUserConfig GetChatUserConfig(string providerId) => _chatUserConfigs.TryGetValue(providerId, out var config) ? config : null;
+        public Result<MergedChatConfig> GetMergedChatConfig(string providerId)
         {
-            try {
-                foreach (var template in BuiltInTemplates.GetAll())
-                {
-                    string providerId = template.ProviderName.ToLowerInvariant();
-                    if (string.IsNullOrEmpty(providerId)) continue;
-                    _providerTemplates[providerId] = template;
-                }
-            }
-            catch (Exception ex) { RimAILogger.Error($"A critical error occurred while loading built-in templates. Error: {ex.Message}"); }
+            if (!_chatTemplates.TryGetValue(providerId, out var template))
+                return Result<MergedChatConfig>.Failure($"Chat template not found for ID: {providerId}");
+            _chatUserConfigs.TryGetValue(providerId, out var userConfig);
+            return Result<MergedChatConfig>.Success(new MergedChatConfig { Template = template, User = userConfig ?? new ChatUserConfig() });
+        }
+        public void WriteChatUserConfig(string providerId, ChatUserConfig config) => 
+            WriteConfigToFile($"chat_config_{providerId}.json", config);
+
+        // --- Embedding 配置 API ---
+        public IEnumerable<string> GetAllEmbeddingProviderIds() => _embeddingTemplates.Keys;
+        public EmbeddingUserConfig GetEmbeddingUserConfig(string providerId) => _embeddingUserConfigs.TryGetValue(providerId, out var config) ? config : null;
+        public Result<MergedEmbeddingConfig> GetMergedEmbeddingConfig(string providerId)
+        {
+            if (!_embeddingTemplates.TryGetValue(providerId, out var template))
+                return Result<MergedEmbeddingConfig>.Failure($"Embedding template not found for ID: {providerId}");
+            _embeddingUserConfigs.TryGetValue(providerId, out var userConfig);
+            return Result<MergedEmbeddingConfig>.Success(new MergedEmbeddingConfig { Template = template, User = userConfig ?? new EmbeddingUserConfig() });
+        }
+        public void WriteEmbeddingUserConfig(string providerId, EmbeddingUserConfig config) => 
+            WriteConfigToFile($"embedding_config_{providerId}.json", config);
+
+        // --- 私有加载逻辑 ---
+        private void LoadChatTemplates()
+        {
+            foreach (var template in BuiltInTemplates.GetChatTemplates())
+                _chatTemplates[template.ProviderName.ToLowerInvariant()] = template;
         }
 
-        private void LoadUserConfigsFromFileSystem()
+        private void LoadEmbeddingTemplates()
         {
-            foreach (string filePath in Directory.GetFiles(_userConfigDirectory, "user_config_*.json"))
+            foreach (var template in BuiltInTemplates.GetEmbeddingTemplates())
+                _embeddingTemplates[template.ProviderName.ToLowerInvariant()] = template;
+        }
+
+        private void LoadChatUserConfigs() => 
+            LoadConfigsFromFileSystem("chat_config_*.json", _chatUserConfigs);
+
+        private void LoadEmbeddingUserConfigs() =>
+            LoadConfigsFromFileSystem("embedding_config_*.json", _embeddingUserConfigs);
+        
+        // --- 通用文件读写帮助方法 ---
+        private void LoadConfigsFromFileSystem<T>(string pattern, Dictionary<string, T> targetDictionary)
+        {
+            foreach (string filePath in Directory.GetFiles(_configDirectory, pattern))
             {
-                try {
-                    string fileName = Path.GetFileNameWithoutExtension(filePath);
+                try
+                {
+                    string fileName = Path.GetFileNameWithoutExtension(filePath); // e.g., "chat_config_openai"
                     string providerId = fileName.Split('_').LastOrDefault();
                     if (string.IsNullOrEmpty(providerId)) continue;
-                    var userConfig = JsonConvert.DeserializeObject<UserConfig>(File.ReadAllText(filePath));
-                    _userConfigs[providerId] = userConfig;
+                    
+                    targetDictionary[providerId] = JsonConvert.DeserializeObject<T>(File.ReadAllText(filePath));
                 }
-                catch (Exception ex) { RimAILogger.Error($"Error loading user config from {filePath}. Error: {ex.Message}"); }
+                catch (Exception ex) { RimAILogger.Error($"Error loading config from {filePath}: {ex.Message}"); }
             }
+        }
+
+        private void WriteConfigToFile<T>(string fileName, T configObject)
+        {
+            try
+            {
+                string filePath = Path.Combine(_configDirectory, fileName);
+                File.WriteAllText(filePath, JsonConvert.SerializeObject(configObject, Formatting.Indented));
+            }
+            catch (Exception ex) { RimAILogger.Error($"Failed to write config to {fileName}: {ex.Message}"); }
         }
 
         private void UpdateActiveStatus()
         {
-            IsActive = _userConfigs.Values.Any(config => config != null && !string.IsNullOrWhiteSpace(config.ApiKey));
-            RimAILogger.Log($"SettingsManager: Framework active status updated to: {IsActive}");
+            IsChatActive = _chatUserConfigs.Values.Any(c => c != null && !string.IsNullOrWhiteSpace(c.ApiKey));
+            IsEmbeddingActive = _embeddingUserConfigs.Values.Any(c => c != null && !string.IsNullOrWhiteSpace(c.ApiKey));
+            RimAILogger.Log($"SettingsManager: Active status updated. Chat={IsChatActive}, Embedding={IsEmbeddingActive}");
         }
     }
 }

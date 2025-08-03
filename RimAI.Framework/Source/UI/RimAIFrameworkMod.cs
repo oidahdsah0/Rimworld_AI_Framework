@@ -1,10 +1,10 @@
-using Newtonsoft.Json.Linq; // 【新增】
+using Newtonsoft.Json.Linq;
 using RimAI.Framework.API;
 using RimAI.Framework.Configuration;
 using RimAI.Framework.Configuration.Models;
 using RimAI.Framework.Core.Lifecycle;
-using RimAI.Framework.Translation.Models;
 using RimAI.Framework.Shared.Logging;
+using RimAI.Framework.Translation.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,173 +17,236 @@ namespace RimAI.Framework.UI
 {
     public class RimAIFrameworkMod : Mod
     {
-        // ... (其他字段保持不变) ...
         private readonly RimAIFrameworkSettings settings;
-        private string _apiKeyBuffer = "";
-        private float _temperatureBuffer = 0.7f;
-        private int _concurrencyLimitBuffer = 5;
-        private string _testStatusMessage = "Test the currently saved and active provider.";
-        private Color _testStatusColor = Color.gray;
-        private bool _isTesting = false;
-        private string _lastSelectedProviderId = null;
 
+        // Chat
+        private string _chatApiKeyBuffer = "";
+        private string _chatModelBuffer = "";
+        private float _chatTemperatureBuffer = 0.7f;
+        private int _chatConcurrencyLimitBuffer = 5;
+        private string _lastChatProviderId = null;
+        private bool _isChatTesting = false;
+        private string _chatTestStatusMessage = "Test the currently saved chat provider.";
+
+        // Embedding
+        private string _embeddingApiKeyBuffer = "";
+        private string _embeddingModelBuffer = "";
+        private string _lastEmbeddingProviderId = null;
+        private bool _isEmbeddingTesting = false;
+        private string _embeddingTestStatusMessage = "Test the currently saved embedding provider.";
 
         public RimAIFrameworkMod(ModContentPack content) : base(content)
         {
             settings = GetSettings<RimAIFrameworkSettings>();
-            _lastSelectedProviderId = settings.ActiveProviderId;
         }
 
         public override string SettingsCategory() => "RimAI Framework";
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
-            // ... (大部分UI绘制代码保持不变) ...
-            Listing_Standard listing = new Listing_Standard();
+            var listing = new Listing_Standard();
             listing.Begin(inRect);
 
-            var availableProviders = FrameworkDI.SettingsManager.GetAllProviderIds().ToList();
-            if (!availableProviders.Any()) { listing.Label("No AI provider templates found."); listing.End(); return; }
+            DrawSection(listing, "Chat Service", settings.ActiveChatProviderId, ref _lastChatProviderId,
+                (newId) => settings.ActiveChatProviderId = newId, // Pass setter action
+                FrameworkDI.SettingsManager.GetAllChatProviderIds(),
+                LoadChatSettings, DrawChatFields, HandleChatSave, HandleChatTest,
+                _isChatTesting, ref _chatTestStatusMessage);
 
-            Widgets.Dropdown(
-                listing.GetRect(30f), this, (mod) => settings.ActiveProviderId,
-                (mod) => GenerateProviderDropdownOptions(availableProviders),
-                string.IsNullOrEmpty(settings.ActiveProviderId) ? "Select Provider..." : settings.ActiveProviderId.CapitalizeFirst()
-            );
-            listing.Gap(12f);
+            listing.GapLine(24f);
 
-            if (settings.ActiveProviderId != _lastSelectedProviderId)
+            listing.CheckboxLabeled("Enable Separate Embedding Configuration", ref settings.IsEmbeddingConfigEnabled);
+            if (settings.IsEmbeddingConfigEnabled)
             {
-                LoadSettingsForProvider(settings.ActiveProviderId);
-                _lastSelectedProviderId = settings.ActiveProviderId;
+                DrawSection(listing, "Embedding Service", settings.ActiveEmbeddingProviderId, ref _lastEmbeddingProviderId,
+                    (newId) => settings.ActiveEmbeddingProviderId = newId, // Pass setter action
+                    FrameworkDI.SettingsManager.GetAllEmbeddingProviderIds(),
+                    LoadEmbeddingSettings, DrawEmbeddingFields, HandleEmbeddingSave, HandleEmbeddingTest,
+                    _isEmbeddingTesting, ref _embeddingTestStatusMessage);
             }
-
-            if (string.IsNullOrEmpty(settings.ActiveProviderId)) { listing.Label("Please select a provider from the dropdown menu."); listing.End(); return; }
-
-            listing.Label("API Key:");
-            _apiKeyBuffer = Widgets.TextField(listing.GetRect(30f), _apiKeyBuffer);
-            listing.Gap(6f);
-            
-            listing.Label($"Temperature: {_temperatureBuffer:F2}");
-            _temperatureBuffer = listing.Slider(_temperatureBuffer, 0f, 2.0f);
-            listing.Gap(6f);
-            
-            listing.Label($"Concurrency Limit: {_concurrencyLimitBuffer}");
-            _concurrencyLimitBuffer = (int)listing.Slider(_concurrencyLimitBuffer, 1, 20);
-            listing.Gap(24f);
-
-            Rect buttonRect = listing.GetRect(30f);
-            float buttonWidth = buttonRect.width / 3f - 4f;
-            
-            if (Widgets.ButtonText(new Rect(buttonRect.x, buttonRect.y, buttonWidth, 30f), "Save Settings"))
-            {
-                var newConfig = new UserConfig {
-                    ApiKey = _apiKeyBuffer,
-                    Temperature = _temperatureBuffer,
-                    ConcurrencyLimit = _concurrencyLimitBuffer
-                };
-                FrameworkDI.SettingsManager.WriteUserConfig(settings.ActiveProviderId, newConfig);
-                FrameworkDI.SettingsManager.ReloadConfigs();
-                settings.Write();
-                Messages.Message("RimAI Framework settings saved.", MessageTypeDefOf.PositiveEvent);
-            }
-
-            if (Widgets.ButtonText(new Rect(buttonRect.x + buttonWidth + 6f, buttonRect.y, buttonWidth, 30f), "Reset to Defaults"))
-            {
-                LoadSettingsForProvider(settings.ActiveProviderId);
-            }
-            
-            if (Widgets.ButtonText(new Rect(buttonRect.x + (buttonWidth + 6f) * 2, buttonRect.y, buttonWidth, 30f), "Test Connection", active: !_isTesting))
-            {
-                HandleTestConnectionClick();
-            }
-            listing.Gap(6f);
-            
-            var defaultColor = GUI.color;
-            GUI.color = _testStatusColor;
-            listing.Label(_testStatusMessage);
-            GUI.color = defaultColor;
 
             listing.End();
-            base.DoSettingsWindowContents(inRect);
         }
 
-        private IEnumerable<Widgets.DropdownMenuElement<string>> GenerateProviderDropdownOptions(IEnumerable<string> providerIds)
+        private void DrawSection(
+            Listing_Standard listing, 
+            string title, 
+            string activeProviderId, 
+            ref string lastProviderId, 
+            Action<string> setActiveProviderId, // 【修复】新增参数
+            IEnumerable<string> providerIds, 
+            Action<string> loadAction, 
+            Action<Listing_Standard> drawFieldsAction, 
+            Action saveAction, 
+            Action testAction, 
+            bool isTesting, 
+            ref string testStatusMessage)
         {
-            foreach (var providerId in providerIds) {
-                yield return new Widgets.DropdownMenuElement<string> {
-                    option = new FloatMenuOption(providerId.CapitalizeFirst(), () => settings.ActiveProviderId = providerId),
-                    payload = providerId
-                };
+            listing.Label(title);
+            listing.Gap(4f);
+            
+            var providerIdList = providerIds.ToList();
+            if (!providerIdList.Any()) { listing.Label("No providers available."); return; }
+            string currentLabel = string.IsNullOrEmpty(activeProviderId) ? "Select Provider..." : activeProviderId.CapitalizeFirst();
+            if (Widgets.ButtonText(listing.GetRect(30f), currentLabel))
+            {
+                var options = new List<FloatMenuOption>();
+                foreach (var id in providerIdList)
+                {
+                    // 【修复】将 id 赋值给一个局部变量，以解决 lambda 捕获 ref 参数的问题
+                    string newId = id;
+                    options.Add(new FloatMenuOption(id.CapitalizeFirst(), () => setActiveProviderId(newId)));
+                }
+                Find.WindowStack.Add(new FloatMenu(options));
+            }
+            if (activeProviderId != lastProviderId) { loadAction(activeProviderId); lastProviderId = activeProviderId; }
+            if (string.IsNullOrEmpty(activeProviderId)) { listing.Label("Please select a provider."); return; }
+            listing.Gap(12f);
+            drawFieldsAction(listing);
+            listing.Gap(24f);
+            Rect buttonRect = listing.GetRect(30f);
+            float buttonWidth = (testAction != null) ? (buttonRect.width / 2f - 4f) : buttonRect.width;
+            if (Widgets.ButtonText(new Rect(buttonRect.x, buttonRect.y, buttonWidth, 30f), "Save")) { saveAction(); }
+            if (testAction != null) {
+                if (Widgets.ButtonText(new Rect(buttonRect.x + buttonWidth + 8f, buttonRect.y, buttonWidth, 30f), "Test", active: !isTesting)) { testAction(); }
+                listing.Label(testStatusMessage);
             }
         }
+
+        // --- Chat Specific Logic ---
+        private void DrawChatFields(Listing_Standard listing) {
+            listing.Label("API Key:");
+            _chatApiKeyBuffer = Widgets.TextField(listing.GetRect(30f), _chatApiKeyBuffer);
+            listing.Label("Model:");
+            _chatModelBuffer = Widgets.TextField(listing.GetRect(30f), _chatModelBuffer);
+            listing.Label($"Temperature: {_chatTemperatureBuffer:F2}");
+            _chatTemperatureBuffer = listing.Slider(_chatTemperatureBuffer, 0f, 2.0f);
+            listing.Label($"Concurrency Limit: {_chatConcurrencyLimitBuffer}");
+            _chatConcurrencyLimitBuffer = (int)listing.Slider(_chatConcurrencyLimitBuffer, 1, 20);
+        }
         
-        // --- 【核心重构】---
-        private void LoadSettingsForProvider(string providerId)
+        private void LoadChatSettings(string providerId) {
+            var userConfig = FrameworkDI.SettingsManager.GetChatUserConfig(providerId);
+            var templateResult = FrameworkDI.SettingsManager.GetMergedChatConfig(providerId);
+            if (!templateResult.IsSuccess) return;
+            var template = templateResult.Value.Template;
+            _chatApiKeyBuffer = userConfig?.ApiKey ?? "";
+            _chatModelBuffer = userConfig?.ModelOverride ?? template?.ChatApi?.DefaultModel ?? "";
+            _chatTemperatureBuffer = userConfig?.Temperature ?? template?.ChatApi?.DefaultParameters?["temperature"]?.Value<float>() ?? 0.7f;
+            _chatConcurrencyLimitBuffer = userConfig?.ConcurrencyLimit ?? 5;
+            _chatTestStatusMessage = "Test the currently saved chat provider.";
+        }
+        
+        private void HandleChatSave() {
+            var config = new ChatUserConfig { ApiKey = _chatApiKeyBuffer, ModelOverride = _chatModelBuffer, Temperature = _chatTemperatureBuffer, ConcurrencyLimit = _chatConcurrencyLimitBuffer };
+            FrameworkDI.SettingsManager.WriteChatUserConfig(settings.ActiveChatProviderId, config);
+            FrameworkDI.SettingsManager.ReloadConfigs();
+            settings.Write();
+            Messages.Message("Chat settings saved.", MessageTypeDefOf.PositiveEvent);
+        }
+
+        // --- 【修复】恢复完整的 Chat 测试方法 ---
+        private async void HandleChatTest()
         {
-            if (string.IsNullOrEmpty(providerId)) return;
-
-            // 1. 获取用户配置和模板
-            var userConfig = FrameworkDI.SettingsManager.GetUserConfig(providerId);
-            var template = FrameworkDI.SettingsManager.GetProviderTemplate(providerId);
-
-            if (template == null) // 安全检查
+            if (string.IsNullOrWhiteSpace(_chatApiKeyBuffer))
             {
-                RimAILogger.Error($"Could not find a template for providerId: {providerId}");
+                _chatTestStatusMessage = "API Key is missing.";
+                Messages.Message("Cannot test with an empty API Key.", MessageTypeDefOf.CautionInput);
                 return;
             }
 
-            // 2. 实现优先级加载逻辑
-            
-            // API Key: 只能来自用户配置
-            _apiKeyBuffer = userConfig?.ApiKey ?? "";
-
-            // Temperature: 优先用用户配置，其次用模板默认值，最后用代码后备值
-            _temperatureBuffer = userConfig?.Temperature 
-                ?? template.ChatApi?.DefaultParameters?["temperature"]?.Value<float>() 
-                ?? 0.7f;
-            
-            // Concurrency Limit: 只能来自用户配置，因为它不是模板的一部分
-            _concurrencyLimitBuffer = userConfig?.ConcurrencyLimit ?? 5;
-
-
-            // 3. 重置测试状态
-            _isTesting = false;
-            _testStatusMessage = "Test the currently saved and active provider.";
-            _testStatusColor = Color.gray;
-        }
-
-        private async void HandleTestConnectionClick()
-        {
-            _isTesting = true;
-            _testStatusMessage = "Testing, please wait...";
-            _testStatusColor = Color.white;
-
-            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-            var request = new UnifiedChatRequest { Messages = new List<ChatMessage> { new ChatMessage { Role = "user", Content = "Hi" } } };
+            _isChatTesting = true;
+            _chatTestStatusMessage = "Testing, please wait...";
 
             try
             {
-                var result = await RimAIApi.GetCompletionAsync(request, cts.Token);
-
-                if (result.IsSuccess) {
-                    _testStatusMessage = $"Success! Response: {result.Value.Message.Content.Truncate(50)}";
-                    _testStatusColor = Color.green;
-                    Messages.Message("Connection successful!", MessageTypeDefOf.PositiveEvent);
-                } else {
-                    _testStatusMessage = $"Failed. Reason: {result.Error}";
-                    _testStatusColor = Color.red;
-                    Messages.Message($"Connection failed: {result.Error}", MessageTypeDefOf.NegativeEvent);
+                var request = new UnifiedChatRequest { Messages = new List<ChatMessage> { new ChatMessage { Role = "user", Content = "Hi" } } };
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)))
+                {
+                    var result = await RimAIApi.GetCompletionAsync(request, cts.Token);
+                    if (result.IsSuccess) {
+                        _chatTestStatusMessage = $"Success! Response: {result.Value.Message.Content.Truncate(50)}";
+                        Messages.Message("Chat connection successful!", MessageTypeDefOf.PositiveEvent);
+                    } else {
+                        _chatTestStatusMessage = $"Failed: {result.Error}";
+                        Messages.Message($"Chat connection failed: {result.Error}", MessageTypeDefOf.NegativeEvent);
+                    }
                 }
             }
-            catch (Exception ex) {
-                _testStatusMessage = $"An error occurred: {ex.Message}";
-                _testStatusColor = Color.red;
-                Messages.Message($"Connection error: {ex.Message}", MessageTypeDefOf.NegativeEvent);
+            catch (Exception ex)
+            {
+                _chatTestStatusMessage = $"Error: {ex.Message}";
+                RimAILogger.Error($"Chat test connection failed with exception: {ex}");
+                Messages.Message($"An error occurred during chat test: {ex.Message}", MessageTypeDefOf.NegativeEvent);
             }
             finally
             {
-                _isTesting = false;
+                _isChatTesting = false;
+            }
+        }
+
+        // --- Embedding Specific Logic ---
+        private void DrawEmbeddingFields(Listing_Standard listing) {
+            listing.Label("API Key:");
+            _embeddingApiKeyBuffer = Widgets.TextField(listing.GetRect(30f), _embeddingApiKeyBuffer);
+            listing.Label("Model:");
+            _embeddingModelBuffer = Widgets.TextField(listing.GetRect(30f), _embeddingModelBuffer);
+        }
+        
+        private void LoadEmbeddingSettings(string providerId) {
+            var userConfig = FrameworkDI.SettingsManager.GetEmbeddingUserConfig(providerId);
+            var templateResult = FrameworkDI.SettingsManager.GetMergedEmbeddingConfig(providerId);
+            if (!templateResult.IsSuccess) return;
+            var template = templateResult.Value.Template;
+            _embeddingApiKeyBuffer = userConfig?.ApiKey ?? "";
+            _embeddingModelBuffer = userConfig?.ModelOverride ?? template?.EmbeddingApi?.DefaultModel ?? "";
+            _embeddingTestStatusMessage = "Test the currently saved embedding provider.";
+        }
+        
+        private void HandleEmbeddingSave() {
+            var config = new EmbeddingUserConfig { ApiKey = _embeddingApiKeyBuffer, ModelOverride = _embeddingModelBuffer };
+            FrameworkDI.SettingsManager.WriteEmbeddingUserConfig(settings.ActiveEmbeddingProviderId, config);
+            FrameworkDI.SettingsManager.ReloadConfigs();
+            settings.Write();
+            Messages.Message("Embedding settings saved.", MessageTypeDefOf.PositiveEvent);
+        }
+        
+        private async void HandleEmbeddingTest()
+        {
+            if (string.IsNullOrWhiteSpace(_embeddingApiKeyBuffer))
+            {
+                _embeddingTestStatusMessage = "API Key is missing.";
+                Messages.Message("Cannot test with an empty API Key.", MessageTypeDefOf.CautionInput);
+                return;
+            }
+
+            _isEmbeddingTesting = true;
+            _embeddingTestStatusMessage = "Testing, please wait...";
+
+            try
+            {
+                var request = new UnifiedEmbeddingRequest { Inputs = new List<string> { "Test input" } };
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)))
+                {
+                    var result = await RimAIApi.GetEmbeddingsAsync(request, cts.Token);
+                    if (result.IsSuccess) {
+                        _embeddingTestStatusMessage = $"Success! Received {result.Value.Data.Count} embedding vector(s).";
+                        Messages.Message("Embedding connection successful!", MessageTypeDefOf.PositiveEvent);
+                    } else {
+                        _embeddingTestStatusMessage = $"Failed: {result.Error}";
+                        Messages.Message($"Embedding connection failed: {result.Error}", MessageTypeDefOf.NegativeEvent);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _embeddingTestStatusMessage = $"Error: {ex.Message}";
+                RimAILogger.Error($"Embedding test connection failed with exception: {ex}");
+                Messages.Message($"An error occurred during embedding test: {ex.Message}", MessageTypeDefOf.NegativeEvent);
+            }
+            finally
+            {
+                _isEmbeddingTesting = false;
             }
         }
     }

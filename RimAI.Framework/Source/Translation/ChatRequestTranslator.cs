@@ -1,101 +1,88 @@
-// 引入必要的命名空间
-using System;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RimAI.Framework.Configuration.Models;
+using RimAI.Framework.Shared.Logging;
 using RimAI.Framework.Translation.Models;
-using System.Net.Http.Headers; // [新增] 为 AuthenticationHeaderValue
 
 namespace RimAI.Framework.Translation
 {
     public class ChatRequestTranslator
     {
-        public HttpRequestMessage Translate(UnifiedChatRequest unifiedRequest, MergedConfig config)
+        public HttpRequestMessage Translate(UnifiedChatRequest unifiedRequest, MergedChatConfig config)
         {
-            // 1. 创建 JSON body 对象，并首先合并静态参数
-            var body = new JObject();
-            if (config.StaticParameters != null)
-            {
-                body.Merge(config.StaticParameters);
-            }
+            var requestBody = new JObject();
 
-            // 2. 根据 requestPaths 映射标准参数
-            var paths = config.ChatApi.RequestPaths;
-            body[paths.Model] = config.ChatModel;
-            body[paths.Stream] = unifiedRequest.Stream;
+            // 【修复】现在可以正确地从 Template 访问 StaticParameters
+            if (config.Template.StaticParameters != null)
+                requestBody.Merge(config.Template.StaticParameters);
+            if (config.User.StaticParametersOverride != null)
+                requestBody.Merge(config.User.StaticParametersOverride);
 
-            if (config.Temperature.HasValue)
-                body[paths.Temperature] = config.Temperature.Value;
-            if (config.TopP.HasValue)
-                body[paths.TopP] = config.TopP;
+            // 【修复】使用 MergedChatConfig 的便捷属性
+            // 2. Dynamic Parameters (Model, Temperature, etc.)
+            requestBody[config.Template.ChatApi.RequestPaths.Model] = config.Model;
+            
+            var temperature = config.User.Temperature ?? config.Template.ChatApi.DefaultParameters?["temperature"]?.Value<float>();
+            if (temperature.HasValue)
+                requestBody[config.Template.ChatApi.RequestPaths.Temperature] = temperature.Value;
 
-            // 3. 构建 messages 数组
+            var topP = config.User.TopP ?? config.Template.ChatApi.DefaultParameters?["top_p"]?.Value<float>();
+            if (topP.HasValue)
+                requestBody[config.Template.ChatApi.RequestPaths.TopP] = topP.Value;
+
+            // 3. Messages
             var messagesArray = new JArray();
             foreach (var msg in unifiedRequest.Messages)
             {
-                var messageObject = new JObject
+                var jMsg = new JObject { ["role"] = msg.Role, ["content"] = msg.Content };
+                if (msg.ToolCalls != null && msg.ToolCalls.Any())
                 {
-                    ["role"] = msg.Role,
-                    ["content"] = msg.Content
-                };
-                messagesArray.Add(messageObject);
-            }
-            body[paths.Messages] = messagesArray;
-
-            // 4. 构建 tools 数组
-            if (unifiedRequest.Tools != null && unifiedRequest.Tools.Count > 0)
-            {
-                var toolPaths = config.ChatApi.ToolPaths;
-                var toolsArray = new JArray();
-                foreach (var toolDef in unifiedRequest.Tools)
-                {
-                    // 【修正】根据新的 ToolDefinition 结构来构建
-                    var toolObject = new JObject
-                    {
-                        [toolPaths.Type] = toolDef.Type,
-                        [toolPaths.FunctionRoot] = toolDef.Function
-                    };
-                    toolsArray.Add(toolObject);
+                    jMsg["tool_calls"] = JArray.FromObject(msg.ToolCalls);
                 }
-                body[toolPaths.Root] = toolsArray;
+                messagesArray.Add(jMsg);
+            }
+            requestBody[config.Template.ChatApi.RequestPaths.Messages] = messagesArray;
+
+            // 4. Stream
+            if (unifiedRequest.Stream)
+            {
+                requestBody[config.Template.ChatApi.RequestPaths.Stream] = true;
             }
 
-            // 5. 如果要求强制JSON输出，则添加相应字段
-            var jsonMode = config.ChatApi.JsonMode;
-            if (unifiedRequest.ForceJsonOutput && jsonMode != null)
+            // 5. JSON Mode
+            if (unifiedRequest.ForceJsonOutput && config.Template.ChatApi.JsonMode != null)
             {
-                body[jsonMode.Path] = jsonMode.Value;
+                requestBody[config.Template.ChatApi.JsonMode.Path] = config.Template.ChatApi.JsonMode.Value;
             }
-
-            // 6. 创建 HttpRequestMessage
-            var request = new HttpRequestMessage(HttpMethod.Post, config.ChatEndpoint)
+            
+            // 【修复】使用 MergedChatConfig 的便捷属性
+            var finalEndpoint = config.Endpoint.Replace("{apiKey}", config.ApiKey);
+            var request = new HttpRequestMessage(HttpMethod.Post, finalEndpoint)
             {
-                Content = new StringContent(body.ToString(Formatting.None), Encoding.UTF8, "application/json")
+                Content = new StringContent(requestBody.ToString(Formatting.None), Encoding.UTF8, "application/json")
             };
 
-            // 7. 添加 Headers
-            if (config.Http?.Headers != null)
+            // 【修复】从 Template 和 User 对象中分别获取 Headers
+            // 6. Headers
+            if (config.Template.Http?.Headers != null)
             {
-                foreach (var header in config.Http.Headers)
-                {
+                foreach (var header in config.Template.Http.Headers)
                     request.Headers.TryAddWithoutValidation(header.Key, header.Value);
-                }
             }
-            if (config.CustomHeaders != null)
+            if (config.User.CustomHeaders != null)
             {
-                foreach (var header in config.CustomHeaders)
-                {
-                    request.Headers.Remove(header.Key);
+                foreach (var header in config.User.CustomHeaders)
                     request.Headers.TryAddWithoutValidation(header.Key, header.Value);
-                }
             }
 
-            // 8. 添加认证头
-            if (!string.IsNullOrEmpty(config.ApiKey))
+            // 7. Authentication
+            if (!string.IsNullOrEmpty(config.Template.Http?.AuthHeader) && !string.IsNullOrEmpty(config.ApiKey))
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue(config.Http.AuthScheme, config.ApiKey);
+                string authValue = $"{config.Template.Http.AuthScheme} {config.ApiKey}".Trim();
+                request.Headers.TryAddWithoutValidation(config.Template.Http.AuthHeader, authValue);
             }
 
             return request;
