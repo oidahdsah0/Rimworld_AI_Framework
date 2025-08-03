@@ -3,9 +3,11 @@
 🔧 **Core Framework Module**
 RimAI Framework is the foundational core of the entire RimAI ecosystem, bringing revolutionary artificial intelligence experiences to RimWorld. This framework handles all communication with Large Language Models (LLMs) and provides comprehensive API interfaces for other content modules.
 
-⚡ **Key Features**
+⚡ **V4.0 Key Features**
+• 🔌 **Data-Driven**: Connect to any AI provider (OpenAI, Ollama, Groq, etc.) via simple JSON templates.
+• ✨ **First-Class Embedding Support**: High-performance API for complex semantic understanding and memory functions.
+• 📊 **Advanced Batching**: Optimized concurrent requests for chat and embeddings to maximize throughput.
 • 🌐 Seamless integration with multiple Large Language Models
-• 🔌 Unified API interface for other RimAI modules
 • ⚙️ Highly optimized performance and stability
 • 🛡️ Secure and reliable AI communication protocols
 • 🔄 Asynchronous processing and real-time response support

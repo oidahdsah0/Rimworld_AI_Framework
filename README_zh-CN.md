@@ -8,7 +8,7 @@
 [![RimWorld](https://img.shields.io/badge/RimWorld-1.6-brightgreen.svg)](https://rimworldgame.com/)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.7.2-blue.svg)](https://dotnet.microsoft.com/download/dotnet-framework)
 [![Steam Workshop](https://img.shields.io/badge/Steam-创意工坊-blue.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)
-[![Status](https://img.shields.io/badge/状态-v3.0%20测试版-orange.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
+[![Status](https://img.shields.io/badge/状态-v4.0%20测试版-orange.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
 
 > **🚀 一个革命性的AI驱动的RimWorld框架，将大语言模型直接集成到您的殖民地管理体验中，实现智能化、上下文感知的行政决策！🎮✨**
 
@@ -18,7 +18,7 @@
 **👨‍💻 作者**: [@oidahdsah0](https://github.com/oidahdsah0)  
 **📅 创建时间**: 2025年7月15日  
 **🚀 发布时间**: 2025年7月19日  
-**🔄 最新版本**: v3.0 测试版 - 统一架构
+**🔄 最新版本**: v4.0 测试版 - 统一架构
 
 ---
 
@@ -33,17 +33,16 @@ RimAI框架通过**"无摩擦交互"** 🌊 引入了殖民地管理的范式转
 为了创建清晰且可扩展的生态系统，RimAI项目被组织成三个不同的层次：
 
 ### 1. **🔧 框架层**（本仓库）✅
-- **🎯 目的**：纯粹的技术后端和通信层
+- **🎯 目的**：一个与具体服务商无关的、用于所有 AI 通信的技术后端。
 - **📋 职责**：
-  - 所有大语言模型（LLM）网络通信 ✅
-  - API密钥管理、请求构建、响应解析和错误处理 ✅
-  - ⚡ API请求的异步处理和并发控制 ✅
-  - 🔄 **v3.0 新增**: 统一API接口，支持预设选项和智能缓存 ✅
-  - 📊 **v3.0 新增**: 批量处理和流式响应 ✅
-  - 🏗️ **v3.0 新增**: 生命周期管理和健康监控 ✅
-  - 🔍 嵌入系统，用于语义搜索和上下文理解 🚧
+  - 🔌 **v4.0 新增**: **数据驱动的提供商系统**：通过外部 JSON 模板连接到任何 LLM/Embedding API（OpenAI、Ollama、Groq 等）。无需修改代码。
+  - 🌐 统一的网络通信、请求构建、响应解析和错误处理。✅
+  - ⚡ 具有强大并发控制的异步处理。✅
+  - ✨ **v4.0 新增**: **一流的 Embedding 支持**：为文本嵌入提供完全集成的高性能 API。✅
+  - 📊 **v4.0 新增**: **高级批量处理**：为 Embedding 提供原生批量处理，为聊天提供并发请求，以最大化吞吐量。✅
+  - 🔄 用于实时交互的流式响应。✅
+  - 🧠 用于提升性能和节省成本的、可配置的智能缓存。✅
   - 📚 RAG（检索增强生成）知识库集成 🚧
-  - 🌳 JSON树层次结构RAG库支持 🚧
 - **🎮 目标**：绝对中立、稳定且高效。不包含任何游戏逻辑。✅
 
 ### 2. **⚔️ 核心游戏模块**（未来仓库）🚧
@@ -87,29 +86,27 @@ RimAI框架通过**"无摩擦交互"** 🌊 引入了殖民地管理的范式转
 
 ## 🛠️ **技术实现** ⚙️
 
-### 🔧 核心技术
+### 🔧 核心技术与设计
 - **🪶 轻量级**: 除游戏本体和 Newtonsoft.Json 外无外部依赖。**不需要 Harmony**。🚀
-- **🧩 ThingComp**：对象特定数据和行为的组件系统
-- **🌐 GameComponent**：全局数据管理和持久存储
-- **📝 自定义Defs**：新的XML可定义概念（`ToolDef`、`CaseDef`）
-- **⚙️ ModSettings**：玩家可配置选项和API管理
-- **🏗️ **v3.0 新增**: 统一架构与生命周期管理**
-- **📊 **v3.0 新增**: 性能监控和健康诊断**
+- **🔌 数据驱动**: API 行为由外部 `provider_template_*.json` 文件定义，而非硬编码。
+- **🧱 解耦架构**: 在 API 门面、协调器（聊天/嵌入）、翻译器和执行器之间明确分离关注点。
+- **⚙️ 模组设置**: 一个强大的 UI，用于管理多个提供商配置文件及其设置。
+- **🛡️ `Result<T>` 模式**: 用于在整个框架中实现健壮、可预测且异常安全的错误处理。
 
-### 🗂️ 关键类
-- 🤖 `RimAIAPI`：**v3.0 新增** - 所有AI通信的统一API入口点
-- ⚙️ `RimAISettings`：配置管理和AI模型持久化
-- 🧠 `LifecycleManager`：**v3.0 新增** - 应用级资源管理
-- 📚 `CoreDefs`：框架级定义和AI驱动的数据结构
-- 🔄 `ResponseCache`：**v3.0 新增** - LRU缓存与智能缓存策略
+### 🗂️ V4 关键组件
+- 🤖 `RimAIApi`: 为所有外部 Mod 提供的简洁、静态的入口点。
+- ⚙️ `SettingsManager`: 加载、验证并合并提供商模板与用户配置。
+- 🧠 `ChatManager` / `EmbeddingManager`: 各自功能的核心协调器。
+- 🔄 `请求/响应翻译器`: 基于模板规则，在统一内部模型和特定提供商的 JSON 结构之间进行转换。
+- 📡 `HttpExecutor`: 处理所有出站 HTTP 请求的单点，内置重试逻辑。
 
-### ⚡ **v3.0 新功能** 🌟
-- **🎯 预设选项**: 常见场景的快速配置
-- **📦 批量处理**: 高效处理多个请求
-- **🔄 流式响应**: 实时响应片段，提供更好的用户体验
-- **🧠 智能缓存**: 自动缓存管理，支持命中率监控
-- **📊 性能监控**: 实时统计信息和健康检查
-- **🔧 错误恢复**: 强健的错误处理与自动重试
+### ⚡ **v4.0 核心特性** 🌟
+- **🔌 数据驱动**：通过 JSON 模板连接到任何 API。
+- **✨ 嵌入 API**：对文本嵌入提供一流的支持。
+- **📊 高级批量处理**：为聊天和嵌入优化。
+- **🔄 流式响应**：用于实时交互。
+- **🧠 智能缓存**：降低成本和延迟。
+- **🛡️ 健壮与安全**：使用 `Result<T>` 模式确保类型安全。
 
 ## 🔧 **安装和设置** 📦
 
@@ -129,89 +126,100 @@ RimAI框架通过**"无摩擦交互"** 🌊 引入了殖民地管理的范式转
 3. **⚙️ 配置**：设置您的开发环境和API设置
 
 ### ⚙️ 配置
-1. 🎮 打开RimWorld > 选项 > 模组设置 > RimAI Framework
-2. 🔑 输入您的LLM API凭证：
-   - **🔐 API密钥**：您的OpenAI/Claude/本地模型API密钥
-   - **🌐 端点URL**：服务端点（默认为OpenAI）
-   - **🤖 模型名称**：要使用的特定模型（例如，`gpt-4o`）
-3. 🔍 配置可选的嵌入设置以增强上下文
+1. 🎮 打开 RimWorld > 选项 > 模组设置 > RimAI Framework。
+2. **🤖 提供商选择**：使用下拉菜单选择一个服务提供商（如 OpenAI, Ollama）。下方的设置项将根据所选提供商动态调整。
+3. **🔑 API 凭证**：
+   - **API 密钥**：您所选服务的 API 密钥。（对于像 Ollama 这样的本地提供商，可以留空）。
+   - **端点 URL**：API 的基础 URL。我们已提供默认值。
+   - **模型**：您希望使用的具体模型（如 `gpt-4o-mini`, `llama3.2`）。
+4. **⚙️ 高级设置（可选）**：
+    - 微调如 `温度` 和 `并发上限` 等参数。
+    - 通过 JSON 字段添加自定义 HTTP 头或覆盖静态请求参数。
+5. **✅ 测试并保存**：使用“测试”按钮验证您的连接，然后点击“保存”。
 
-## 📚 **v3.0 API 使用示例** 💻
+## 📚 **v4.0 API 使用示例** 💻
 
-### 快速开始
+v4 API 经过精简，功能更强大。所有配置都在模组设置中处理，而非代码中。
+
+### 简单的聊天补全
 ```csharp
 using RimAI.Framework.API;
-using RimAI.Framework.LLM.Models;
+using RimAI.Framework.Shared.Models; // 用于 Result<T>
+using System.Threading;
 
-// 简单请求
-var response = await RimAIAPI.SendMessageAsync("分析殖民地状态");
+CancellationToken cancellationToken = default;
+Result<string> response = await RimAIApi.GetCompletionAsync(
+    "分析殖民地当前状态并提供简要总结。",
+    cancellationToken
+);
+
 if (response.IsSuccess)
 {
-    Log.Message($"AI回复: {response.Content}");
+    Log.Message($"AI 回复: {response.Value}");
+}
+else
+{
+    Log.Error($"AI 错误: {response.Error}");
 }
 ```
 
-### 使用预设选项
+### 流式聊天响应
 ```csharp
-// 创意内容生成
-var story = await RimAIAPI.SendMessageAsync(
-    "写一个关于RimWorld的故事", 
-    RimAIAPI.Options.Creative()
-);
+// 获取响应块流，用于实时更新 UI
+var stream = RimAIApi.GetCompletionStreamAsync("生成一段详细的事件描述。", cancellationToken);
 
-// 事实性分析
-var analysis = await RimAIAPI.SendMessageAsync(
-    "当前殖民地面临哪些威胁？", 
-    RimAIAPI.Options.Factual()
-);
-
-// 结构化JSON输出
-var data = await RimAIAPI.SendMessageAsync(
-    "以JSON格式返回殖民地统计", 
-    RimAIAPI.Options.Structured()
-);
-```
-
-### 流式响应
-```csharp
-// 实时响应流
-await RimAIAPI.SendMessageStreamAsync(
-    "生成详细的事件描述",
-    chunk => UpdateUI(chunk), // 实时UI更新
-    RimAIAPI.Options.Streaming()
-);
-```
-
-### 批量处理
-```csharp
-// 高效处理多个请求
-var prompts = new List<string> 
+await foreach (var chunkResult in stream)
 {
-    "生成殖民者姓名",
-    "生成派系名称",
-    "生成事件描述"
+    if (chunkResult.IsSuccess)
+    {
+        UpdateMyUI(chunkResult.Value);
+    }
+    else
+    {
+        Log.Error($"流错误: {chunkResult.Error}");
+        break;
+    }
+}
+```
+
+### 文本嵌入（批量）
+```csharp
+using System.Collections.Generic;
+
+// 高效地将多个文本转换为向量嵌入
+// 框架会根据提供商的限制自动处理批量大小
+var textsToEmbed = new List<string>
+{
+    "殖民者无所事事。",
+    "一支袭击队正从北面接近。",
+    "食物供应严重不足。"
 };
 
-var responses = await RimAIAPI.SendBatchRequestAsync(prompts);
-foreach (var response in responses)
+Result<List<float[]>> embeddingsResult = await RimAIApi.GetEmbeddingsAsync(textsToEmbed, cancellationToken);
+
+if (embeddingsResult.IsSuccess)
 {
-    if (response.IsSuccess)
-        ProcessResult(response.Content);
+    foreach (var vector in embeddingsResult.Value)
+    {
+        // 使用向量进行语义搜索等
+        Log.Message($"获得维度为 {vector.Length} 的嵌入向量");
+    }
 }
 ```
 
-### 性能监控
+### 强制 JSON 输出
 ```csharp
-// 检查框架健康状态
-var stats = RimAIAPI.GetStatistics();
-Log.Message($"成功率: {stats.SuccessfulRequests * 100.0 / stats.TotalRequests:F1}%");
-Log.Message($"缓存命中率: {stats.CacheHitRate:P2}");
-Log.Message($"平均响应时间: {stats.AverageResponseTime:F0}ms");
+// 当所选提供商的模板支持时，可以强制输出 JSON
+// 提示词应指示模型返回 JSON
+string jsonPrompt = "以 JSON 对象格式返回殖民地的资源水平（食物、药品、零部件）。";
 
-// 必要时清理缓存
-if (stats.CacheHitRate < 0.2)
+// 只需将 `forceJson` 标志设置为 true
+Result<string> jsonResponse = await RimAIApi.GetCompletionAsync(jsonPrompt, cancellationToken, forceJson: true);
+
+if (jsonResponse.IsSuccess)
 {
-    RimAIAPI.ClearCache();
+    // jsonResponse.Value 将是一个 JSON 字符串
+    var stats = Newtonsoft.Json.JsonConvert.DeserializeObject<ColonyStats>(jsonResponse.Value);
 }
 ```
 
@@ -267,9 +275,9 @@ if (stats.CacheHitRate < 0.2)
 - **📦 发布版本**：预编译的模组在GitHub发布页面提供
 
 ### 📚 架构文档
-- 🏗️ [v3.0 API快速上手](docs/CN_v3.0_API快速上手.md)
-- 📖 [v3.0 API详细调用指南](docs/CN_v3.0_API详细调用指南.md)
-- 📋 [框架功能特性](docs/old/batch3/CN_v3.0_功能特性.md)
+- 🏛️ **[V4 架构设计](docs/ARCHITECTURE_V4.md)**: 深入了解新的数据驱动架构。
+- 📋 **[V4 实施计划](docs/V4_IMPLEMENTATION_PLAN.md)**: 分步开发清单。
+- 📄 **[V4 模板设计](docs/TEMPLATE_DESIGN.md)**: 创建您自己的提供商模板的规范。
 
 ## 📄 **许可证** ⚖️
 

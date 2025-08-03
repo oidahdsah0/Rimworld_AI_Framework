@@ -8,7 +8,7 @@
 [![RimWorld](https://img.shields.io/badge/RimWorld-1.6-brightgreen.svg)](https://rimworldgame.com/)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.7.2-blue.svg)](https://dotnet.microsoft.com/download/dotnet-framework)
 [![Steam Workshop](https://img.shields.io/badge/Steam-Workshop-blue.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)
-[![Status](https://img.shields.io/badge/Status-v3.0%20Beta-orange.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
+[![Status](https://img.shields.io/badge/Status-v4.0%20Beta-orange.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
 
 > **🚀 A revolutionary AI-powered framework for RimWorld that brings Large Language Models directly into your colony management experience, enabling intelligent, context-aware administrative decisions! 🎮✨**
 
@@ -18,7 +18,7 @@
 **👨‍💻 Author**: [@oidahdsah0](https://github.com/oidahdsah0)  
 **📅 Created**: 15 July 2025  
 **🚀 Released**: 19 July 2025  
-**🔄 Latest**: v3.0 Beta - Unified Architecture
+**🔄 Latest**: v4.0 Beta - Unified Architecture
 
 ---
 
@@ -33,17 +33,16 @@ Your decisions become "smart directives" ⚡ that seamlessly influence the world
 To create a clear and extensible ecosystem, the RimAI project is organized into three distinct layers:
 
 ### 1. **🔧 Framework Layer** (This Repository) ✅
-- **🎯 Purpose**: Pure technical backend and communication layer
+- **🎯 Purpose**: A provider-agnostic technical backend for all AI communication.
 - **📋 Responsibilities**:
-  - All Large Language Model (LLM) network communication ✅
-  - API key management, request building, response parsing, and error handling ✅
-  - ⚡ Asynchronous processing and concurrency control for API requests ✅
-  - 🔄 **v3.0 NEW**: Unified API with preset options and intelligent caching ✅
-  - 📊 **v3.0 NEW**: Batch processing and streaming responses ✅
-  - 🏗️ **v3.0 NEW**: Lifecycle management and health monitoring ✅
-  - 🔍 Embedding system for semantic search and context understanding 🚧
+  - 🔌 **v4.0 NEW**: **Data-Driven Provider System**: Connect to any LLM/Embedding API (OpenAI, Ollama, Groq, etc.) via external JSON templates. No code changes needed.
+  - 🌐 Unified network communication, request building, response parsing, and error handling. ✅
+  - ⚡ Asynchronous processing with robust concurrency control. ✅
+  - ✨ **v4.0 NEW**: **First-Class Embedding Support**: Fully integrated, high-performance API for text embeddings. ✅
+  - 📊 **v4.0 NEW**: **Advanced Batching**: Native batching for embeddings and concurrent requests for chat to maximize throughput. ✅
+  - 🔄 Streaming responses for real-time interaction. ✅
+  - 🧠 Intelligent, configurable caching for performance and cost-saving. ✅
   - 📚 RAG (Retrieval-Augmented Generation) knowledge base integration 🚧
-  - 🌳 JSON tree hierarchical structure RAG library support 🚧
 - **🎮 Goal**: Absolutely neutral, stable, and efficient. Contains no gameplay logic. ✅
 
 ### 2. **⚔️ Core Gameplay Modules** (Future Repositories) 🚧
@@ -87,29 +86,27 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
 
 ## 🛠️ **Technical Implementation** ⚙️
 
-### 🔧 Core Technologies
+### 🔧 Core Technologies & Design
 - **🪶 Lightweight**: No external dependencies beyond the base game and Newtonsoft.Json. **Does not require Harmony**. 🚀
-- **🧩 ThingComp**: Component system for object-specific data and behavior
-- **🌐 GameComponent**: Global data management and persistent storage
-- **📝 Custom Defs**: New XML-definable concepts (`ToolDef`, `CaseDef`)
-- **⚙️ ModSettings**: Player-configurable options and API management
-- **🏗️ **v3.0 NEW**: Unified architecture with lifecycle management**
-- **📊 **v3.0 NEW**: Performance monitoring and health diagnostics**
+- **🔌 Data-Driven**: API behavior is defined by external `provider_template_*.json` files, not hard-coded.
+- **🧱 Decoupled Architecture**: Clear separation of concerns between API Facade, Coordinators (Chat/Embedding), Translators, and Execution.
+- **⚙️ ModSettings**: A robust UI for managing multiple provider profiles and their settings.
+- **🛡️ `Result<T>` Pattern**: For robust, predictable, and exception-safe error handling across the framework.
 
-### 🗂️ Key Classes
-- 🤖 `RimAIAPI`: **v3.0 NEW** - Unified API entry point for all AI communication
-- ⚙️ `RimAISettings`: Configuration management and AI model persistence
-- 🧠 `LifecycleManager`: **v3.0 NEW** - Application-level resource management
-- 📚 `CoreDefs`: Framework-level definitions and AI-powered data structures
-- 🔄 `ResponseCache`: **v3.0 NEW** - LRU caching with intelligent cache policies
+### 🗂️ Key V4 Components
+- 🤖 `RimAIApi`: The clean, static entry point for all external mods.
+- ⚙️ `SettingsManager`: Loads, validates, and merges provider templates with user configurations.
+- 🧠 `ChatManager` / `EmbeddingManager`: Central coordinators for their respective functionalities.
+- 🔄 `Request/Response Translators`: Translate between the unified internal models and provider-specific JSON structures based on template rules.
+- 📡 `HttpExecutor`: The single point for handling all outgoing HTTP requests, with built-in retry logic.
 
-### ⚡ **v3.0 New Features** 🌟
-- **🎯 Preset Options**: Quick configuration for common scenarios
-- **📦 Batch Processing**: Handle multiple requests efficiently
-- **🔄 Streaming Responses**: Real-time response chunks for better UX
-- **🧠 Smart Caching**: Automatic cache management with hit rate monitoring
-- **📊 Performance Monitoring**: Real-time statistics and health checks
-- **🔧 Error Recovery**: Robust error handling with automatic retries
+### ⚡ **v4.0 Key Features** 🌟
+- **🔌 Data-Driven**: Connect to any API via JSON templates.
+- **✨ Embedding API**: First-class support for text embeddings.
+- **📊 Advanced Batching**: Optimized for chat and embeddings.
+- **🔄 Streaming Responses**: For real-time interaction.
+- **🧠 Smart Caching**: Reduces cost and latency.
+- **🛡️ Robust & Safe**: Type-safe results with the `Result<T>` pattern.
 
 ## 🔧 **Installation & Setup** 📦
 
@@ -129,89 +126,100 @@ To create a clear and extensible ecosystem, the RimAI project is organized into 
 3. **⚙️ Configure**: Set up your development environment and API settings
 
 ### ⚙️ Configuration
-1. 🎮 Open RimWorld > Options > Mod Settings > RimAI Framework
-2. 🔑 Enter your LLM API credentials:
-   - **🔐 API Key**: Your OpenAI/Claude/local model API key
-   - **🌐 Endpoint URL**: Service endpoint (defaults to OpenAI)
-   - **🤖 Model Name**: Specific model to use (e.g., `gpt-4o`)
-3. 🔍 Configure optional embedding settings for enhanced context
+1. 🎮 Open RimWorld > Options > Mod Settings > RimAI Framework.
+2. **🤖 Provider Selection**: Use the dropdown to select a service provider (e.g., OpenAI, Ollama). The settings below will adapt to the selected provider.
+3. **🔑 API Credentials**:
+   - **API Key**: Your API key for the selected service. (May be left blank for local providers like Ollama).
+   - **Endpoint URL**: The base URL for the API. Defaults are provided.
+   - **Model**: The specific model you wish to use (e.g., `gpt-4o-mini`, `llama3.2`).
+4. **⚙️ Advanced Settings (Optional)**:
+    - Fine-tune parameters like `Temperature` and `Concurrency Limit`.
+    - Add custom HTTP headers or override static request parameters via JSON fields.
+5. **✅ Test & Save**: Use the "Test" button to verify your connection, then "Save".
 
-## 📚 **v3.0 API Usage Examples** 💻
+## 📚 **v4.0 API Usage Examples** 💻
 
-### Quick Start
+The v4 API is streamlined and powerful. Configuration is handled in the Mod Settings, not in the code.
+
+### Simple Chat Completion
 ```csharp
 using RimAI.Framework.API;
-using RimAI.Framework.LLM.Models;
+using RimAI.Framework.Shared.Models; // For Result<T>
+using System.Threading;
 
-// Simple request
-var response = await RimAIAPI.SendMessageAsync("Analyze colony status");
+CancellationToken cancellationToken = default;
+Result<string> response = await RimAIApi.GetCompletionAsync(
+    "Analyze the current state of the colony and provide a brief summary.",
+    cancellationToken
+);
+
 if (response.IsSuccess)
 {
-    Log.Message($"AI Response: {response.Content}");
+    Log.Message($"AI Response: {response.Value}");
+}
+else
+{
+    Log.Error($"AI Error: {response.Error}");
 }
 ```
 
-### Using Preset Options
+### Streaming Chat Response
 ```csharp
-// Creative content generation
-var story = await RimAIAPI.SendMessageAsync(
-    "Write a RimWorld story", 
-    RimAIAPI.Options.Creative()
-);
+// Get a stream of response chunks for real-time UI updates
+var stream = RimAIApi.GetCompletionStreamAsync("Generate a detailed event description.", cancellationToken);
 
-// Factual analysis
-var analysis = await RimAIAPI.SendMessageAsync(
-    "What are the colony's current threats?", 
-    RimAIAPI.Options.Factual()
-);
-
-// Structured JSON output
-var data = await RimAIAPI.SendMessageAsync(
-    "Return colony stats as JSON", 
-    RimAIAPI.Options.Structured()
-);
-```
-
-### Streaming Responses
-```csharp
-// Real-time response streaming
-await RimAIAPI.SendMessageStreamAsync(
-    "Generate a detailed event description",
-    chunk => UpdateUI(chunk), // Real-time UI updates
-    RimAIAPI.Options.Streaming()
-);
-```
-
-### Batch Processing
-```csharp
-// Process multiple requests efficiently
-var prompts = new List<string> 
+await foreach (var chunkResult in stream)
 {
-    "Generate colonist name",
-    "Generate faction name",
-    "Generate event description"
+    if (chunkResult.IsSuccess)
+    {
+        UpdateMyUI(chunkResult.Value);
+    }
+    else
+    {
+        Log.Error($"Stream Error: {chunkResult.Error}");
+        break;
+    }
+}
+```
+
+### Text Embedding (Batch)
+```csharp
+using System.Collections.Generic;
+
+// Convert multiple texts into vector embeddings efficiently
+// The framework handles batching automatically based on provider limits.
+var textsToEmbed = new List<string>
+{
+    "Colonist idle.",
+    "A raid is approaching from the north.",
+    "The food supply is critically low."
 };
 
-var responses = await RimAIAPI.SendBatchRequestAsync(prompts);
-foreach (var response in responses)
+Result<List<float[]>> embeddingsResult = await RimAIApi.GetEmbeddingsAsync(textsToEmbed, cancellationToken);
+
+if (embeddingsResult.IsSuccess)
 {
-    if (response.IsSuccess)
-        ProcessResult(response.Content);
+    foreach (var vector in embeddingsResult.Value)
+    {
+        // Use the vector for semantic search, etc.
+        Log.Message($"Got embedding of dimension: {vector.Length}");
+    }
 }
 ```
 
-### Performance Monitoring
+### Forced JSON Output
 ```csharp
-// Check framework health
-var stats = RimAIAPI.GetStatistics();
-Log.Message($"Success rate: {stats.SuccessfulRequests * 100.0 / stats.TotalRequests:F1}%");
-Log.Message($"Cache hit rate: {stats.CacheHitRate:P2}");
-Log.Message($"Average response time: {stats.AverageResponseTime:F0}ms");
+// When the selected provider's template supports it, you can force JSON output.
+// The prompt should instruct the model to return JSON.
+string jsonPrompt = "Return the colony's resource levels (food, medicine, components) as a JSON object.";
 
-// Clear cache when needed
-if (stats.CacheHitRate < 0.2)
+// Simply set the `forceJson` flag to true.
+Result<string> jsonResponse = await RimAIApi.GetCompletionAsync(jsonPrompt, cancellationToken, forceJson: true);
+
+if (jsonResponse.IsSuccess)
 {
-    RimAIAPI.ClearCache();
+    // jsonResponse.Value will be a JSON string
+    var stats = Newtonsoft.Json.JsonConvert.DeserializeObject<ColonyStats>(jsonResponse.Value);
 }
 ```
 
@@ -267,9 +275,9 @@ This is an open-source project and contributions are welcome! 🎉 Please see ou
 - **📦 Releases**: Pre-compiled mods are available in GitHub Releases
 
 ### 📚 Architecture Documentation
-- 🏗️ [v3.0 API Quick Start](docs/EN_v3.0_API_Quick_Start.md)
-- 📖 [v3.0 API Comprehensive Guide](docs/EN_v3.0_API_Comprehensive_Guide.md)
-- 📋 [Framework Features Overview](docs/CN_v3.0_功能特性.md)
+- 🏛️ **[V4 Architecture Design](docs/ARCHITECTURE_V4.md)**: A deep dive into the new data-driven architecture.
+- 📋 **[V4 Implementation Plan](docs/V4_IMPLEMENTATION_PLAN.md)**: The step-by-step development checklist.
+- 📄 **[V4 Template Design](docs/TEMPLATE_DESIGN.md)**: The specification for creating your own provider templates.
 
 ## 📄 **License** ⚖️
 
