@@ -26,7 +26,7 @@ namespace RimAI.Framework.Configuration.Models
 
         public string ProviderName => Provider?.ProviderName;
         
-        // API Key 永远只来自用户配置。
+        // 重要：API Key 永远只来自用户配置。
         public string ApiKey => User?.ApiKey;
 
         // 获取合并后的 HTTP Headers。
@@ -40,7 +40,14 @@ namespace RimAI.Framework.Configuration.Models
             var merged = new Dictionary<string, string>(providerHeaders);
             foreach (var header in userHeaders)
             {
-                merged[header.Key] = header.Value;
+                // 【关键改进】
+                // 在赋值前，检查用户提供的 Header 的值 (userHeader.Value) 是否为 null。
+                // 只有在值不是 null 的情况下，才执行添加或覆盖操作。
+                if (userHeader.Value != null)
+                {
+                    merged[userHeader.Key] = userHeader.Value;
+                }
+                // 如果 userHeader.Value 是 null，我们就什么也不做，保留模板中的原始值（如果存在）。
             }
             return merged;
         }

@@ -149,6 +149,10 @@ namespace RimAI.Framework.Configuration.Models
         [JsonProperty("type")]
         public string Type { get; set; }
 
+        // 【新增属性】
+        [JsonProperty("functionRoot")]
+        public string FunctionRoot { get; set; }
+
         [JsonProperty("functionName")]
         public string FunctionName { get; set; }
 

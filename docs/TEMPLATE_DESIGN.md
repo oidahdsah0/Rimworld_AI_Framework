@@ -61,6 +61,7 @@
     "toolPaths": { 
       "root": "tools",
       "type": "type",
+      "functionRoot": "function", // <-- 【新增字段】
       "functionName": "function.name",
       "functionDescription": "function.description",
       "functionParameters": "function.parameters"
