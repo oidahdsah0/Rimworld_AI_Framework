@@ -1,84 +1,196 @@
+// 引入 Newtonsoft.Json 来使用 [JsonProperty] 特性。
+// 引入 System.Collections.Generic 来使用 Dictionary。
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace RimAI.Framework.Configuration.Models
 {
+    /// <summary>
+    /// C# 类，精确映射 provider_template_*.json 文件的复杂结构。
+    /// 这个类及其所有子类共同定义了一个提供商的“API说明书”。
+    /// </summary>
     public class ProviderTemplate
     {
-        [JsonPropertyName("providerName")]
+        [JsonProperty("providerName")]
         public string ProviderName { get; set; }
 
-        [JsonPropertyName("chatApi")]
+        [JsonProperty("providerUrl")]
+        public string ProviderUrl { get; set; }
+
+        [JsonProperty("http")]
+        public HttpConfig Http { get; set; }
+
+        [JsonProperty("chatApi")]
         public ChatApiConfig ChatApi { get; set; }
 
-        [JsonPropertyName("embeddingApi")]
+        [JsonProperty("embeddingApi")]
         public EmbeddingApiConfig EmbeddingApi { get; set; }
+
+        // 使用 Dictionary<string, object> 来接收灵活的、任意嵌套的JSON对象。
+        // 这对于 staticParameters 这种“逃生舱口”性质的字段至关重要。
+        [JsonProperty("staticParameters")]
+        public Dictionary<string, object> StaticParameters { get; set; }
     }
 
-    // --- 通用配置 ---
+    #region 子配置模型 (Nested Configuration Models)
 
-    public abstract class ApiConfigBase
+    /// <summary>
+    /// 对应 JSON 中的 "http" 对象，包含所有HTTP协议级别的配置。
+    /// </summary>
+    public class HttpConfig
     {
-        [JsonPropertyName("endpoint")]
-        public string Endpoint { get; set; }
-
-        [JsonPropertyName("authHeader")]
+        [JsonProperty("authHeader")]
         public string AuthHeader { get; set; }
 
-        [JsonPropertyName("authScheme")]
+        [JsonProperty("authScheme")]
         public string AuthScheme { get; set; }
 
-        // 关键改动 : 使用字典来表示请求模板
-        [JsonPropertyName("requestTemplate")]
-        public Dictionary<string, string> RequestTemplate { get; set; }
+        [JsonProperty("headers")]
+        public Dictionary<string, string> Headers { get; set; }
     }
 
-    // --- Chat API 配置 ---
-
-    public class ChatApiConfig : ApiConfigBase
+    /// <summary>
+    /// 对应 JSON 中的 "chatApi" 对象，包含所有与聊天功能相关的适配规则。
+    /// </summary>
+    public class ChatApiConfig
     {
-        [JsonPropertyName("messagesPath")]
-        public string MessagesPath { get; set; }
+        [JsonProperty("endpoint")]
+        public string Endpoint { get; set; }
 
-        [JsonPropertyName("streamFlag")]
-        public KeyValuePair<string, object> StreamFlag { get; set; }
+        [JsonProperty("defaultModel")]
+        public string DefaultModel { get; set; }
 
-        [JsonPropertyName("response")]
-        public ChatResponseConfig ResponsePaths { get; set; }
+        // 对应 JSON 中的 "defaultParameters" 对象，用于存放如 temperature, top_p 等参数的默认值。
+        [JsonProperty("defaultParameters")]
+        public Dictionary<string, object> DefaultParameters { get; set; }
+
+        [JsonProperty("requestPaths")]
+        public ChatRequestPaths RequestPaths { get; set; }
+
+        [JsonProperty("responsePaths")]
+        public ChatResponsePaths ResponsePaths { get; set; }
+
+        [JsonProperty("toolPaths")]
+        public ToolPaths ToolPaths { get; set; }
+
+        [JsonProperty("jsonMode")]
+        public JsonModeConfig JsonMode { get; set; }
+    }
+
+    /// <summary>
+    /// 对应 JSON 中的 "embeddingApi" 对象。
+    /// </summary>
+    public class EmbeddingApiConfig
+    {
+        [JsonProperty("endpoint")]
+        public string Endpoint { get; set; }
+
+        [JsonProperty("defaultModel")]
+        public string DefaultModel { get; set; }
+
+        [JsonProperty("maxBatchSize")]
+        public int MaxBatchSize { get; set; }
+
+        [JsonProperty("requestPaths")]
+        public EmbeddingRequestPaths RequestPaths { get; set; }
+
+        [JsonProperty("responsePaths")]
+        public EmbeddingResponsePaths ResponsePaths { get; set; }
+    }
+
+    // --- Chat API 的路径定义 ---
+
+    public class ChatRequestPaths
+    {
+        [JsonProperty("model")]
+        public string Model { get; set; }
+
+        [JsonProperty("messages")]
+        public string Messages { get; set; }
+
+        [JsonProperty("temperature")]
+        public string Temperature { get; set; }
+
+        // [JsonProperty("top_p")] 告诉序列化器：
+        // 当看到JSON里有 "top_p" 字段时，请把它赋值给 C# 的 "TopP" 属性。
+        [JsonProperty("top_p")]
+        public string TopP { get; set; }
+
+        [JsonProperty("stream")]
+        public string Stream { get; set; }
+
+        [JsonProperty("tools")]
+        public string Tools { get; set; }
+
+        [JsonProperty("toolChoice")]
+        public string ToolChoice { get; set; }
     }
 
     public class ChatResponsePaths
     {
-        [JsonPropertyName("contentPath")]
-        public string ContentPath { get; set; }
+        [JsonProperty("choices")]
+        public string Choices { get; set; }
 
-        [JsonPropertyName("streamingContentPath")]
-        public string StreamingContentPath { get; set; }
+        [JsonProperty("content")]
+        public string Content { get; set; }
+
+        [JsonProperty("toolCalls")]
+        public string ToolCalls { get; set; }
+
+        [JsonProperty("finishReason")]
+        public string FinishReason { get; set; }
     }
 
-    // --- Embedding API 配置 ---
-
-    public class EmbeddingApiConfig : ApiConfigBase
+    public class ToolPaths
     {
-        [JsonPropertyName("maxBatchSize")]
-        public int MaxBatchSize { get; set; }
+        [JsonProperty("root")]
+        public string Root { get; set; }
 
-        [JsonPropertyName("inputPath")]
-        public string InputPath { get; set; }
+        [JsonProperty("type")]
+        public string Type { get; set; }
 
-        [JsonPropertyName("response")]
-        public EmbeddingResponseConfig ResponsePaths { get; set; }
+        [JsonProperty("functionName")]
+        public string FunctionName { get; set; }
+
+        [JsonProperty("functionDescription")]
+        public string FunctionDescription { get; set; }
+
+        [JsonProperty("functionParameters")]
+        public string FunctionParameters { get; set; }
+    }
+
+    public class JsonModeConfig
+    {
+        [JsonProperty("path")]
+        public string Path { get; set; }
+
+        // 使用 object 类型来接收任意类型的JSON值，无论是简单字符串还是复杂对象。
+        [JsonProperty("value")]
+        public object Value { get; set; }
+    }
+
+    // --- Embedding API 的路径定义 ---
+
+    public class EmbeddingRequestPaths
+    {
+        [JsonProperty("model")]
+        public string Model { get; set; }
+
+        [JsonProperty("input")]
+        public string Input { get; set; }
     }
 
     public class EmbeddingResponsePaths
     {
-        [JsonPropertyName("dataListPath")]
-        public string DataListPath { get; set; }
+        [JsonProperty("dataList")]
+        public string DataList { get; set; }
 
-        [JsonPropertyName("embeddingPath")]
-        public string EmbeddingPath { get; set; }
+        [JsonProperty("embedding")]
+        public string Embedding { get; set; }
 
-        [JsonPropertyName("indexPath")]
-        public string IndexPath { get; set; }
+        [JsonProperty("index")]
+        public string Index { get; set; }
     }
+
+    #endregion
 }

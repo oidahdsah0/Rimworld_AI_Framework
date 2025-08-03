@@ -140,8 +140,8 @@ namespace RimAI.Framework.Configuration
                     var jsonContent = File.ReadAllText(filePath);
                     var userConfig = JsonConvert.DeserializeObject<UserConfig>(jsonContent);
 
-                    // 以 providerId 为键，userConfig 对象为值，存入字典。
-                    _userConfigs[providerId] = userConfig;
+                    // 以 userId 为键，userConfig 对象为值，存入字典。
+                    _userConfigs[userId] = userConfig;
                     RimAILogger.Log($"SettingsManager: Successfully loaded user config from: {filePath}");
                 }
                 catch (Exception ex)
@@ -150,7 +150,7 @@ namespace RimAI.Framework.Configuration
                 }
             }
         }
-        
+
         // --- 公共方法 (下一步实现) ---
 
         /// <summary>
@@ -161,9 +161,42 @@ namespace RimAI.Framework.Configuration
         /// <returns>一个包含所有配置信息的合并对象，或者在找不到时返回 null。</returns>
         public MergedConfig GetMergedConfig(string providerId)
         {
-            // TODO: 我们将在这里添加合并逻辑。
-            
-            return null; // 暂时返回 null 作为占位符。
+            // 安全检查：验证传入的 providerId 是否有效。
+            // string.IsNullOrWhiteSpace 是一个健壮的检查，能同时处理 null、空字符串 "" 和只包含空格的字符串 " "。
+            if (string.IsNullOrWhiteSpace(providerId))
+            {
+                RimAILogger.Warning("SettingsManager: Invalid provider ID provided.");
+                return null;
+            }
+
+            // 查找 ProviderTemplate：
+            // 使用 TryGetValue 是最安全的做法。如果键存在，它返回 true 并通过 out 参数赋值；
+            // 如果键不存在，它返回 false 且不会抛出异常。
+            if (!_providerTemplates.TryGetValue(providerId, out var providerTemplate))
+            {
+                RimAILogger.Warning($"SettingsManager: Provider template not found for ID: {providerId}");
+                return null;
+            }
+
+            // 3. 查找 UserConfig：
+            // 同样，安全地查找用户配置。
+            if (!_userConfigs.TryGetValue(providerId, out var userConfig))
+            {
+                RimAILogger.Warning($"SettingsManager: User config not found for ID: {providerId}");
+                return null;
+            }
+
+            // 合并与返回：
+            // 当 template 和 userConfig 都成功找到后，我们才进行合并。
+            // 这里使用了 "对象初始化器" 语法，非常简洁。
+            var mergedConfig = new MergedConfig
+            {
+                Provider = template,
+                User = userConfig
+            };
+
+            RimAILogger.Log($"SettingsManager: Successfully created merged config for '{providerId}'.");
+            return mergedConfig;
         }
     }
 }

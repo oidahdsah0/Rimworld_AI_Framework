@@ -91,14 +91,16 @@ RimAI.Framework/
 
 ### 🚧 阶段一：配置与基础 (Configuration & Foundation)
 
--   **配置模型**
-    - [✅] `Configuration/Models/ProviderTemplate.cs`: 定义提供商模板的数据结构。**需同时包含 `chatApi` 和 `embeddingApi` 的结构。**
-    - [✅] `Configuration/Models/UserConfig.cs`: 定义用户配置的数据结构。**需包含 `concurrencyLimit` 等批量设置。**
-    - [✅] `Configuration/Models/MergedConfig.cs`: 定义合并后的内部配置对象。
+-   **设计文档**
+    - [✅] **[新增]** `docs/TEMPLATE_DESIGN.md`: 经深度讨论，创建了V4模板设计的最终版权威文档。
+-   **配置模型 (根据TEMPLATE_DESIGN.md重新实现)**
+    - [🚧] `Configuration/Models/ProviderTemplate.cs`: **需重做**。根据 `TEMPLATE_DESIGN.md` 中定义的复杂结构（包含`http`, `chatApi`, `requestPaths`等嵌套对象）重新实现。
+    - [🚧] `Configuration/Models/UserConfig.cs`: **需重做**。根据 `TEMPLATE_DESIGN.md` 中定义的覆盖逻辑（包含`...Override`, `staticParametersOverride`等）重新实现。
+    - [🚧] `Configuration/Models/MergedConfig.cs`: **需重做**。实现为一个“智能”对象，其只读属性封装了“用户优先于模板”的合并逻辑。
 -   **配置服务**
     - [✅] `Configuration/SettingsManager.cs`: 实现加载所有 `provider_template_*.json` 和 `user_config_*.json` 的逻辑。
-    - [✅] `Configuration/SettingsManager.cs`: 实现模板验证逻辑，确保加载的模板符合规范，并在出错时提供清晰的错误信息。
-    - [🚧] `Configuration/SettingsManager.cs`: 实现 `GetMergedConfig(string providerId)` 方法。
+    - [✅] `Configuration/SettingsManager.cs`: 实现 `GetMergedConfig(string providerId)` 方法。（注：该方法目前仅做装配，合并逻辑由`MergedConfig`内部实现）。
+    - [ ] `Configuration/SettingsManager.cs`: 实现模板验证逻辑，确保加载的模板符合规范，并在出错时提供清晰的错误信息。
 -   **共享组件**
     - [✅] `Shared/Models/Result.cs`: 创建通用的、用于封装操作结果（成功或失败）的 `Result<T>` 类。
     - [✅] `Shared/Exceptions/`: 创建 `FrameworkException.cs`, `ConfigurationException.cs`, `LLMException.cs`。
@@ -114,16 +116,16 @@ RimAI.Framework/
     - [  ] `Translation/Models/ToolingModels.cs`: 定义 `ToolDefinition` 和 `ToolCall`。
     - [  ] `Translation/Models/UnifiedChatModels.cs`: 定义 `UnifiedChatRequest` 和 `UnifiedChatResponse`。
 -   **翻译服务 - Chat**
-    - [  ] `Translation/ChatRequestTranslator.cs`: 实现 `Translate(UnifiedChatRequest, MergedConfig)` 方法。
-    - [  ] `Translation/ChatResponseTranslator.cs`: 实现 `TranslateAsync(HttpResponseMessage, MergedConfig)` 方法，需要支持流式解析。
+    - [  ] `Translation/ChatRequestTranslator.cs`: 实现 `Translate(UnifiedChatRequest, MergedConfig)` 方法。**必须严格根据`MergedConfig`中的`requestPaths`, `toolPaths`等进行数据驱动的翻译。**
+    - [  ] `Translation/ChatResponseTranslator.cs`: 实现 `TranslateAsync(HttpResponseMessage, MergedConfig)` 方法，需要支持流式解析。**必须严格根据`MergedConfig`中的`responsePaths`进行数据驱动的解析。**
 
 ### 🚧 阶段三：执行与翻译 - Embedding (Execution & Translation - Embedding)
 
 -   **翻译模型 - Embedding**
     - [  ] `Translation/Models/UnifiedEmbeddingModels.cs`: 定义 `UnifiedEmbeddingRequest` 和 `UnifiedEmbeddingResponse`。
 -   **翻译服务 - Embedding**
-    - [  ] `Translation/EmbeddingRequestTranslator.cs`: 实现 `Translate(UnifiedEmbeddingRequest, MergedConfig)` 方法。**需处理原生批量逻辑，将输入列表打包。**
-    - [  ] `Translation/EmbeddingResponseTranslator.cs`: 实现 `TranslateAsync(HttpResponseMessage, MergedConfig)` 方法。**需处理批量响应，将结果列表正确解析。**
+    - [  ] `Translation/EmbeddingRequestTranslator.cs`: 实现 `Translate(UnifiedEmbeddingRequest, MergedConfig)` 方法。
+    - [  ] `Translation/EmbeddingResponseTranslator.cs`: 实现 `TranslateAsync(HttpResponseMessage, MergedConfig)` 方法。
 
 ### 🚧 阶段四：核心协调与整合 (Coordination & Integration)
 
@@ -132,19 +134,18 @@ RimAI.Framework/
     - [  ] `Core/EmbeddingManager.cs`: 注入所需服务，实现 `ProcessRequestAsync` 方法，按顺序调用 Embedding 相关服务。
 -   **依赖注入**
     - [  ] `Core/Lifecycle/FrameworkDI.cs`: 创建一个静态类，包含一个“一次性”的 `Assemble()` 方法。
-    - [  ] `Core/Lifecycle/FrameworkDI.cs`: 在 `Assemble()` 方法中，实例化并连接所有服务 (`SettingsManager`, 所有`Translators`, `HttpExecutor`, `ChatManager`, `EmbeddingManager` 等)。
+    - [  ] `Core/Lifecycle/FrameworkDI.cs`: 在 `Assemble()` 方法中，实例化并连接所有服务。
     - [  ] `Core/Lifecycle/FrameworkDI.cs`: 提供静态属性来访问已组装好的 `ChatManager` 和 `EmbeddingManager` 实例。
 
 ### 🚧 阶段五：API门面与完善 (Facade & Polish)
 
 -   **公共 API**
     - [  ] `API/RimAIApi.cs`: 创建一个静态类作为公共门面，并在静态构造函数中调用 `FrameworkDI.Assemble()`。
-    - [  ] `API/RimAIApi.cs`: 创建 Chat 相关公共方法 (`GetCompletionAsync`, `StreamCompletionAsync` 等)。
-    - [  ] `API/RimAIApi.cs`: **[新增]** 创建 Embedding 相关公共方法 (`GetEmbeddingsAsync`)。
-    - [  ] `API/RimAIApi.cs`: **[新增]** 为 Chat 和 Embedding 创建批量处理的公共方法 (`GetCompletionsAsync`, `GetEmbeddingsAsync` 的重载)。
+    - [  ] `API/RimAIApi.cs`: 创建 Chat 和 Embedding 相关公共方法。
+    - [  ] `API/RimAIApi.cs`: 为 Chat 和 Embedding 创建批量处理的公共方法。
 -   **批量处理逻辑**
-    - [  ] `Core/ChatManager.cs`: 在 `ProcessBatchAsync` 方法中实现**并发控制**逻辑 (如使用 `SemaphoreSlim`)。
-    - [  ] `Core/EmbeddingManager.cs`: 在 `ProcessBatchAsync` 方法中实现**原生批量分块**逻辑。
+    - [  ] `Core/ChatManager.cs`: 实现**并发控制**逻辑 (如使用 `SemaphoreSlim`)。
+    - [  ] `Core/EmbeddingManager.cs`: 实现**原生批量分块**逻辑。
 -   **缓存**
     - [  ] `Caching/ResponseCache.cs`: 实现一个简单的、线程安全的内存缓存服务。
     - [  ] `Core/ChatManager.cs` & `EmbeddingManager.cs`: 注入 `ResponseCache` 服务，并在处理非流式请求时检查和更新缓存。
@@ -158,9 +159,8 @@ RimAI.Framework/
 
 *(在此处记录每日开发进度、遇到的问题和决策。)*
 
-- **2025-07-27 (初始设定):** 与AI助手讨论后，决定在正式开始编码前，将 `Result<T>` 模式确立为框架的基础错误处理机制。该决策已同步更新到 `ARCHITECTURE_V4.md` 和 `V4_IMPLEMENTATION_PLAN.md` 中，作为所有后续开发的第一步。
-- **2025-07-27 (配置模型):** 根据V4架构和进一步讨论，完成了所有核心配置模型的定义，包括 `ProviderTemplate.cs` (V2版，支持动态字段), `UserConfig.cs`, 和 `MergedConfig.cs`。为下一步构建 `SettingsManager` 服务打下了数据基础。
-- **2025-08-03 (基础建设):** 完成了 `Shared/Logging/RimAILogger.cs` 的创建。该静态日志类为整个框架提供了一个统一的、带前缀的日志记录接口，是后续所有模块开发的基础。
-- **2025-08-03 (项目配置修正):** 在编码 `SettingsManager` 时，经过深入分析和讨论，发现 `.csproj` 文件中存在对 `Newtonsoft.Json` 的冗余且有害的 `<PackageReference>`。由于 RimWorld 核心已提供此库，为避免版本冲突，决定移除该包引用。此举也使得 `PostBuild` 事件中针对 `Newtonsoft.Json.dll` 的重命名和复制逻辑自动失效，从而清理并简化了项目的依赖关系。
-- **2025-08-03 (配置加载):** 在 `SettingsManager.cs` 中成功实现了 `LoadProviderTemplates` 方法。该方法能够安全地查找、读取和解析所有 `provider_template_*.json` 文件，并通过 `Newtonsoft.Json` 将其反序列化为 `ProviderTemplate` 对象，最终存入字典中。代码包含了完整的路径检查和异常处理逻辑。
-- **2025-08-03 (配置加载-用户):** 在 `SettingsManager.cs` 中成功实现了 `LoadUserConfigs` 方法。该方法复用了加载模板的逻辑，能够安全地查找、读取所有 `user_config_*.json` 文件，并将其内容解析为 `UserConfig` 对象存入字典。至此，`SettingsManager` 已具备加载全部基础配置文件的能力。
+- **2025-08-03 (基础建设):** 完成了 `Shared/Logging/RimAILogger.cs` 的创建。
+- **2025-08-03 (项目配置修正):** 修正了项目对 `Newtonsoft.Json` 的依赖问题。
+- **2025-08-03 (配置加载):** 在 `SettingsManager.cs` 中实现了 `LoadProviderTemplates` 和 `LoadUserConfigs` 方法。
+- **2025-08-04 (设计迭代):** 针对通用性（非标准字段、Function Call差异、本地模型`extra_body`）发起了深度质询。经过多轮迭代，最终敲定了V4版本的模板设计，该设计引入了`requestPaths`, `toolPaths`, `staticParameters`等关键概念，极大地增强了框架的灵活性和可扩展性。
+- **2025-08-04 (文档固化):** 将V4模板设计最终版方案，正式写入了 `docs/TEMPLATE_DESIGN.md` 文档，作为后续所有配置和翻译相关开发的权威依据。

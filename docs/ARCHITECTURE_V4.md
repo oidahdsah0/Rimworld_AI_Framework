@@ -15,7 +15,7 @@
 
 Framework V4 旨在构建一个高度灵活、可扩展、数据驱动的底层基础设施，用于与各类大语言模型（LLM）及 Embedding API 进行交互。其核心特性包括：
 
-*   **提供商模板系统**: 通过外部化的 `provider_template_*.json` 文件来定义与特定 AI 服务（如 OpenAI, Google Gemini, Anthropic Claude, 以及自定义服务）的交互方式，实现对新提供商的快速适配，无需修改框架代码。
+*   **【更新】提供商模板系统**: 通过外部化的 `provider_template_*.json` 文件，不仅定义与特定AI服务的交互方式，更定义了**API的完整契约**。这包括端点、认证方法、以及**请求/响应的结构映射**，从而实现对新提供商的零代码适配。
 *   **统一的内部模型**: 所有外部请求都被转换为统一的内部请求对象 (`UnifiedChatRequest`, `UnifiedEmbeddingRequest`)，所有来自 AI 的响应也都被翻译回统一的内部响应对象 (`UnifiedChatResponse`, `UnifiedEmbeddingResponse`)，从而解耦上层业务与底层 API 的实现细节。
 *   **清晰的职责分层**: 框架内部严格划分为 API 门面、核心协调器（区分 Chat 和 Embedding）、配置管理、请求/响应翻译、HTTP 执行、缓存等独立组件，各司其职。
 *   **全面的功能支持**: 原生支持聊天（流式/非流式）、JSON 模式、工具调用（Function Calling）以及文本嵌入（Text Embedding）。
@@ -41,7 +41,7 @@ RimAI.Framework/
     │
     ├── Configuration/
     │   ├── Models/
-    │   │   ├── ProviderTemplate.cs # [配置-模型] C#类，对应 provider_template_*.json 的结构。包含所有API的适配规则（需分别考虑Chat和Embedding）。
+    │   │   ├── ProviderTemplate.cs # 【更新】[配置-模型] C#类，对应 provider_template_*.json 的结构。包含所有API的适配规则，如：请求/响应的路径映射、工具调用结构、JSON模式定义、静态参数等。
     │   │   ├── UserConfig.cs    # [配置-模型] C#类，对应 user_config_*.json 的结构。包含API-Key、并发数等用户配置（需分别考虑Chat和Embedding）。
     │   │   └── MergedConfig.cs  # [配置-模型] 内部只读对象，由一个UserConfig和一个ProviderTemplate合并而成，作为单次请求的“全量配置”。
     │   │
@@ -166,26 +166,44 @@ graph TD
 为了将 Embedding 作为一等公民集成到框架中，我们引入了一套并行的、专用的组件。
 
 *   **专用组件**: `EmbeddingManager` (协调器), `EmbeddingRequestTranslator`, `EmbeddingResponseTranslator` (翻译器), 以及 `UnifiedEmbeddingModels` (数据模型)。
-*   **数据驱动配置**: `ProviderTemplate.json` 将新增一个 `embeddingApi` 字段，用于定义与 Embedding API 交互所需的所有信息。
+*   **数据驱动配置**: `ProviderTemplate.json` 将新增一个 `embeddingApi` 字段，用于定义与 Embedding API 交互所需的所有信息。这包括端点、默认模型，以及用于指导翻译器工作的请求/响应路径映射。
 
-**`ProviderTemplate.json` 中 `embeddingApi` 配置示例:**
+**【更新】`ProviderTemplate.json` 中配置示例 (以OpenAI为例):**
 ```json
 {
-  // ... other fields like providerName, chatApi etc.
+  "providerName": "OpenAI",
+  "http": {
+    "authHeader": "Authorization",
+    "authScheme": "Bearer"
+  },
+  "chatApi": {
+    "endpoint": "https://api.openai.com/v1/chat/completions",
+    "defaultModel": "gpt-4o",
+    "requestPaths": {
+      "model": "model",
+      "messages": "messages"
+    },
+    "responsePaths": {
+      "choices": "choices",
+      "content": "message.content"
+    }
+  },
   "embeddingApi": {
     "endpoint": "https://api.openai.com/v1/embeddings",
-    "authHeader": "Authorization",
-    "authScheme": "Bearer",
-    "maxBatchSize": 2048, //
-    "request": {
-      "modelPath": "model",
-      "inputPath": "input" // The path where the array of strings goes
+    "defaultModel": "text-embedding-3-small",
+    "maxBatchSize": 2048,
+    "requestPaths": {
+      "model": "model",
+      "input": "input"
     },
-    "response": {
-      "dataListPath": "data", // Path to the list of embedding objects
-      "embeddingPath": "embedding", // Path within an object to the vector
-      "indexPath": "index" // Path within an object to the original index
+    "responsePaths": {
+      "dataList": "data",
+      "embedding": "embedding",
+      "index": "index"
     }
+  },
+  "staticParameters": {
+    "some_static_root_field": "some_value"
   }
 }
 ```
