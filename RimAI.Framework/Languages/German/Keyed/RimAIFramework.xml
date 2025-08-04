@@ -32,4 +32,9 @@
   <RimAI.StaticParamsOverride>Überschreiben statischer Parameter (JSON):</RimAI.StaticParamsOverride>
   <RimAI.TypicalP>Typical-P: {0}</RimAI.TypicalP>
   <RimAI.MaxTokens>Maximale Token-Anzahl: {0}</RimAI.MaxTokens>
+  <RimAI.Reset>Zurücksetzen</RimAI.Reset>
+  <RimAI.ChatResetSuccess>Chat-Konfiguration wurde auf die integrierte Vorlage zurückgesetzt.</RimAI.ChatResetSuccess>
+  <RimAI.ChatResetFailed>Chat-Konfiguration konnte nicht zurückgesetzt werden: {0}</RimAI.ChatResetFailed>
+  <RimAI.EmbedResetSuccess>Embedding-Konfiguration wurde auf die integrierte Vorlage zurückgesetzt.</RimAI.EmbedResetSuccess>
+  <RimAI.EmbedResetFailed>Embedding-Konfiguration konnte nicht zurückgesetzt werden: {0}</RimAI.EmbedResetFailed>
 </LanguageData>

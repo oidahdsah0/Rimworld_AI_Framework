@@ -45,7 +45,7 @@ namespace RimAI.Framework.Configuration
                 {
                     Endpoint = "http://localhost:8080/v1/chat/completions",
                     DefaultModel = "default-model",
-                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 4096 }),
+                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 300 }),
                     RequestPaths = OpenAiChatRequestPaths,
                     ResponsePaths = OpenAiChatResponsePaths,
                     ToolPaths = OpenAiToolPaths,
@@ -61,7 +61,7 @@ namespace RimAI.Framework.Configuration
                 {
                     Endpoint = "http://localhost:11434/v1/chat/completions",
                     DefaultModel = "llama3",
-                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 4096 }),
+                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 300 }),
                     RequestPaths = OpenAiChatRequestPaths,
                     ResponsePaths = OpenAiChatResponsePaths,
                     ToolPaths = OpenAiToolPaths,
@@ -77,7 +77,7 @@ namespace RimAI.Framework.Configuration
                 {
                     Endpoint = "http://localhost:1234/v1/chat/completions",
                     DefaultModel = "loaded-model",
-                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 4096 }),
+                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 300 }),
                     RequestPaths = OpenAiChatRequestPaths,
                     ResponsePaths = OpenAiChatResponsePaths,
                     ToolPaths = OpenAiToolPaths,
@@ -93,7 +93,7 @@ namespace RimAI.Framework.Configuration
                 {
                     Endpoint = "http://localhost:8000/v1/chat/completions",
                     DefaultModel = "loaded-model",
-                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 4096 }),
+                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 300 }),
                     RequestPaths = OpenAiChatRequestPaths,
                     ResponsePaths = OpenAiChatResponsePaths,
                     ToolPaths = OpenAiToolPaths,
@@ -109,7 +109,7 @@ namespace RimAI.Framework.Configuration
                 {
                     Endpoint = "http://localhost:30000/v1/chat/completions",
                     DefaultModel = "loaded-model",
-                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 4096 }),
+                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 300 }),
                     RequestPaths = OpenAiChatRequestPaths,
                     ResponsePaths = OpenAiChatResponsePaths,
                     ToolPaths = OpenAiToolPaths,
@@ -143,7 +143,7 @@ namespace RimAI.Framework.Configuration
                 {
                     Endpoint = "https://api.deepseek.com/v1/chat/completions",
                     DefaultModel = "deepseek-chat",
-                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 4096 }),
+                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 300 }),
                     RequestPaths = OpenAiChatRequestPaths,
                     ResponsePaths = OpenAiChatResponsePaths,
                     ToolPaths = OpenAiToolPaths,
@@ -159,7 +159,7 @@ namespace RimAI.Framework.Configuration
                 {
                     Endpoint = "https://api.siliconflow.cn/v1/chat/completions",
                     DefaultModel = "Qwen/Qwen2.5-72B-Instruct",
-                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 4096 }),
+                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 300 }),
                     RequestPaths = OpenAiChatRequestPaths,
                     ResponsePaths = OpenAiChatResponsePaths,
                     ToolPaths = OpenAiToolPaths,
@@ -175,7 +175,7 @@ namespace RimAI.Framework.Configuration
                 {
                     Endpoint = "https://api.openai.com/v1/chat/completions",
                     DefaultModel = "gpt-4o",
-                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 4096 }),
+                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 300 }),
                     RequestPaths = OpenAiChatRequestPaths,
                     ResponsePaths = OpenAiChatResponsePaths,
                     ToolPaths = OpenAiToolPaths,
@@ -191,7 +191,7 @@ namespace RimAI.Framework.Configuration
                 {
                     Endpoint = "https://api.anthropic.com/v1/messages",
                     DefaultModel = "claude-3-opus-20240229",
-                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 4096 }),
+                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 300 }),
                     RequestPaths = new ChatRequestPaths
                     {
                         Model = "model",

@@ -32,4 +32,9 @@
   <RimAI.StaticParamsOverride>Surcharge des paramètres statiques (JSON) :</RimAI.StaticParamsOverride>
   <RimAI.TypicalP>Typical-P : {0}</RimAI.TypicalP>
   <RimAI.MaxTokens>Nombre maximal de jetons : {0}</RimAI.MaxTokens>
+  <RimAI.Reset>Réinitialiser</RimAI.Reset>
+  <RimAI.ChatResetSuccess>Configuration du chat réinitialisée avec le modèle intégré.</RimAI.ChatResetSuccess>
+  <RimAI.ChatResetFailed>Échec de la réinitialisation du chat : {0}</RimAI.ChatResetFailed>
+  <RimAI.EmbedResetSuccess>Configuration d'Embedding réinitialisée avec le modèle intégré.</RimAI.EmbedResetSuccess>
+  <RimAI.EmbedResetFailed>Échec de la réinitialisation d'Embedding : {0}</RimAI.EmbedResetFailed>
 </LanguageData>

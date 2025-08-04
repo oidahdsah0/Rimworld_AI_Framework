@@ -48,7 +48,7 @@ namespace RimAI.Framework.Translation
             }
             catch (JsonReaderException ex)
             {
-                RimAILogger.Error($"Failed to parse embedding JSON response: {ex.Message}. Response body: {jsonString.Substring(0, 500)}");
+                RimAILogger.Error($"Failed to parse embedding JSON response: {ex.Message}. Response body: {jsonString.Substring(0, System.Math.Min(500, jsonString.Length))}");
                 return Result<UnifiedEmbeddingResponse>.Failure($"Invalid JSON response from server. Details: {ex.Message}");
             }
         }

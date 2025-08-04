@@ -32,4 +32,9 @@
   <RimAI.StaticParamsOverride>静的パラメータの上書き (JSON):</RimAI.StaticParamsOverride>
   <RimAI.TypicalP>Typical-P: {0}</RimAI.TypicalP>
   <RimAI.MaxTokens>最大トークン数: {0}</RimAI.MaxTokens>
+  <RimAI.Reset>リセット</RimAI.Reset>
+  <RimAI.ChatResetSuccess>チャット設定が組み込みテンプレートにリセットされました。</RimAI.ChatResetSuccess>
+  <RimAI.ChatResetFailed>チャット設定のリセットに失敗しました: {0}</RimAI.ChatResetFailed>
+  <RimAI.EmbedResetSuccess>埋め込み設定が組み込みテンプレートにリセットされました。</RimAI.EmbedResetSuccess>
+  <RimAI.EmbedResetFailed>埋め込み設定のリセットに失敗しました: {0}</RimAI.EmbedResetFailed>
 </LanguageData>

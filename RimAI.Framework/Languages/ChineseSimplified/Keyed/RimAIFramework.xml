@@ -32,4 +32,9 @@
   <RimAI.StaticParamsOverride>静态参数覆盖 (JSON)：</RimAI.StaticParamsOverride>
   <RimAI.TypicalP>Typical-P：{0}</RimAI.TypicalP>
   <RimAI.MaxTokens>最大 Token 数：{0}</RimAI.MaxTokens>
+  <RimAI.Reset>重置</RimAI.Reset>
+  <RimAI.ChatResetSuccess>聊天配置已重置，回到默认模板。</RimAI.ChatResetSuccess>
+  <RimAI.ChatResetFailed>聊天配置重置失败：{0}</RimAI.ChatResetFailed>
+  <RimAI.EmbedResetSuccess>向量嵌入配置已重置，回到默认模板。</RimAI.EmbedResetSuccess>
+  <RimAI.EmbedResetFailed>向量嵌入配置重置失败：{0}</RimAI.EmbedResetFailed>
 </LanguageData>

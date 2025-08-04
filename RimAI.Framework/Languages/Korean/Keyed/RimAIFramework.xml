@@ -32,4 +32,9 @@
   <RimAI.StaticParamsOverride>정적 파라미터 재정의 (JSON):</RimAI.StaticParamsOverride>
   <RimAI.TypicalP>Typical-P: {0}</RimAI.TypicalP>
   <RimAI.MaxTokens>최대 토큰 수: {0}</RimAI.MaxTokens>
+  <RimAI.Reset>초기화</RimAI.Reset>
+  <RimAI.ChatResetSuccess>채팅 설정이 기본 템플릿으로 초기화되었습니다.</RimAI.ChatResetSuccess>
+  <RimAI.ChatResetFailed>채팅 설정 초기화 실패: {0}</RimAI.ChatResetFailed>
+  <RimAI.EmbedResetSuccess>임베딩 설정이 기본 템플릿으로 초기화되었습니다.</RimAI.EmbedResetSuccess>
+  <RimAI.EmbedResetFailed>임베딩 설정 초기화 실패: {0}</RimAI.EmbedResetFailed>
 </LanguageData>

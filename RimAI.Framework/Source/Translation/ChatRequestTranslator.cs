@@ -37,8 +37,10 @@ namespace RimAI.Framework.Translation
             if (typicalP.HasValue && config.Template.ChatApi.RequestPaths.TypicalP != null)
                 requestBody[config.Template.ChatApi.RequestPaths.TypicalP] = typicalP.Value;
 
-            var maxTokens = config.User.MaxTokens ?? config.Template.ChatApi.DefaultParameters?["max_tokens"]?.Value<int>();
-            if (maxTokens.HasValue && config.Template.ChatApi.RequestPaths.MaxTokens != null)
+            int? maxTokens = config.User.MaxTokens 
+                ?? config.Template.ChatApi.DefaultParameters?["max_tokens"]?.Value<int>()
+                ?? (int?)300;
+            if (maxTokens != null && config.Template.ChatApi.RequestPaths.MaxTokens != null)
                 requestBody[config.Template.ChatApi.RequestPaths.MaxTokens] = maxTokens.Value;
 
             // 3. Messages

@@ -32,4 +32,9 @@
   <RimAI.StaticParamsOverride>Переопределение статических параметров (JSON):</RimAI.StaticParamsOverride>
   <RimAI.TypicalP>Typical-P: {0}</RimAI.TypicalP>
   <RimAI.MaxTokens>Максимальное число токенов: {0}</RimAI.MaxTokens>
+  <RimAI.Reset>Сброс</RimAI.Reset>
+  <RimAI.ChatResetSuccess>Настройки чата сброшены до встроенного шаблона.</RimAI.ChatResetSuccess>
+  <RimAI.ChatResetFailed>Не удалось сбросить настройки чата: {0}</RimAI.ChatResetFailed>
+  <RimAI.EmbedResetSuccess>Настройки эмбеддинга сброшены до встроенного шаблона.</RimAI.EmbedResetSuccess>
+  <RimAI.EmbedResetFailed>Не удалось сбросить настройки эмбеддинга: {0}</RimAI.EmbedResetFailed>
 </LanguageData>
