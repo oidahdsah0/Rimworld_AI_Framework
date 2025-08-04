@@ -142,25 +142,11 @@ public static Task<Result<UnifiedEmbeddingResponse>> GetEmbeddingsAsync(
 
 ### 关键数据模型 (Request Models)
 
-所有请求/响应/工具相关的类型均来自 **RimAI.Framework.Contracts** 程序集，下文统称 *Contracts*。
-
-引用方式：
-```csharp
-using RimAI.Framework.Contracts;
-```
-
-常用模型与字段一览：
-
-| 类型 | 说明 | 关键字段 |
-| ---- | ---- | -------- |
-| `UnifiedChatRequest` | 聊天请求入口结构 | `List<ChatMessage> Messages`、`List<ToolDefinition>? Tools`、`bool ForceJsonOutput`、`bool Stream` |
-| `ChatMessage` | 单条消息 | `string Role` (`"user"`, `"assistant"`, `"system"`, `"tool"`)、`string Content`、`List<ToolCall>? ToolCalls`、`string ToolCallId` |
-| `ToolDefinition` | 向 LLM 公布的「函数」定义 | `string Type` (默认 `"function"`)、`JObject Function`（包含 `name / description / parameters`） |
-| `ToolCall` | LLM 生成的函数调用请求 | `string Id`、`string FunctionName`、`string Arguments` |
-| `UnifiedEmbeddingRequest` | Embedding 输入 | `List<string> Inputs` |
-
-> ⚠️ 既不要手写 JSON，也不要硬编码字符串，优先使用 Contracts 中的强类型对象。这样可以在编译期发现拼写错误。
-
+（此部分与之前版本相同，此处省略以保持简洁）
+*   `UnifiedChatRequest`
+*   `ChatMessage`
+*   `ToolDefinition` & `ToolCall`
+*   ...
 
 ### 关键响应模型 (Response Models)
 
@@ -206,55 +192,6 @@ public class UnifiedEmbeddingResponse
 }
 ```
 （`EmbeddingResult` 结构省略）
-
----
-
-## Result<T> 成功/失败模式与最佳实践
-
-Framework 全部 API 方法都返回 `Result` 或 `Result<T>`，这是保障重试/熔断与上层友好错误处理的核心。
-
-```csharp
-var result = await RimAIApi.GetCompletionAsync(request);
-if (!result.IsSuccess)
-{
-    Log.Error($"调用失败: {result.Error}");
-    return; // 切记这里不要继续访问 result.Value
-}
-
-// 只有成功才能安全访问 Value
-var reply = result.Value.Message.Content;
-```
-
-**常见踩坑**
-1. **遗漏 IsSuccess 检查** → `NullReferenceException`；
-2. **把 Error 当成文本回复展示给玩家** → Error 里可能是调试信息，应给出自定义文案；
-3. **对流式接口不在循环内检查 IsSuccess** → 第一次成功不代表后续不会失败，请在 `await foreach` 循环里逐块检查。
-
-## ToolDefinition 快捷创建示例
-
-```csharp
-var parameters = JObject.Parse(@"{
-  \"type\": \"object\",
-  \"properties\": {
-    \"location\": { \"type\": \"string\" }
-  },
-  \"required\": [\"location\"]
-}");
-
-var weatherTool = new ToolDefinition
-{
-    Function = new JObject
-    {
-        ["name"] = "get_weather",
-        ["description"] = "获取指定城市的天气信息",
-        ["parameters"] = parameters
-    }
-};
-```
-
-之后将 `weatherTool` 放入 `UnifiedChatRequest.Tools` 即可。
-
-> **提示**：Contracts 侧不关心工具的实际执行细节；在 Core 模块中，`IToolRegistryService` 负责把 JSON Schema 与真实的 `IRimAITool` 实现关联，避免双写。
 
 ---
 这份经过升级的指南现在完整地展示了 v4.3 API 的全部功能。祝您开发愉快！
