@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RimAI.Framework.Configuration.Models;
 using RimAI.Framework.Shared.Logging;
-using RimAI.Framework.Translation.Models;
+using RimAI.Framework.Contracts;
 
 namespace RimAI.Framework.Translation
 {

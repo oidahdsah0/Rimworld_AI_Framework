@@ -27,7 +27,7 @@ CN_v4.0_API调用指南.md
 
 现在有些上游mod，在生成代码的时候，总是会：
 
-using RimAI.Framework.Translation.Models;
+using RimAI.Framework.Contracts;
 
 在Shared文件夹也会有类似情况。
 

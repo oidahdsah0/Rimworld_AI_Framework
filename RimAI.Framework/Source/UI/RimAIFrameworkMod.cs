@@ -5,7 +5,7 @@ using RimAI.Framework.Configuration;
 using RimAI.Framework.Configuration.Models;
 using RimAI.Framework.Core.Lifecycle;
 using RimAI.Framework.Shared.Logging;
-using RimAI.Framework.Translation.Models;
+using RimAI.Framework.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;

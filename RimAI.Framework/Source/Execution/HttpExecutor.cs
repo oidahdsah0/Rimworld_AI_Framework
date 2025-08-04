@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Threading; // [新增] 引入 CancellationToken
 using System.Threading.Tasks;
 using RimAI.Framework.Execution.Models;
-using RimAI.Framework.Shared.Models; // [新增] 引入 Result<T>
+using RimAI.Framework.Contracts; // [新增] 引入 Result<T>
 using RimAI.Framework.Shared.Logging;
 
 namespace RimAI.Framework.Execution

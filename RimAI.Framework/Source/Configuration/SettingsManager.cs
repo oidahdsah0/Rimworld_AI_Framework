@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using RimAI.Framework.Configuration.Models;
 using RimAI.Framework.Shared.Logging;
-using RimAI.Framework.Shared.Models;
+using RimAI.Framework.Contracts;
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RimAI.Framework.Shared.Logging;
-using RimAI.Framework.Translation.Models;
+using RimAI.Framework.Contracts;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;

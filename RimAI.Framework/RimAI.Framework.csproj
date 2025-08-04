@@ -22,6 +22,10 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RimAI.Framework.Contracts\RimAI.Framework.Contracts.csproj" />
+  </ItemGroup>
+
   <!-- 
     Post-Build Event: A robust, explicit process to deploy the mod.
     This method is less "elegant" but far more reliable than smart wildcards.
@@ -69,7 +73,13 @@
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModDir)\Assemblies" />
     <Copy SourceFiles="$(ProjectDir)$(OutDir)$(AssemblyName).pdb" DestinationFolder="$(ModDir)\Assemblies" Condition="Exists('$(ProjectDir)$(OutDir)$(AssemblyName).pdb')" />
 
-    <!-- Step 4: Rename Newtonsoft.Json.dll to ensure it loads before our mod -->
+    <!-- Step 4: 复制同目录下的额外 Framework DLL（例如 Contracts） -->
+    <ItemGroup>
+      <ExtraFrameworkDlls Include="$(ProjectDir)$(OutDir)RimAI.Framework.*.dll" Exclude="$(TargetPath)" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ExtraFrameworkDlls)" DestinationFolder="$(ModDir)\Assemblies" Condition="@(ExtraFrameworkDlls) != ''" />
+
+    <!-- Step 5: Rename Newtonsoft.Json.dll to ensure it loads before our mod -->
     <Message Text="Step 4: Renaming Newtonsoft.Json.dll for proper load order" Importance="high" />
     <Move SourceFiles="$(ProjectDir)$(OutDir)Newtonsoft.Json.dll" DestinationFiles="$(ProjectDir)$(OutDir)000_Newtonsoft.Json.dll" Condition="Exists('$(ProjectDir)$(OutDir)Newtonsoft.Json.dll')" />
     <Copy SourceFiles="$(ProjectDir)$(OutDir)000_Newtonsoft.Json.dll" DestinationFolder="$(ModDir)\Assemblies" Condition="Exists('$(ProjectDir)$(OutDir)000_Newtonsoft.Json.dll')" />

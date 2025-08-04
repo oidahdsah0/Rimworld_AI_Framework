@@ -1,6 +1,5 @@
 using RimAI.Framework.Core.Lifecycle;
-using RimAI.Framework.Shared.Models;
-using RimAI.Framework.Translation.Models;
+using RimAI.Framework.Contracts;
 using RimAI.Framework.UI;
 using System;
 using System.Collections.Generic;

@@ -1,8 +1,7 @@
 using RimAI.Framework.Configuration;
 using RimAI.Framework.Execution;
-using RimAI.Framework.Shared.Models;
+using RimAI.Framework.Contracts;
 using RimAI.Framework.Translation;
-using RimAI.Framework.Translation.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;

@@ -5,9 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using RimAI.Framework.Configuration;
 using RimAI.Framework.Execution;
-using RimAI.Framework.Shared.Models;
+using RimAI.Framework.Contracts;
 using RimAI.Framework.Translation;
-using RimAI.Framework.Translation.Models;
 using RimAI.Framework.Configuration.Models;
 
 namespace RimAI.Framework.Core

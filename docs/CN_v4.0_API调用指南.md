@@ -15,7 +15,7 @@
 
 ```csharp
 using RimAI.Framework.API;
-using RimAI.Framework.Translation.Models;
+using RimAI.Framework.Contracts;
 using System.Collections.Generic;
 using System.Text;
 using Verse;
