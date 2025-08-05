@@ -52,6 +52,11 @@ namespace RimAI.Framework.Translation
                 {
                     jMsg["tool_calls"] = JArray.FromObject(msg.ToolCalls);
                 }
+                // 当角色为 tool 时，需要携带 tool_call_id 字段
+                if (!string.IsNullOrEmpty(msg.ToolCallId))
+                {
+                    jMsg["tool_call_id"] = msg.ToolCallId;
+                }
                 messagesArray.Add(jMsg);
             }
             requestBody[config.Template.ChatApi.RequestPaths.Messages] = messagesArray;

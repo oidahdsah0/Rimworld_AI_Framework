@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace RimAI.Framework.Contracts
@@ -11,12 +12,14 @@ namespace RimAI.Framework.Contracts
         /// <summary>
         /// 工具类型，绝大多数情况下为 "function"。
         /// </summary>
+        [JsonProperty("type")]
         public string Type { get; set; } = "function";
 
         /// <summary>
         /// 函数主体，包含 name / description / parameters 等字段。
         /// 使用 JObject 以保持灵活性。
         /// </summary>
+        [JsonProperty("function")]
         public JObject Function { get; set; }
     }
 
@@ -28,21 +31,37 @@ namespace RimAI.Framework.Contracts
         /// <summary>
         /// 模型生成的唯一 ID，用于回传结果时的关联。
         /// </summary>
+        [JsonProperty("id")]
         public string Id { get; set; }
 
         /// <summary>
         /// 调用类型，通常为 "function"。
         /// </summary>
+        [JsonProperty("type")]
         public string Type { get; set; }
 
         /// <summary>
-        /// 要调用的函数名称，对应 <see cref="ToolDefinition"/> 中的 name 字段。
+        /// 嵌套的 function 对象，包含函数名和参数。
         /// </summary>
-        public string FunctionName { get; set; }
+        [JsonProperty("function")]
+        public ToolFunction Function { get; set; }
+    }
+
+    /// <summary>
+    /// 描述一次调用中关于 function 的具体信息。
+    /// </summary>
+    public class ToolFunction
+    {
+        /// <summary>
+        /// 函数名称。
+        /// </summary>
+        [JsonProperty("name")]
+        public string Name { get; set; }
 
         /// <summary>
-        /// 模型推断出的参数 JSON 字符串，如 "{\"location\":\"Boston\"}"。
+        /// 参数 JSON 字符串。
         /// </summary>
+        [JsonProperty("arguments")]
         public string Arguments { get; set; }
     }
 }
