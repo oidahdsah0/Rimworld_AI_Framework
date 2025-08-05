@@ -22,7 +22,7 @@ namespace RimAI.Framework.Configuration
             Tools = "tools",
             ToolChoice = "tool_choice"
         };
-        private static readonly ChatResponsePaths OpenAiChatResponsePaths = new ChatResponsePaths { Choices = "choices", Content = "message.content", ToolCalls = "message.tool_calls", FinishReason = "finish_reason" };
+        private static readonly ChatResponsePaths OpenAiChatResponsePaths = new ChatResponsePaths { Choices = "choices", Content = "content", ToolCalls = "tool_calls", FinishReason = "finish_reason" };
         private static readonly ToolPaths OpenAiToolPaths = new ToolPaths { Root = "tools", Type = "type", FunctionRoot = "function", FunctionName = "name", FunctionDescription = "description", FunctionParameters = "parameters" };
         private static readonly JsonModeConfig OpenAiJsonMode = new JsonModeConfig { Path = "response_format", Value = JObject.FromObject(new { type = "json_object" }) };
         

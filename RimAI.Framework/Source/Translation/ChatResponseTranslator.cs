@@ -131,6 +131,11 @@ namespace RimAI.Framework.Translation
 
             var deltaToken = firstChoice.SelectToken("delta");
             var contentDelta = deltaToken?.SelectToken(config.Template.ChatApi.ResponsePaths.Content)?.ToString();
+            if (string.IsNullOrEmpty(contentDelta))
+            {
+                // Fallback for templates that didn't set ResponsePaths.Content correctly
+                contentDelta = deltaToken?["content"]?.ToString();
+            }
             var toolCallsToken = deltaToken?.SelectToken("tool_calls");
 
             var toolCalls = toolCallsToken?.ToObject<List<ToolCall>>();

@@ -62,7 +62,15 @@ namespace RimAI.Framework.Translation
                 requestBody[config.Template.ChatApi.RequestPaths.Stream] = true;
             }
 
-            // 5. JSON Mode
+            // 5. Tools (Function Calling)
+            if (unifiedRequest.Tools != null && unifiedRequest.Tools.Any() && config.Template.ChatApi.RequestPaths.Tools != null)
+            {
+                requestBody[config.Template.ChatApi.RequestPaths.Tools] = JArray.FromObject(unifiedRequest.Tools);
+                if (config.Template.ChatApi.RequestPaths.ToolChoice != null)
+                    requestBody[config.Template.ChatApi.RequestPaths.ToolChoice] = "auto";
+            }
+
+            // 6. JSON Mode
             if (unifiedRequest.ForceJsonOutput && config.Template.ChatApi.JsonMode != null)
             {
                 requestBody[config.Template.ChatApi.JsonMode.Path] = config.Template.ChatApi.JsonMode.Value;
