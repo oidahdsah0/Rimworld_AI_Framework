@@ -25,6 +25,8 @@ namespace RimAI.Framework.Configuration
         private static readonly ChatResponsePaths OpenAiChatResponsePaths = new ChatResponsePaths { Choices = "choices", Content = "content", ToolCalls = "tool_calls", FinishReason = "finish_reason" };
         private static readonly ToolPaths OpenAiToolPaths = new ToolPaths { Root = "tools", Type = "type", FunctionRoot = "function", FunctionName = "name", FunctionDescription = "description", FunctionParameters = "parameters" };
         private static readonly JsonModeConfig OpenAiJsonMode = new JsonModeConfig { Path = "response_format", Value = JObject.FromObject(new { type = "json_object" }) };
+        // Anthropic Claude JSON 模式：{"format":"json"}
+        private static readonly JsonModeConfig AnthropicJsonMode = new JsonModeConfig { Path = "format", Value = JToken.FromObject("json") };
         
         private static readonly EmbeddingRequestPaths OpenAiEmbeddingRequestPaths = new EmbeddingRequestPaths { Model = "model", Input = "input" };
         private static readonly EmbeddingResponsePaths OpenAiEmbeddingResponsePaths = new EmbeddingResponsePaths { DataList = "data", Embedding = "embedding", Index = "index" };
@@ -205,7 +207,7 @@ namespace RimAI.Framework.Configuration
                     },
                     ResponsePaths = new ChatResponsePaths { Content = "content[0].text", FinishReason = "stop_reason", ToolCalls = "content" },
                     ToolPaths = new ToolPaths { Root = "tools", Type = "type", FunctionName = "name", FunctionDescription = "description", FunctionParameters = "input_schema" },
-                    JsonMode = null
+                    JsonMode = AnthropicJsonMode
                 }
             };
         }
