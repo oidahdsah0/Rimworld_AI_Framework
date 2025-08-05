@@ -78,6 +78,23 @@ public class MyModFeature
 
 ## 2. 全面调用指南 (Comprehensive Guide)
 
+### Contracts 程序集概览
+
+`RimAI.Framework.Contracts` 作为框架的 **数据契约 (Contracts) 稳定层**，提供以下内容：
+
+* **统一模型定义**：`UnifiedChatRequest`、`UnifiedEmbeddingRequest`、`ChatMessage` 等；
+* **错误处理基类**：`Result<T>`，确保调用方显式处理失败；
+* **Function Calling 数据模型**：`ToolDefinition`, `ToolCall` 等；
+
+位置：`Rimworld_AI_Framework/RimAI.Framework.Contracts`
+
+引用方式：
+```csharp
+using RimAI.Framework.Contracts;
+```
+
+> 阅读本指南后续示例前，建议先打开 Contracts/Models 目录，了解这些核心 DTO。这样便于理解所有示例代码中的类型。
+
 ### 核心设计哲学
 
 *   **静态 API 入口**: 所有功能都通过静态类 `RimAI.Framework.API.RimAIApi` 调用。

@@ -76,6 +76,25 @@ RimAI.Framework/
         └── RimAIFrameworkSettings.cs    # [UI] 继承自ModSettings，负责持久化存储Mod的各项设置。
 ```
 
+### Contracts 稳定层
+
+`RimAI.Framework.Contracts` 是框架的 **“接口与 DTO 稳定层”** ：
+
+* 为 **所有组件** 提供统一且可复用的数据模型 (DTO)，例如 `UnifiedChatModels`, `UnifiedEmbeddingModels`；
+* 暴露 **通用 Result<T> 错误包装器**，使上层服务具备一致的错误处理模式；
+* 本身 **零依赖**，可被 `RimAI.Framework`、`RimAI.Core` 及第三方 Mod 安全引用；
+* 若需扩展接口，应 **先** 在 Contracts 中添加或调整模型，再在其他层实现其逻辑。
+
+目录示例：
+```text
+RimAI.Framework.Contracts/
+└── Models/
+    ├── Result.cs
+    ├── UnifiedChatModels.cs
+    ├── UnifiedEmbeddingModels.cs
+    └── ToolingModels.cs
+```
+
 ## 3. 架构图与数据流
 
 下图展示了 Framework V4 的通用组件交互模型。注意：图中展示的是数据流动的逻辑顺序，实际的调用由**中心协调器** (`ChatManager` / `EmbeddingManager`) 统一发起。
