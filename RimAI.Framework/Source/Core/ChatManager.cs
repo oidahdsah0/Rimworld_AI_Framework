@@ -36,7 +36,7 @@ namespace RimAI.Framework.Core
             cancellationToken.ThrowIfCancellationRequested();
             
             var httpRequest = _requestTranslator.Translate(request, config);
-            var httpResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken);
+            var httpResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken, isStreaming: false);
             if (httpResult.IsFailure)
                 return Result<UnifiedChatResponse>.Failure(httpResult.Error);
 
@@ -61,7 +61,7 @@ namespace RimAI.Framework.Core
             cancellationToken.ThrowIfCancellationRequested();
 
             var httpRequest = _requestTranslator.Translate(request, config);
-            var httpResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken);
+            var httpResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken, isStreaming: true);
             if (httpResult.IsFailure)
             {
                 yield return Result<UnifiedChatChunk>.Failure(httpResult.Error);
