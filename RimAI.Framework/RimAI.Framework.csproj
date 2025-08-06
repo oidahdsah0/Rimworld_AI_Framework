@@ -33,8 +33,10 @@
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <PropertyGroup>
       <!-- Cross-platform RimWorld directory detection -->
-      <!-- Windows (Steam) -->
-      <RimWorldDir Condition="$([MSBuild]::IsOSPlatform('Windows'))">C:\Program Files (x86)\Steam\steamapps\common\RimWorld</RimWorldDir>
+            <!-- Windows (Steam) -->
+      <RimWorldDir Condition="$([MSBuild]::IsOSPlatform('Windows')) and Exists('C:\Program Files (x86)\Steam\steamapps\common\RimWorld')">C:\Program Files (x86)\Steam\steamapps\common\RimWorld</RimWorldDir>
+      <!-- Windows (Steam, alternate D drive) -->
+      <RimWorldDir Condition="$([MSBuild]::IsOSPlatform('Windows')) and Exists('D:\SteamLibrary\steamapps\common\RimWorld')">D:\SteamLibrary\steamapps\common\RimWorld</RimWorldDir>
       <!-- macOS (Steam) -->
       <RimWorldDir Condition="$([MSBuild]::IsOSPlatform('OSX'))">$(HOME)/Library/Application Support/Steam/steamapps/common/RimWorld/RimWorldMac.app/</RimWorldDir>
       <!-- Linux (Steam) -->

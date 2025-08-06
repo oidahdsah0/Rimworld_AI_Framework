@@ -59,6 +59,12 @@ namespace RimAI.Framework.Contracts
         public string Name { get; set; }
 
         /// <summary>
+        /// 函数描述。供 LLM 理解工具用途。
+        /// </summary>
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
+        /// <summary>
         /// 参数 JSON 字符串。
         /// </summary>
         [JsonProperty("arguments")]
