@@ -175,7 +175,7 @@ if (embeddingsResult.IsSuccess)
 
 ### 📚 架构文档
 - 🏛️ **[V4 架构设计 (英文)](docs/ARCHITECTURE_V4.md)**: 深入了解数据驱动架构。
-- 🇨🇳 **[v4.3 API 调用指南 (中文)](docs/CN_v4.0_API调用指南.md)**: 最新 API 的详细指南。
+- 🇨🇳 **[v4.1.2 API 调用指南 (中文)](docs/CN_v4.0_API调用指南.md)**: 最新 API 的详细指南。
 
 ## 📄 **许可证** ⚖️
 

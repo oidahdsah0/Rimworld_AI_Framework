@@ -1,6 +1,6 @@
-# RimAI.Framework v4.3 - API Usage Guide
+# RimAI.Framework v4.1 - API Usage Guide
 
-Welcome to the RimAI.Framework v4.3 API! This version introduces a powerful, end-to-end streaming chat API. This guide will get you up and running quickly, allowing you to integrate the framework's advanced AI capabilities into your own mods.
+Welcome to the RimAI.Framework v4.1 API! This version introduces a powerful, end-to-end streaming chat API. This guide will get you up and running quickly, allowing you to integrate the framework's advanced AI capabilities into your own mods.
 
 ## 1. Quick Start Guide
 
@@ -214,5 +214,5 @@ public class UnifiedEmbeddingResponse
 (`EmbeddingResult` structure omitted)
 
 ---
-This updated guide now fully covers the capabilities of the v4.3 API. Happy coding!
+This updated guide now fully covers the capabilities of the v4.1 API. Happy coding!
 

@@ -34,7 +34,7 @@
 
 ## ⚡ **v4 Key Features** 🌟
 - **🔌 Data-Driven**: Connect to any API via JSON templates.
-- **🔄 End-to-End Streaming**: **New in v4.3!** A fully-featured streaming API for real-time, word-by-word responses.
+- **🔄 End-to-End Streaming**: **New in v4.1.2!** A fully-featured streaming API for real-time, word-by-word responses.
 - **✨ Embedding API**: First-class support for text embeddings.
 - **📊 Advanced Batching**: Optimized for chat and embeddings.
 - **🛡️ Robust & Safe**: Type-safe results with the `Result<T>` pattern.
@@ -186,7 +186,7 @@ This is an open-source project and contributions are welcome! 🎉 Please see ou
 
 ### 📚 Architecture Documentation
 - 🏛️ **[V4 Architecture Design](docs/ARCHITECTURE_V4.md)**: A deep dive into the data-driven architecture.
-- 🇨🇳 **[v4.3 API Guide (Chinese)](docs/CN_v4.0_API调用指南.md)**: Detailed guide for the latest API.
+- 🇨🇳 **[v4.1.2 API Guide (Chinese)](docs/CN_v4.0_API调用指南.md)**: Detailed guide for the latest API.
 
 ## 📄 **License** ⚖️
 

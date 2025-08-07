@@ -1,6 +1,6 @@
-# RimAI.Framework v4.3 - API 调用指南
+# RimAI.Framework v4.1 - API 调用指南
 
-欢迎使用 RimAI.Framework v4.3 API！本次更新带来了强大的**端到端流式聊天 API**。本指南将帮助您快速上手，并将框架的强大 AI 功能集成到您自己的 Mod 中。
+欢迎使用 RimAI.Framework v4.1 API！本次更新带来了强大的**端到端流式聊天 API**。本指南将帮助您快速上手，并将框架的强大 AI 功能集成到您自己的 Mod 中。
 
 ## 1. 快速上手指南 (Quick Start)
 
@@ -211,4 +211,4 @@ public class UnifiedEmbeddingResponse
 （`EmbeddingResult` 结构省略）
 
 ---
-这份经过升级的指南现在完整地展示了 v4.3 API 的全部功能。祝您开发愉快！
+这份经过升级的指南现在完整地展示了 v4.1 API 的全部功能。祝您开发愉快！
