@@ -8,7 +8,7 @@
 [![RimWorld](https://img.shields.io/badge/RimWorld-1.5%20%7C%201.6-brightgreen.svg)](https://rimworldgame.com/)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.7.2-blue.svg)](https://dotnet.microsoft.com/download/dotnet-framework)
 [![Steam Workshop](https://img.shields.io/badge/Steam-创意工坊-blue.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)
-[![Status](https://img.shields.io/badge/状态-v4.3-orange.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
+[![Status](https://img.shields.io/badge/状态-v4.1.2-orange.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
 
 > **🚀 一个革命性的、由 AI 驱动的 RimWorld 框架，它将大语言模型（LLM）的强大能力直接集成到您的殖民地管理体验中，实现智能化、高情境感知的行政决策！🎮✨**
 
