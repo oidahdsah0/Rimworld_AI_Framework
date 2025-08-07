@@ -3,7 +3,7 @@
   <RimAI.SettingsCategory>RimAI Framework</RimAI.SettingsCategory>
   <RimAI.ChatService>Chat Service</RimAI.ChatService>
   <RimAI.EmbeddingService>Embedding Service</RimAI.EmbeddingService>
-  <RimAI.EnableEmbedding>Enable Embedding</RimAI.EnableEmbedding>
+  <RimAI.EmbeddingAutoSync>Embedding API key was empty; synchronized with chat configuration automatically. Embedding is a mandatory core capability.</RimAI.EmbeddingAutoSync>
   <RimAI.NoProviders>No providers found.</RimAI.NoProviders>
   <RimAI.SelectProvider>Select Provider…</RimAI.SelectProvider>
   <RimAI.PlsSelectProvider>Please select a provider.</RimAI.PlsSelectProvider>

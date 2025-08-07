@@ -3,7 +3,6 @@
   <RimAI.SettingsCategory>RimAI フレームワーク</RimAI.SettingsCategory>
   <RimAI.ChatService>チャットサービス</RimAI.ChatService>
   <RimAI.EmbeddingService>ベクトル埋め込みサービス</RimAI.EmbeddingService>
-  <RimAI.EnableEmbedding>ベクトル埋め込みを有効にする</RimAI.EnableEmbedding>
   <RimAI.NoProviders>利用可能なプロバイダーが見つかりません。</RimAI.NoProviders>
   <RimAI.SelectProvider>プロバイダーを選択…</RimAI.SelectProvider>
   <RimAI.PlsSelectProvider>プロバイダーを選択してください。</RimAI.PlsSelectProvider>

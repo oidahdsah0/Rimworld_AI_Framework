@@ -17,11 +17,6 @@ namespace RimAI.Framework.UI
         /// </summary>
         public string ActiveEmbeddingProviderId = "";
 
-        /// <summary>
-        /// 一个布尔开关，用于控制是否启用并显示独立的 Embedding 服务配置。
-        /// 如果为 false，则 Embedding 服务将默认跟随聊天服务的提供商。
-        /// </summary>
-        public bool IsEmbeddingConfigEnabled = false;
 
         /// <summary>
         /// 这是 RimWorld Mod 开发中的核心方法，用于实现数据的保存和加载。
@@ -41,8 +36,6 @@ namespace RimAI.Framework.UI
             // 保存/加载当前选中的Embedding提供商ID
             Scribe_Values.Look(ref ActiveEmbeddingProviderId, "ActiveEmbeddingProviderId", "");
 
-            // 保存/加载Embedding配置的启用状态，默认为 false
-            Scribe_Values.Look(ref IsEmbeddingConfigEnabled, "IsEmbeddingConfigEnabled", false);
         }
     }
 }

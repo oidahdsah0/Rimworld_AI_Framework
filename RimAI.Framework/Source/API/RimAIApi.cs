@@ -113,19 +113,16 @@ namespace RimAI.Framework.API
             if (settings == null)
                 return Result<UnifiedEmbeddingResponse>.Failure("Could not load RimAI Framework settings.");
 
-            string providerIdToUse;
-            if (settings.IsEmbeddingConfigEnabled)
-            {
-                if (!FrameworkDI.SettingsManager.IsEmbeddingActive) return Result<UnifiedEmbeddingResponse>.Failure(EmbeddingNotActiveError);
-                if (string.IsNullOrEmpty(settings.ActiveEmbeddingProviderId)) return Result<UnifiedEmbeddingResponse>.Failure(EmbeddingProviderNotSetError);
-                providerIdToUse = settings.ActiveEmbeddingProviderId;
-            }
-            else
-            {
-                if (!FrameworkDI.SettingsManager.IsChatActive) return Result<UnifiedEmbeddingResponse>.Failure(ChatNotActiveError);
-                if (string.IsNullOrEmpty(settings.ActiveChatProviderId)) return Result<UnifiedEmbeddingResponse>.Failure(ChatProviderNotSetError);
-                providerIdToUse = settings.ActiveChatProviderId;
-            }
+            // 从设置获取有效的 Embedding 提供商，若为空则回退到 Chat 提供商（理论上不应为空，设置界面已做同步）。
+            string providerIdToUse = string.IsNullOrEmpty(settings.ActiveEmbeddingProviderId)
+                ? settings.ActiveChatProviderId
+                : settings.ActiveEmbeddingProviderId;
+
+            if (string.IsNullOrEmpty(providerIdToUse))
+                return Result<UnifiedEmbeddingResponse>.Failure(EmbeddingProviderNotSetError);
+
+            if (!FrameworkDI.SettingsManager.IsEmbeddingActive)
+                return Result<UnifiedEmbeddingResponse>.Failure(EmbeddingNotActiveError);
 
             try
             {

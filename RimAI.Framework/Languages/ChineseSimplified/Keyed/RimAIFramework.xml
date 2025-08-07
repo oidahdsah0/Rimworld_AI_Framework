@@ -3,7 +3,7 @@
   <RimAI.SettingsCategory>RimAI 框架</RimAI.SettingsCategory>
   <RimAI.ChatService>聊天服务</RimAI.ChatService>
   <RimAI.EmbeddingService>向量嵌入服务</RimAI.EmbeddingService>
-  <RimAI.EnableEmbedding>启用向量嵌入</RimAI.EnableEmbedding>
+  <RimAI.EmbeddingAutoSync>检测到未填写向量嵌入 API 密钥，已自动同步为聊天配置；向量嵌入为必需基础能力。</RimAI.EmbeddingAutoSync>
   <RimAI.NoProviders>未找到可用提供商。</RimAI.NoProviders>
   <RimAI.SelectProvider>选择提供商…</RimAI.SelectProvider>
   <RimAI.PlsSelectProvider>请选择一个提供商。</RimAI.PlsSelectProvider>

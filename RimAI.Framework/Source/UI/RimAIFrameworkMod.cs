@@ -48,8 +48,6 @@ namespace RimAI.Framework.UI
         private bool _isEmbeddingTesting = false;
         private string _embeddingTestStatusMessage = "RimAI.EmbedTestHint";
 
-        // Scroll view state
-        private bool _lastEmbeddingConfigEnabled = false;
         private Vector2 _scrollPosition = Vector2.zero;
         private float _viewHeight = 1200f;
 
@@ -77,33 +75,39 @@ namespace RimAI.Framework.UI
 
             // ----- Chat 区域 -----
             DrawSection(listing, "RimAI.ChatService".Translate(), settings.ActiveChatProviderId, ref _lastChatProviderId,
-                (newId) => settings.ActiveChatProviderId = newId,
+                (newId) => {
+                    settings.ActiveChatProviderId = newId;
+                    // 自动同步 Embedding 供应商
+                    settings.ActiveEmbeddingProviderId = newId;
+                },
                 FrameworkDI.SettingsManager.GetAllChatProviderIds(),
-                LoadChatSettings, DrawChatFields, HandleChatSave, HandleChatReset, HandleChatTest,
-                _isChatTesting, ref _chatTestStatusMessage);
+                LoadChatSettings, DrawChatFields);
 
             listing.GapLine(24f);
 
-            // Embedding 开关
-            listing.CheckboxLabeled("RimAI.EnableEmbedding".Translate(), ref settings.IsEmbeddingConfigEnabled);
-            if (settings.IsEmbeddingConfigEnabled != _lastEmbeddingConfigEnabled)
-            {
-                // 勾选状态变化时复位滚动条
-                _scrollPosition = Vector2.zero;
-                _lastEmbeddingConfigEnabled = settings.IsEmbeddingConfigEnabled;
-            }
-
             // ----- Embedding 区域 -----
-            if (settings.IsEmbeddingConfigEnabled)
-            {
-                DrawSection(listing, "RimAI.EmbeddingService".Translate(), settings.ActiveEmbeddingProviderId, ref _lastEmbeddingProviderId,
-                    (newId) => settings.ActiveEmbeddingProviderId = newId,
-                    FrameworkDI.SettingsManager.GetAllEmbeddingProviderIds(),
-                    LoadEmbeddingSettings, DrawEmbeddingFields, HandleEmbeddingSave, HandleEmbeddingReset, HandleEmbeddingTest,
-                    _isEmbeddingTesting, ref _embeddingTestStatusMessage);
-            }
+            DrawSection(listing, "RimAI.EmbeddingService".Translate(), settings.ActiveEmbeddingProviderId, ref _lastEmbeddingProviderId,
+                (newId) => settings.ActiveEmbeddingProviderId = newId,
+                FrameworkDI.SettingsManager.GetAllEmbeddingProviderIds(),
+                LoadEmbeddingSettings, DrawEmbeddingFields);
+
 
             // 记录内容高度并限制滚动范围
+            // ----- Bottom 操作按钮 -----
+            listing.GapLine(24f);
+            Rect btnRect = listing.GetRect(30f);
+            float btnW = btnRect.width / 3f - 6f;
+            if (Widgets.ButtonText(new Rect(btnRect.x, btnRect.y, btnW, 30f), "RimAI.Save".Translate()))
+                HandleCombinedSave();
+            if (Widgets.ButtonText(new Rect(btnRect.x + btnW + 4f, btnRect.y, btnW, 30f), "RimAI.Reset".Translate()))
+                HandleCombinedReset();
+            if (Widgets.ButtonText(new Rect(btnRect.x + 2 * (btnW + 4f), btnRect.y, btnW, 30f), "RimAI.Test".Translate(), active: !_isChatTesting && !_isEmbeddingTesting))
+                HandleCombinedTest();
+            listing.Gap(4f);
+            // 状态信息
+            listing.Label(_chatTestStatusMessage);
+            listing.Label(_embeddingTestStatusMessage);
+
             if (Event.current.type == EventType.Layout)
             {
                 _viewHeight = Mathf.Max(_viewHeight, listing.CurHeight);
@@ -116,19 +120,14 @@ namespace RimAI.Framework.UI
         }
 
         private void DrawSection(
-            Listing_Standard listing, 
-            string title, 
-            string activeProviderId, 
-            ref string lastProviderId, 
-            Action<string> setActiveProviderId, // 【修复】新增参数
-            IEnumerable<string> providerIds, 
-            Action<string> loadAction, 
-            Action<Listing_Standard> drawFieldsAction, 
-            Action saveAction, 
-            Action resetAction,
-            Action testAction, 
-            bool isTesting, 
-            ref string testStatusMessage)
+            Listing_Standard listing,
+            string title,
+            string activeProviderId,
+            ref string lastProviderId,
+            Action<string> setActiveProviderId,
+            IEnumerable<string> providerIds,
+            Action<string> loadAction,
+            Action<Listing_Standard> drawFieldsAction)
         {
             listing.Label(title);
             listing.Gap(4f);
@@ -151,27 +150,6 @@ namespace RimAI.Framework.UI
             if (string.IsNullOrEmpty(activeProviderId)) { listing.Label("RimAI.PlsSelectProvider".Translate()); return; }
             listing.Gap(12f);
             drawFieldsAction(listing);
-            listing.Gap(24f);
-            Rect buttonRect = listing.GetRect(30f);
-            if (testAction != null && resetAction != null)
-            {
-                float buttonWidth = buttonRect.width / 3f - 6f;
-                if (Widgets.ButtonText(new Rect(buttonRect.x, buttonRect.y, buttonWidth, 30f), "RimAI.Save".Translate()))
-                    saveAction();
-                if (Widgets.ButtonText(new Rect(buttonRect.x + buttonWidth + 4f, buttonRect.y, buttonWidth, 30f), "RimAI.Reset".Translate()))
-                    resetAction();
-                if (Widgets.ButtonText(new Rect(buttonRect.x + 2 * (buttonWidth + 4f), buttonRect.y, buttonWidth, 30f), "RimAI.Test".Translate(), active: !isTesting))
-                    testAction();
-                listing.Label(testStatusMessage);
-            }
-            else
-            {
-                float buttonWidth = buttonRect.width / 2f - 4f;
-                if (Widgets.ButtonText(new Rect(buttonRect.x, buttonRect.y, buttonWidth, 30f), "RimAI.Save".Translate()))
-                    saveAction();
-                if (resetAction != null && Widgets.ButtonText(new Rect(buttonRect.x + buttonWidth + 4f, buttonRect.y, buttonWidth, 30f), "RimAI.Reset".Translate()))
-                    resetAction();
-            }
         }
 
         // --- Chat Specific Logic ---
@@ -572,6 +550,34 @@ namespace RimAI.Framework.UI
             {
                 _isEmbeddingTesting = false;
             }
+        }
+
+        // --- Combined Chat + Embedding 操作 ---
+        private void HandleCombinedSave()
+        {
+            // 保存 Chat 设置
+            HandleChatSave();
+            // 如 Embedding Key 为空，则同步 Chat Key 和 Provider
+            if (string.IsNullOrWhiteSpace(_embeddingApiKeyBuffer))
+            {
+                settings.ActiveEmbeddingProviderId = settings.ActiveChatProviderId;
+                _embeddingApiKeyBuffer = _chatApiKeyBuffer;
+                Messages.Message("RimAI.EmbeddingAutoSync".Translate(), MessageTypeDefOf.CautionInput);
+            }
+            // 保存 Embedding 设置
+            HandleEmbeddingSave();
+        }
+
+        private void HandleCombinedReset()
+        {
+            HandleChatReset();
+            HandleEmbeddingReset();
+        }
+
+        private void HandleCombinedTest()
+        {
+            HandleChatTest();
+            HandleEmbeddingTest();
         }
     }
 }

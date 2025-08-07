@@ -3,7 +3,6 @@
   <RimAI.SettingsCategory>Фреймворк RimAI</RimAI.SettingsCategory>
   <RimAI.ChatService>Сервис чата</RimAI.ChatService>
   <RimAI.EmbeddingService>Сервис векторных эмбеддингов</RimAI.EmbeddingService>
-  <RimAI.EnableEmbedding>Включить векторные эмбеддинги</RimAI.EnableEmbedding>
   <RimAI.NoProviders>Доступные провайдеры не найдены.</RimAI.NoProviders>
   <RimAI.SelectProvider>Выбрать провайдера…</RimAI.SelectProvider>
   <RimAI.PlsSelectProvider>Пожалуйста, выберите провайдера.</RimAI.PlsSelectProvider>

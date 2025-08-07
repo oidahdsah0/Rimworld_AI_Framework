@@ -25,8 +25,7 @@ namespace RimAI.Framework.Configuration
         private static readonly ChatResponsePaths OpenAiChatResponsePaths = new ChatResponsePaths { Choices = "choices", Content = "content", ToolCalls = "tool_calls", FinishReason = "finish_reason" };
         private static readonly ToolPaths OpenAiToolPaths = new ToolPaths { Root = "tools", Type = "type", FunctionRoot = "function", FunctionName = "name", FunctionDescription = "description", FunctionParameters = "parameters" };
         private static readonly JsonModeConfig OpenAiJsonMode = new JsonModeConfig { Path = "response_format", Value = JObject.FromObject(new { type = "json_object" }) };
-        // Anthropic Claude JSON 模式：{"format":"json"}
-        private static readonly JsonModeConfig AnthropicJsonMode = new JsonModeConfig { Path = "format", Value = JToken.FromObject("json") };
+
         
         private static readonly EmbeddingRequestPaths OpenAiEmbeddingRequestPaths = new EmbeddingRequestPaths { Model = "model", Input = "input" };
         private static readonly EmbeddingResponsePaths OpenAiEmbeddingResponsePaths = new EmbeddingResponsePaths { DataList = "data", Embedding = "embedding", Index = "index" };
@@ -182,32 +181,6 @@ namespace RimAI.Framework.Configuration
                     ResponsePaths = OpenAiChatResponsePaths,
                     ToolPaths = OpenAiToolPaths,
                     JsonMode = OpenAiJsonMode
-                }
-            };
-            yield return new ChatTemplate
-            {
-                ProviderName = "Claude",
-                ProviderUrl = "https://www.anthropic.com/",
-                Http = new HttpConfig { AuthHeader = "x-api-key", AuthScheme = null, Headers = new Dictionary<string, string> { { "Content-Type", "application/json" }, { "anthropic-version", "2023-06-01" } } },
-                ChatApi = new ChatApiConfig
-                {
-                    Endpoint = "https://api.anthropic.com/v1/messages",
-                    DefaultModel = "claude-3-opus-20240229",
-                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 300 }),
-                    RequestPaths = new ChatRequestPaths
-                    {
-                        Model = "model",
-                        Messages = "messages",
-                        Temperature = "temperature",
-                        TopP = "top_p",
-                        TypicalP = "typical_p",
-                        MaxTokens = "max_tokens",
-                        Stream = "stream",
-                        Tools = "tools"
-                    },
-                    ResponsePaths = new ChatResponsePaths { Content = "content[0].text", FinishReason = "stop_reason", ToolCalls = "content" },
-                    ToolPaths = new ToolPaths { Root = "tools", Type = "type", FunctionName = "name", FunctionDescription = "description", FunctionParameters = "input_schema" },
-                    JsonMode = AnthropicJsonMode
                 }
             };
         }

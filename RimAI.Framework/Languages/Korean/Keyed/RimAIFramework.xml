@@ -3,7 +3,6 @@
   <RimAI.SettingsCategory>RimAI 프레임워크</RimAI.SettingsCategory>
   <RimAI.ChatService>채팅 서비스</RimAI.ChatService>
   <RimAI.EmbeddingService>벡터 임베딩 서비스</RimAI.EmbeddingService>
-  <RimAI.EnableEmbedding>벡터 임베딩 활성화</RimAI.EnableEmbedding>
   <RimAI.NoProviders>사용 가능한 공급자를 찾을 수 없습니다.</RimAI.NoProviders>
   <RimAI.SelectProvider>공급자 선택…</RimAI.SelectProvider>
   <RimAI.PlsSelectProvider>공급자를 선택해 주세요.</RimAI.PlsSelectProvider>

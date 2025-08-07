@@ -3,7 +3,6 @@
   <RimAI.SettingsCategory>RimAI Framework</RimAI.SettingsCategory>
   <RimAI.ChatService>Chat-Dienst</RimAI.ChatService>
   <RimAI.EmbeddingService>Vektor-Einbettungsdienst</RimAI.EmbeddingService>
-  <RimAI.EnableEmbedding>Vektor-Einbettung aktivieren</RimAI.EnableEmbedding>
   <RimAI.NoProviders>Keine verfügbaren Anbieter gefunden.</RimAI.NoProviders>
   <RimAI.SelectProvider>Anbieter auswählen…</RimAI.SelectProvider>
   <RimAI.PlsSelectProvider>Bitte wählen Sie einen Anbieter aus.</RimAI.PlsSelectProvider>
