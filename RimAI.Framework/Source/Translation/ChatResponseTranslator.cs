@@ -151,12 +151,20 @@ namespace RimAI.Framework.Translation
         {
             using var stream = await httpResponse.Content.ReadAsStreamAsync();
             using var reader = new StreamReader(stream);
-            
+
             string pendingData = null;
             while (!reader.EndOfStream)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var line = await reader.ReadLineAsync();
+                string line;
+                try
+                {
+                    line = await reader.ReadLineAsync();
+                }
+                catch (IOException) when (cancellationToken.IsCancellationRequested)
+                {
+                    yield break;
+                }
 
                 if (string.IsNullOrEmpty(line))
                 {

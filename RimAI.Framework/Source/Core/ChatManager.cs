@@ -78,14 +78,28 @@ namespace RimAI.Framework.Core
             var httpResponse = httpResult.Value;
             if (!httpResponse.IsSuccessStatusCode)
             {
-                var errorResponse = await _responseTranslator.TranslateAsync(httpResponse, config, cancellationToken);
-                yield return Result<UnifiedChatChunk>.Failure(errorResponse?.Message?.Content ?? $"Request failed: {httpResponse.StatusCode}");
+                try
+                {
+                    var errorResponse = await _responseTranslator.TranslateAsync(httpResponse, config, cancellationToken);
+                    yield return Result<UnifiedChatChunk>.Failure(errorResponse?.Message?.Content ?? $"Request failed: {httpResponse.StatusCode}");
+                }
+                finally
+                {
+                    httpResponse.Dispose();
+                }
                 yield break;
             }
-            
-            await foreach (var chunk in _responseTranslator.TranslateStreamAsync(httpResponse, config, cancellationToken))
+
+            try
             {
-                yield return Result<UnifiedChatChunk>.Success(chunk);
+                await foreach (var chunk in _responseTranslator.TranslateStreamAsync(httpResponse, config, cancellationToken))
+                {
+                    yield return Result<UnifiedChatChunk>.Success(chunk);
+                }
+            }
+            finally
+            {
+                httpResponse.Dispose();
             }
         }
 
