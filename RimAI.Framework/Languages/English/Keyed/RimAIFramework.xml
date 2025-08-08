@@ -37,4 +37,10 @@
   <RimAI.ChatResetFailed>Failed to reset chat configuration: {0}</RimAI.ChatResetFailed>
   <RimAI.EmbedResetSuccess>Embedding configuration has been reset to the default template.</RimAI.EmbedResetSuccess>
   <RimAI.EmbedResetFailed>Failed to reset embedding configuration: {0}</RimAI.EmbedResetFailed>
+  <!-- New keys for embedding concurrency and JSON validation errors -->
+  <RimAI.EmbedConcurrency>Embedding Concurrency Limit: {0}</RimAI.EmbedConcurrency>
+  <RimAI.ChatHeadersInvalid>Invalid custom headers JSON: {0}</RimAI.ChatHeadersInvalid>
+  <RimAI.ChatStaticParamsInvalid>Invalid static parameter override JSON: {0}</RimAI.ChatStaticParamsInvalid>
+  <RimAI.EmbedHeadersInvalid>Invalid embedding custom headers JSON: {0}</RimAI.EmbedHeadersInvalid>
+  <RimAI.EmbedStaticParamsInvalid>Invalid embedding static parameter override JSON: {0}</RimAI.EmbedStaticParamsInvalid>
 </LanguageData>
