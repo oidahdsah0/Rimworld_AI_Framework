@@ -37,4 +37,9 @@
   <RimAI.ChatResetFailed>채팅 설정 초기화 실패: {0}</RimAI.ChatResetFailed>
   <RimAI.EmbedResetSuccess>임베딩 설정이 기본 템플릿으로 초기화되었습니다.</RimAI.EmbedResetSuccess>
   <RimAI.EmbedResetFailed>임베딩 설정 초기화 실패: {0}</RimAI.EmbedResetFailed>
+  <RimAI.EmbedConcurrency>임베딩 동시 실행 제한: {0}</RimAI.EmbedConcurrency>
+  <RimAI.ChatHeadersInvalid>커스텀 헤더 JSON이 유효하지 않습니다: {0}</RimAI.ChatHeadersInvalid>
+  <RimAI.ChatStaticParamsInvalid>정적 파라미터 재정의 JSON이 유효하지 않습니다: {0}</RimAI.ChatStaticParamsInvalid>
+  <RimAI.EmbedHeadersInvalid>임베딩 커스텀 헤더 JSON이 유효하지 않습니다: {0}</RimAI.EmbedHeadersInvalid>
+  <RimAI.EmbedStaticParamsInvalid>임베딩 정적 파라미터 재정의 JSON이 유효하지 않습니다: {0}</RimAI.EmbedStaticParamsInvalid>
 </LanguageData>

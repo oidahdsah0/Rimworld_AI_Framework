@@ -37,7 +37,6 @@
   <RimAI.ChatResetFailed>聊天配置重置失败：{0}</RimAI.ChatResetFailed>
   <RimAI.EmbedResetSuccess>向量嵌入配置已重置，回到默认模板。</RimAI.EmbedResetSuccess>
   <RimAI.EmbedResetFailed>向量嵌入配置重置失败：{0}</RimAI.EmbedResetFailed>
-  <!-- 新增：并发与 JSON 校验错误提示 -->
   <RimAI.EmbedConcurrency>向量嵌入并发上限：{0}</RimAI.EmbedConcurrency>
   <RimAI.ChatHeadersInvalid>自定义请求头 JSON 无效：{0}</RimAI.ChatHeadersInvalid>
   <RimAI.ChatStaticParamsInvalid>静态参数覆盖 JSON 无效：{0}</RimAI.ChatStaticParamsInvalid>

@@ -37,4 +37,9 @@
   <RimAI.ChatResetFailed>Échec de la réinitialisation du chat : {0}</RimAI.ChatResetFailed>
   <RimAI.EmbedResetSuccess>Configuration d'Embedding réinitialisée avec le modèle intégré.</RimAI.EmbedResetSuccess>
   <RimAI.EmbedResetFailed>Échec de la réinitialisation d'Embedding : {0}</RimAI.EmbedResetFailed>
+  <RimAI.EmbedConcurrency>Limite de concurrence pour l'intégration : {0}</RimAI.EmbedConcurrency>
+  <RimAI.ChatHeadersInvalid>JSON des en-têtes personnalisés invalide : {0}</RimAI.ChatHeadersInvalid>
+  <RimAI.ChatStaticParamsInvalid>JSON de surcharge des paramètres statiques invalide : {0}</RimAI.ChatStaticParamsInvalid>
+  <RimAI.EmbedHeadersInvalid>JSON des en-têtes personnalisés d'intégration invalide : {0}</RimAI.EmbedHeadersInvalid>
+  <RimAI.EmbedStaticParamsInvalid>JSON de surcharge des paramètres statiques d'intégration invalide : {0}</RimAI.EmbedStaticParamsInvalid>
 </LanguageData>

@@ -37,4 +37,9 @@
   <RimAI.ChatResetFailed>Chat-Konfiguration konnte nicht zurückgesetzt werden: {0}</RimAI.ChatResetFailed>
   <RimAI.EmbedResetSuccess>Embedding-Konfiguration wurde auf die integrierte Vorlage zurückgesetzt.</RimAI.EmbedResetSuccess>
   <RimAI.EmbedResetFailed>Embedding-Konfiguration konnte nicht zurückgesetzt werden: {0}</RimAI.EmbedResetFailed>
+  <RimAI.EmbedConcurrency>Einbettungs-Gleichzeitigkeitslimit: {0}</RimAI.EmbedConcurrency>
+  <RimAI.ChatHeadersInvalid>Ungültiges JSON für benutzerdefinierte Header: {0}</RimAI.ChatHeadersInvalid>
+  <RimAI.ChatStaticParamsInvalid>Ungültiges JSON für Überschreiben statischer Parameter: {0}</RimAI.ChatStaticParamsInvalid>
+  <RimAI.EmbedHeadersInvalid>Ungültiges JSON für benutzerdefinierte Einbettungs-Header: {0}</RimAI.EmbedHeadersInvalid>
+  <RimAI.EmbedStaticParamsInvalid>Ungültiges JSON für Überschreiben statischer Einbettungs-Parameter: {0}</RimAI.EmbedStaticParamsInvalid>
 </LanguageData>

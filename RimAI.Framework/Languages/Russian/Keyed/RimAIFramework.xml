@@ -37,4 +37,9 @@
   <RimAI.ChatResetFailed>Не удалось сбросить настройки чата: {0}</RimAI.ChatResetFailed>
   <RimAI.EmbedResetSuccess>Настройки эмбеддинга сброшены до встроенного шаблона.</RimAI.EmbedResetSuccess>
   <RimAI.EmbedResetFailed>Не удалось сбросить настройки эмбеддинга: {0}</RimAI.EmbedResetFailed>
+  <RimAI.EmbedConcurrency>Лимит параллелизма для эмбеддингов: {0}</RimAI.EmbedConcurrency>
+  <RimAI.ChatHeadersInvalid>Недопустимый JSON пользовательских заголовков: {0}</RimAI.ChatHeadersInvalid>
+  <RimAI.ChatStaticParamsInvalid>Недопустимый JSON переопределения статических параметров: {0}</RimAI.ChatStaticParamsInvalid>
+  <RimAI.EmbedHeadersInvalid>Недопустимый JSON пользовательских заголовков для эмбеддингов: {0}</RimAI.EmbedHeadersInvalid>
+  <RimAI.EmbedStaticParamsInvalid>Недопустимый JSON переопределения статических параметров для эмбеддингов: {0}</RimAI.EmbedStaticParamsInvalid>
 </LanguageData>

@@ -37,4 +37,9 @@
   <RimAI.ChatResetFailed>チャット設定のリセットに失敗しました: {0}</RimAI.ChatResetFailed>
   <RimAI.EmbedResetSuccess>埋め込み設定が組み込みテンプレートにリセットされました。</RimAI.EmbedResetSuccess>
   <RimAI.EmbedResetFailed>埋め込み設定のリセットに失敗しました: {0}</RimAI.EmbedResetFailed>
+  <RimAI.EmbedConcurrency>埋め込みの同時実行上限: {0}</RimAI.EmbedConcurrency>
+  <RimAI.ChatHeadersInvalid>カスタムヘッダーの JSON が無効です: {0}</RimAI.ChatHeadersInvalid>
+  <RimAI.ChatStaticParamsInvalid>静的パラメータ上書きの JSON が無効です: {0}</RimAI.ChatStaticParamsInvalid>
+  <RimAI.EmbedHeadersInvalid>埋め込みのカスタムヘッダーの JSON が無効です: {0}</RimAI.EmbedHeadersInvalid>
+  <RimAI.EmbedStaticParamsInvalid>埋め込みの静的パラメータ上書きの JSON が無効です: {0}</RimAI.EmbedStaticParamsInvalid>
 </LanguageData>
