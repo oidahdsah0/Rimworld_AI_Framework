@@ -65,9 +65,8 @@ namespace RimAI.Framework.Core
 
         private async Task<Result<UnifiedEmbeddingResponse>> ProcessBatchesConcurrentlyAsync(UnifiedEmbeddingRequest request, MergedEmbeddingConfig config, CancellationToken cancellationToken)
         {
-            // Limit embedding concurrency to avoid provider overload. Default 4.
-            int maxEmbeddingConcurrency = 4;
-            using var semaphore = new SemaphoreSlim(maxEmbeddingConcurrency);
+            // Limit embedding concurrency to avoid provider overload.
+            using var semaphore = new SemaphoreSlim(config.ConcurrencyLimit);
 
             var tasks = new List<Task<Result<UnifiedEmbeddingResponse>>>();
             for (int i = 0; i < request.Inputs.Count; i += config.MaxBatchSize) {

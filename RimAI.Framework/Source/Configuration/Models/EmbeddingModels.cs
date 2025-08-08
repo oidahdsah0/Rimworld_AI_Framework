@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System; // for Math.Max
 
 namespace RimAI.Framework.Configuration.Models
 {
@@ -21,6 +22,7 @@ namespace RimAI.Framework.Configuration.Models
         [JsonProperty("endpointOverride")] public string EndpointOverride { get; set; }
         [JsonProperty("customHeaders")] public Dictionary<string, string> CustomHeaders { get; set; }
         [JsonProperty("staticParametersOverride")] public JObject StaticParametersOverride { get; set; }
+        [JsonProperty("concurrencyLimit")] public int? ConcurrencyLimit { get; set; }
     }
 
     // --- Merged Config Model ---
@@ -33,6 +35,7 @@ namespace RimAI.Framework.Configuration.Models
         public string Endpoint => User.EndpointOverride ?? Template.EmbeddingApi.Endpoint;
         public string Model => User.ModelOverride ?? Template.EmbeddingApi.DefaultModel;
         public int MaxBatchSize => Template.EmbeddingApi.MaxBatchSize;
+        public int ConcurrencyLimit => Math.Max(1, User.ConcurrencyLimit ?? 4);
     }
 
     // --- Sub-Models (re-defined from Shared files) ---

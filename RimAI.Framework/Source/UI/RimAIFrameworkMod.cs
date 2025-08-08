@@ -47,6 +47,7 @@ namespace RimAI.Framework.UI
         private string _lastEmbeddingProviderId = null;
         private bool _isEmbeddingTesting = false;
         private string _embeddingTestStatusMessage = "RimAI.EmbedTestHint";
+        private int _embeddingConcurrencyLimitBuffer = 4;
 
         private Vector2 _scrollPosition = Vector2.zero;
         private float _viewHeight = 1200f;
@@ -308,6 +309,9 @@ namespace RimAI.Framework.UI
             listing.Label("RimAI.StaticParamsOverride".Translate());
             _embeddingStaticParamsBuffer = Widgets.TextField(listing.GetRect(30f), _embeddingStaticParamsBuffer);
             listing.Gap(5f);
+            listing.Label("RimAI.EmbedConcurrency".Translate(_embeddingConcurrencyLimitBuffer.ToString()));
+            _embeddingConcurrencyLimitBuffer = (int)listing.Slider(_embeddingConcurrencyLimitBuffer, 1, 20);
+            listing.Gap(5f);
         }
         
         private void LoadEmbeddingSettings(string providerId) {
@@ -320,6 +324,7 @@ namespace RimAI.Framework.UI
             _embeddingModelBuffer = userConfig?.ModelOverride ?? template?.EmbeddingApi?.DefaultModel ?? "";
             _embeddingCustomHeadersBuffer = userConfig?.CustomHeaders != null ? JsonConvert.SerializeObject(userConfig.CustomHeaders, Formatting.None) : "";
             _embeddingStaticParamsBuffer = userConfig?.StaticParametersOverride != null ? userConfig.StaticParametersOverride.ToString(Formatting.None) : "";
+            _embeddingConcurrencyLimitBuffer = userConfig?.ConcurrencyLimit ?? 4;
             _embeddingTestStatusMessage = "RimAI.EmbedTestHint".Translate();
         }
         
@@ -336,7 +341,8 @@ namespace RimAI.Framework.UI
                 EndpointOverride = _embeddingEndpointBuffer,
                 ModelOverride = _embeddingModelBuffer,
                 CustomHeaders = parsedHeaders,
-                StaticParametersOverride = parsedStaticParams
+                StaticParametersOverride = parsedStaticParams,
+                ConcurrencyLimit = _embeddingConcurrencyLimitBuffer
             };
             FrameworkDI.SettingsManager.WriteEmbeddingUserConfig(settings.ActiveEmbeddingProviderId, config);
             FrameworkDI.SettingsManager.ReloadConfigs();
