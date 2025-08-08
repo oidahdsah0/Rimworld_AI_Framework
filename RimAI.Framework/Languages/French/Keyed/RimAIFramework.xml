@@ -3,6 +3,7 @@
   <RimAI.SettingsCategory>Framework RimAI</RimAI.SettingsCategory>
   <RimAI.ChatService>Service de chat</RimAI.ChatService>
   <RimAI.EmbeddingService>Service d'intégration de vecteurs</RimAI.EmbeddingService>
+  <RimAI.EmbeddingAutoSync>La clé API d'intégration est vide ; synchronisée automatiquement avec la configuration du chat. L'intégration est une capacité de base obligatoire.</RimAI.EmbeddingAutoSync>
   <RimAI.NoProviders>Aucun fournisseur disponible.</RimAI.NoProviders>
   <RimAI.SelectProvider>Sélectionner un fournisseur…</RimAI.SelectProvider>
   <RimAI.PlsSelectProvider>Veuillez sélectionner un fournisseur.</RimAI.PlsSelectProvider>

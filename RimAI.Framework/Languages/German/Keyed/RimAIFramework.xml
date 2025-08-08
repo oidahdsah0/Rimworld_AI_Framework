@@ -3,6 +3,7 @@
   <RimAI.SettingsCategory>RimAI Framework</RimAI.SettingsCategory>
   <RimAI.ChatService>Chat-Dienst</RimAI.ChatService>
   <RimAI.EmbeddingService>Vektor-Einbettungsdienst</RimAI.EmbeddingService>
+  <RimAI.EmbeddingAutoSync>Einbettungs-API-Schlüssel war leer; automatisch mit der Chat-Konfiguration synchronisiert. Einbettung ist eine verpflichtende Kernfunktion.</RimAI.EmbeddingAutoSync>
   <RimAI.NoProviders>Keine verfügbaren Anbieter gefunden.</RimAI.NoProviders>
   <RimAI.SelectProvider>Anbieter auswählen…</RimAI.SelectProvider>
   <RimAI.PlsSelectProvider>Bitte wählen Sie einen Anbieter aus.</RimAI.PlsSelectProvider>

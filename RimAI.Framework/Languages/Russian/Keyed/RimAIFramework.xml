@@ -3,6 +3,7 @@
   <RimAI.SettingsCategory>Фреймворк RimAI</RimAI.SettingsCategory>
   <RimAI.ChatService>Сервис чата</RimAI.ChatService>
   <RimAI.EmbeddingService>Сервис векторных эмбеддингов</RimAI.EmbeddingService>
+  <RimAI.EmbeddingAutoSync>Ключ API для эмбеддингов пуст; автоматически синхронизирован с конфигурацией чата. Эмбеддинги — обязательная базовая возможность.</RimAI.EmbeddingAutoSync>
   <RimAI.NoProviders>Доступные провайдеры не найдены.</RimAI.NoProviders>
   <RimAI.SelectProvider>Выбрать провайдера…</RimAI.SelectProvider>
   <RimAI.PlsSelectProvider>Пожалуйста, выберите провайдера.</RimAI.PlsSelectProvider>

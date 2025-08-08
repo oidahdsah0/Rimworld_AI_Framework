@@ -3,6 +3,7 @@
   <RimAI.SettingsCategory>RimAI フレームワーク</RimAI.SettingsCategory>
   <RimAI.ChatService>チャットサービス</RimAI.ChatService>
   <RimAI.EmbeddingService>ベクトル埋め込みサービス</RimAI.EmbeddingService>
+  <RimAI.EmbeddingAutoSync>埋め込みの API キーが空でした。チャットの設定に自動同期しました。埋め込みは必須の基本機能です。</RimAI.EmbeddingAutoSync>
   <RimAI.NoProviders>利用可能なプロバイダーが見つかりません。</RimAI.NoProviders>
   <RimAI.SelectProvider>プロバイダーを選択…</RimAI.SelectProvider>
   <RimAI.PlsSelectProvider>プロバイダーを選択してください。</RimAI.PlsSelectProvider>
