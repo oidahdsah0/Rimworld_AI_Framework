@@ -67,7 +67,13 @@ namespace RimAI.Framework.Execution
 
                 try
                 {
-                    await Task.Delay(policy.InitialDelay, cancellationToken);
+                    var delay = policy.InitialDelay;
+                    if (policy.UseExponentialBackoff)
+                    {
+                        // Exponential backoff: InitialDelay * 2^i
+                        try { delay = TimeSpan.FromMilliseconds(policy.InitialDelay.TotalMilliseconds * Math.Pow(2, i)); } catch { delay = policy.InitialDelay; }
+                    }
+                    await Task.Delay(delay, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {

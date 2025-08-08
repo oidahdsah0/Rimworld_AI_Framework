@@ -205,6 +205,13 @@ namespace RimAI.Framework.UI
         }
         
         private void HandleChatSave() {
+            Dictionary<string,string> parsedHeaders = null;
+            JObject parsedStaticParams = null;
+            try { parsedHeaders = string.IsNullOrWhiteSpace(_chatCustomHeadersBuffer) ? null : JsonConvert.DeserializeObject<Dictionary<string,string>>(_chatCustomHeadersBuffer); }
+            catch (Exception ex) { Messages.Message("RimAI.ChatHeadersInvalid".Translate(ex.Message), MessageTypeDefOf.NegativeEvent); return; }
+            try { parsedStaticParams = string.IsNullOrWhiteSpace(_chatStaticParamsBuffer) ? null : JObject.Parse(_chatStaticParamsBuffer); }
+            catch (Exception ex) { Messages.Message("RimAI.ChatStaticParamsInvalid".Translate(ex.Message), MessageTypeDefOf.NegativeEvent); return; }
+
             var config = new ChatUserConfig {
                 ApiKey = _chatApiKeyBuffer,
                 EndpointOverride = _chatEndpointBuffer,
@@ -214,8 +221,8 @@ namespace RimAI.Framework.UI
                 TypicalP = _chatTypicalPBuffer,
                 MaxTokens = _chatMaxTokensBuffer == 0 ? null : (int?)_chatMaxTokensBuffer,
                 ConcurrencyLimit = _chatConcurrencyLimitBuffer,
-                CustomHeaders = string.IsNullOrWhiteSpace(_chatCustomHeadersBuffer) ? null : JsonConvert.DeserializeObject<Dictionary<string,string>>(_chatCustomHeadersBuffer),
-                StaticParametersOverride = string.IsNullOrWhiteSpace(_chatStaticParamsBuffer) ? null : JObject.Parse(_chatStaticParamsBuffer)
+                CustomHeaders = parsedHeaders,
+                StaticParametersOverride = parsedStaticParams
             };
             FrameworkDI.SettingsManager.WriteChatUserConfig(settings.ActiveChatProviderId, config);
             FrameworkDI.SettingsManager.ReloadConfigs();
@@ -317,12 +324,19 @@ namespace RimAI.Framework.UI
         }
         
         private void HandleEmbeddingSave() {
+            Dictionary<string,string> parsedHeaders = null;
+            JObject parsedStaticParams = null;
+            try { parsedHeaders = string.IsNullOrWhiteSpace(_embeddingCustomHeadersBuffer) ? null : JsonConvert.DeserializeObject<Dictionary<string,string>>(_embeddingCustomHeadersBuffer); }
+            catch (Exception ex) { Messages.Message("RimAI.EmbedHeadersInvalid".Translate(ex.Message), MessageTypeDefOf.NegativeEvent); return; }
+            try { parsedStaticParams = string.IsNullOrWhiteSpace(_embeddingStaticParamsBuffer) ? null : JObject.Parse(_embeddingStaticParamsBuffer); }
+            catch (Exception ex) { Messages.Message("RimAI.EmbedStaticParamsInvalid".Translate(ex.Message), MessageTypeDefOf.NegativeEvent); return; }
+
             var config = new EmbeddingUserConfig {
                 ApiKey = _embeddingApiKeyBuffer,
                 EndpointOverride = _embeddingEndpointBuffer,
                 ModelOverride = _embeddingModelBuffer,
-                CustomHeaders = string.IsNullOrWhiteSpace(_embeddingCustomHeadersBuffer) ? null : JsonConvert.DeserializeObject<Dictionary<string,string>>(_embeddingCustomHeadersBuffer),
-                StaticParametersOverride = string.IsNullOrWhiteSpace(_embeddingStaticParamsBuffer) ? null : JObject.Parse(_embeddingStaticParamsBuffer)
+                CustomHeaders = parsedHeaders,
+                StaticParametersOverride = parsedStaticParams
             };
             FrameworkDI.SettingsManager.WriteEmbeddingUserConfig(settings.ActiveEmbeddingProviderId, config);
             FrameworkDI.SettingsManager.ReloadConfigs();

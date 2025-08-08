@@ -152,12 +152,38 @@ namespace RimAI.Framework.Translation
             using var stream = await httpResponse.Content.ReadAsStreamAsync();
             using var reader = new StreamReader(stream);
             
+            string pendingData = null;
             while (!reader.EndOfStream)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var line = await reader.ReadLineAsync();
 
-                if (string.IsNullOrEmpty(line) || !line.StartsWith("data: ")) continue;
+                if (string.IsNullOrEmpty(line))
+                {
+                    // Empty line usually separates events; flush pending data
+                    if (!string.IsNullOrEmpty(pendingData))
+                    {
+                        JObject jObject = null;
+                        try { jObject = JObject.Parse(pendingData); }
+                        catch (JsonException) { /* ignore and continue */ }
+                        if (jObject != null)
+                        {
+                            var finishReason = jObject.SelectToken(config.Template.ChatApi.ResponsePaths.Choices)?.FirstOrDefault()
+                                                   ?.SelectToken(config.Template.ChatApi.ResponsePaths.FinishReason)?.ToString();
+                            yield return (jObject, finishReason);
+                        }
+                        pendingData = null;
+                    }
+                    continue;
+                }
+
+                if (line.StartsWith("event:"))
+                {
+                    // ignore named event lines for compatibility
+                    continue;
+                }
+
+                if (!line.StartsWith("data: ")) continue;
 
                 var data = line.Substring(6);
                 if (data == "[DONE]")
@@ -166,21 +192,20 @@ namespace RimAI.Framework.Translation
                     break;
                 }
 
-                // 【修复 #2】: 将 yield return 移出 try-catch 块
-                JObject jObject = null;
-                try
-                {
-                    jObject = JObject.Parse(data);
-                }
-                catch (JsonException) 
-                { 
-                    continue; 
-                }
+                // aggregate potential multi-line JSON payloads
+                if (pendingData == null) pendingData = data;
+                else pendingData += data;
+            }
 
+            // flush tail
+            if (!string.IsNullOrEmpty(pendingData))
+            {
+                JObject jObject = null;
+                try { jObject = JObject.Parse(pendingData); } catch (JsonException) { }
                 if (jObject != null)
                 {
                     var finishReason = jObject.SelectToken(config.Template.ChatApi.ResponsePaths.Choices)?.FirstOrDefault()
-                                               ?.SelectToken(config.Template.ChatApi.ResponsePaths.FinishReason)?.ToString();
+                                           ?.SelectToken(config.Template.ChatApi.ResponsePaths.FinishReason)?.ToString();
                     yield return (jObject, finishReason);
                 }
             }

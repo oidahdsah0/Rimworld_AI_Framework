@@ -128,8 +128,26 @@ namespace RimAI.Framework.Configuration
 
         private void UpdateActiveStatus()
         {
-            IsChatActive = _chatUserConfigs.Values.Any(c => c != null && !string.IsNullOrWhiteSpace(c.ApiKey));
-            IsEmbeddingActive = _embeddingUserConfigs.Values.Any(c => c != null && !string.IsNullOrWhiteSpace(c.ApiKey));
+            // A provider is considered active if either:
+            // - It requires auth (has AuthHeader) and has a non-empty ApiKey, or
+            // - It does NOT require auth (no AuthHeader), regardless of ApiKey value.
+            IsChatActive = _chatTemplates.Any(kv =>
+            {
+                var providerId = kv.Key;
+                var template = kv.Value;
+                _chatUserConfigs.TryGetValue(providerId, out var userCfg);
+                bool requiresAuth = !string.IsNullOrWhiteSpace(template?.Http?.AuthHeader);
+                return requiresAuth ? !string.IsNullOrWhiteSpace(userCfg?.ApiKey) : true;
+            });
+
+            IsEmbeddingActive = _embeddingTemplates.Any(kv =>
+            {
+                var providerId = kv.Key;
+                var template = kv.Value;
+                _embeddingUserConfigs.TryGetValue(providerId, out var userCfg);
+                bool requiresAuth = !string.IsNullOrWhiteSpace(template?.Http?.AuthHeader);
+                return requiresAuth ? !string.IsNullOrWhiteSpace(userCfg?.ApiKey) : true;
+            });
             RimAILogger.Log($"SettingsManager: Active status updated. Chat={IsChatActive}, Embedding={IsEmbeddingActive}");
         }
     }

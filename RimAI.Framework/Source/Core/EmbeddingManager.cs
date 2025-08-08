@@ -48,20 +48,35 @@ namespace RimAI.Framework.Core
                 return Result<UnifiedEmbeddingResponse>.Failure(httpResult.Error);
 
             var httpResponse = httpResult.Value;
-            if (!httpResponse.IsSuccessStatusCode) {
-                var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                return Result<UnifiedEmbeddingResponse>.Failure($"Request failed: {httpResponse.StatusCode}: {errorContent}");
-            }
+            try
+            {
+                if (!httpResponse.IsSuccessStatusCode) {
+                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
+                    return Result<UnifiedEmbeddingResponse>.Failure($"Request failed: {httpResponse.StatusCode}: {errorContent}");
+                }
 
-            return await _responseTranslator.TranslateAsync(httpResponse, config, cancellationToken);
+                return await _responseTranslator.TranslateAsync(httpResponse, config, cancellationToken);
+            }
+            finally
+            {
+                httpResponse.Dispose();
+            }
         }
 
         private async Task<Result<UnifiedEmbeddingResponse>> ProcessBatchesConcurrentlyAsync(UnifiedEmbeddingRequest request, MergedEmbeddingConfig config, CancellationToken cancellationToken)
         {
+            // Limit embedding concurrency to avoid provider overload. Default 4.
+            int maxEmbeddingConcurrency = 4;
+            using var semaphore = new SemaphoreSlim(maxEmbeddingConcurrency);
+
             var tasks = new List<Task<Result<UnifiedEmbeddingResponse>>>();
             for (int i = 0; i < request.Inputs.Count; i += config.MaxBatchSize) {
                 var batchInputs = request.Inputs.GetRange(i, System.Math.Min(config.MaxBatchSize, request.Inputs.Count - i));
-                tasks.Add(ProcessSingleBatchAsync(new UnifiedEmbeddingRequest { Inputs = batchInputs }, config, cancellationToken));
+                await semaphore.WaitAsync(cancellationToken);
+                tasks.Add(Task.Run(async () => {
+                    try { return await ProcessSingleBatchAsync(new UnifiedEmbeddingRequest { Inputs = batchInputs }, config, cancellationToken); }
+                    finally { semaphore.Release(); }
+                }, cancellationToken));
             }
 
             var taskResults = await Task.WhenAll(tasks);

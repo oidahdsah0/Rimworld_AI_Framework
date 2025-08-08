@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System; // added for Math.Max
 
 namespace RimAI.Framework.Configuration.Models
 {
@@ -36,7 +37,7 @@ namespace RimAI.Framework.Configuration.Models
         public ChatUserConfig User { get; set; }
         public string ProviderName => Template.ProviderName;
         public string ApiKey => User.ApiKey;
-        public int ConcurrencyLimit => User.ConcurrencyLimit ?? 5;
+        public int ConcurrencyLimit => Math.Max(1, User.ConcurrencyLimit ?? 5);
         public string Endpoint => User.EndpointOverride ?? Template.ChatApi.Endpoint;
         public string Model => User.ModelOverride ?? Template.ChatApi.DefaultModel;
     }

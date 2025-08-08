@@ -7,6 +7,7 @@ using RimAI.Framework.Configuration.Models;
 using RimAI.Framework.Shared.Logging;
 using RimAI.Framework.Contracts;
 using System.Threading;
+using System.Collections.Generic; // added
 
 namespace RimAI.Framework.Translation
 {
@@ -37,12 +38,33 @@ namespace RimAI.Framework.Translation
                     return Result<UnifiedEmbeddingResponse>.Failure($"Could not find data list at path: '{dataListPath}' in response.");
                 }
 
-                var results = dataArray.Select(item => new EmbeddingResult
+                var results = new List<EmbeddingResult>();
+                foreach (var item in dataArray)
                 {
-                    // 【修复】使用 .ToList() 将 float[] 转换为 List<float>
-                    Embedding = item.SelectToken(embeddingPath)?.ToObject<float[]>()?.ToList(),
-                    Index = item.SelectToken(indexPath)?.Value<int>() ?? 0
-                }).ToList();
+                    var embeddingToken = item.SelectToken(embeddingPath);
+                    List<float> embeddingFloats = null;
+                    if (embeddingToken != null)
+                    {
+                        try
+                        {
+                            // Prefer double then convert to float to be tolerant of providers returning doubles
+                            var doubles = embeddingToken.ToObject<List<double>>();
+                            embeddingFloats = doubles?.Select(d => (float)d).ToList();
+                        }
+                        catch
+                        {
+                            // Fallback to float[] if provider already uses float type
+                            var floats = embeddingToken.ToObject<float[]>();
+                            embeddingFloats = floats?.ToList();
+                        }
+                    }
+
+                    results.Add(new EmbeddingResult
+                    {
+                        Embedding = embeddingFloats,
+                        Index = item.SelectToken(indexPath)?.Value<int>() ?? 0
+                    });
+                }
 
                 return Result<UnifiedEmbeddingResponse>.Success(new UnifiedEmbeddingResponse { Data = results });
             }
