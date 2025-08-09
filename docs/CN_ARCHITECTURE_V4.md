@@ -48,6 +48,11 @@ RimAI.Framework/
     ├── Execution/
     │   ├── Models/
     │   │   └── RetryPolicy.cs           # [执行-模型] 定义HTTP请求重试策略的数据模型。
+    │   ├── Cache/                       # [执行-缓存] 统一响应缓存与同请求合流（in-flight de-dup）
+    │   │   ├── ICacheService.cs
+    │   │   ├── MemoryCacheService.cs
+    │   │   ├── IInFlightCoordinator.cs
+    │   │   └── InFlightCoordinator.cs
     │   ├── HttpClientFactory.cs         # [执行-基础设施] 管理HttpClient实例的生命周期，确保最佳实践。
     │   └── HttpExecutor.cs              # [执行-服务] 负责发送HTTP请求并应用重试策略。
     │
@@ -292,3 +297,42 @@ graph TD
 这个模型明确了 **UI 代码** 和 **`SettingsManager`** 之间的职责边界：
 *   **UI (View/Controller)**: 负责用户交互、数据收集、调用服务。
 *   **`SettingsManager` (Service/Model)**: 负责配置文件的【读】和【写】的底层实现，并向上层提供统一的配置数据和状态。
+
+## 7. 统一缓存系统设计（Framework 层）
+
+### 7.1 目标与归属
+
+* **下沉到 Framework**：通用缓存能力位于 Framework 层，由 `ChatManager` / `EmbeddingManager` 统一编排使用；Core 层不再做通用结果缓存，仅保留必要的领域索引与“伪流式切片”。
+* **一次实现，全局复用**：统一覆盖 Chat（流式/非流式）与 Embedding 的缓存与同请求合流，避免各模块重复造轮子。
+
+### 7.2 能力清单
+
+* **键设计（Key Strategy）**：
+  - Chat Key = 指纹(providerName, endpoint（去除 apiKey 占位）, model) + 归一化请求摘要（messages[role, content, tool_call_id, tool_calls]、tools 定义、JSON 模式、温度/采样/长度等参数、模板 `StaticParameters` 及用户覆盖）。
+  - 忽略 `stream` 标记（同一语义请求，流式/非流式命中同一条目）。
+  - Embedding Key（逐条输入粒度）= providerName + model + sha256(normalize(text))。
+  - 键永不包含 `apiKey` 或敏感 Header 值。
+* **存储策略（TTL/L1/L2）**：默认短 TTL（60–300 秒，可配），失败不入缓存；提供内存 L1 实现，磁盘 L2 作为可选增强。
+* **同请求合流（In‑Flight De‑Dup）**：对非流式请求，以 Key 聚合并发，落一份真实调用，其他并发等待复用结果。
+* **失效策略**：当 Provider/Model 变更或设置保存时，按命名空间批量失效（如 `chat:{provider}:{model}:*`、`embed:{provider}:{model}:*`）。
+* **观测指标**：命中率、合流次数、节省请求/时延，便于后续在 UI 暴露与调优。
+
+### 7.3 流式兼容策略
+
+* 命中缓存时：直接将完整 `UnifiedChatResponse.Message.Content` 切片成 `UnifiedChatChunk` 进行“伪流式”秒回，末块携带 `FinishReason` 与可能的 `ToolCalls`。
+* 未命中时：正常真实流式透传；流式过程中不缓存中间分块，待最终聚合为完整响应且成功后写入整段缓存。
+
+### 7.4 Embedding 粒度与批量协同
+
+* 缓存粒度为“单输入文本”。批量请求前对 `Inputs` 去重与索引映射，先查缓存，未命中子集按 `MaxBatchSize` 并发请求；返回后逐条写缓存，并按原始顺序重建 `UnifiedEmbeddingResponse`。
+
+### 7.5 目录与组件（Execution/Cache）
+
+* `ICacheService`、`MemoryCacheService`：统一缓存接口与 L1 内存实现（线程安全、带过期）。
+* `IInFlightCoordinator`、`InFlightCoordinator`：按 Key 的并发合流协作器。
+* `CacheKeyBuilder`（可选）：提供 Chat/Embedding 键构造与规范化序列化（Canonical JSON）。
+
+### 7.6 风险与安全性
+
+* 严格控制 Key 组成，避免跨上下文误命中；必要时可将 `saveId/worldId` 等外部维度纳入命名空间。
+* 不缓存失败与非 2xx 响应；不写入敏感信息到磁盘层；可通过配置开关 `cacheEnabled` 与 `cacheTtlSeconds` 控制行为（未来版本）。

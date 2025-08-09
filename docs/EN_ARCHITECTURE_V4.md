@@ -37,6 +37,11 @@ RimAI.Framework/
     ├── Execution/
     │   ├── Models/
     │   │   └── RetryPolicy.cs           # [Execution-Model] Data model for defining HTTP request retry strategies.
+    │   ├── Cache/                       # [Execution-Cache] Unified response cache and in-flight de-duplication
+    │   │   ├── ICacheService.cs
+    │   │   ├── MemoryCacheService.cs
+    │   │   ├── IInFlightCoordinator.cs
+    │   │   └── InFlightCoordinator.cs
     │   ├── HttpClientFactory.cs         # [Execution-Infrastructure] Manages the lifecycle of HttpClient instances according to best practices.
     │   └── HttpExecutor.cs              # [Execution-Service] Sends HTTP requests and applies retry policies.
     │
@@ -266,4 +271,43 @@ The implementation is located in `Source/UI/` and consists primarily of `RimAIFr
 This model establishes a clear boundary:
 *   **UI (View/Controller)**: Manages user interaction, data collection, and service calls.
 *   **`SettingsManager` (Service/Model)**: Handles the low-level logic of reading and writing configuration files and provides a unified view of the configuration state to the rest of the framework.
+
+## 7. Unified Caching System (Framework Layer)
+
+### 7.1 Goals and Ownership
+
+* **Located in Framework**: The generic caching capability lives in the Framework layer and is orchestrated by `ChatManager` / `EmbeddingManager`. The Core layer no longer performs generic result caching and only keeps domain-specific indices and optional pseudo-stream slicing.
+* **One Implementation, Global Reuse**: A single, unified caching and in-flight de-dup solution for Chat (streaming/non-streaming) and Embedding, avoiding duplicated efforts and inconsistent behaviors across modules.
+
+### 7.2 Capabilities
+
+* **Key Strategy**:
+  - Chat Key = Fingerprint(providerName, endpoint with apiKey placeholder removed, model) + Canonicalized request summary (messages[role, content, tool_call_id, tool_calls], tool definitions, JSON mode, temperature/sampling/length parameters, template `StaticParameters` and user overrides).
+  - Ignore the `stream` flag so streaming and non-streaming versions of the same semantic request hit the same cache item.
+  - Embedding Key (per input) = providerName + model + sha256(normalize(text)).
+  - Keys never contain `apiKey` or sensitive header values.
+* **Storage Policy (TTL/L1/L2)**: Short default TTL (60–300 seconds, configurable), failures are not cached. Provide an in-memory L1 implementation; an optional disk-based L2 can be added later.
+* **In‑Flight De‑Duplication**: For non-streaming requests, concurrent calls with the same key are coalesced into a single upstream call; all await and reuse its result.
+* **Invalidation**: When Provider/Model changes or settings are saved, invalidate by namespace (e.g., `chat:{provider}:{model}:*`, `embed:{provider}:{model}:*`).
+* **Observability**: Track hit rate, coalesced request counts, and saved requests/latency for future UI surfacing and tuning.
+
+### 7.3 Streaming Compatibility
+
+* On cache hit: immediately emit a pseudo-stream by slicing the cached full `UnifiedChatResponse.Message.Content` into `UnifiedChatChunk`s; the final chunk carries `FinishReason` and potential `ToolCalls`.
+* On cache miss: perform true streaming; do not cache mid-stream chunks. After a successful final aggregation, write the full response to cache.
+
+### 7.4 Embedding Granularity and Batch Coordination
+
+* Cache at the per-input granularity. For batch requests, de-duplicate and index inputs, check cache first, request only the misses using `MaxBatchSize`, then write back per input and reassemble in the original order for `UnifiedEmbeddingResponse`.
+
+### 7.5 Directory and Components (Execution/Cache)
+
+* `ICacheService`, `MemoryCacheService`: Unified cache interface and L1 in-memory implementation (thread-safe with expiration).
+* `IInFlightCoordinator`, `InFlightCoordinator`: Per-key concurrency coalescer.
+* `CacheKeyBuilder` (optional): Build Chat/Embedding keys and provide canonical JSON serialization.
+
+### 7.6 Risks and Security
+
+* Carefully craft key composition to avoid cross-context collisions; optionally incorporate external dimensions like `saveId/worldId` into the namespace.
+* Do not cache failures or non-2xx responses; do not write sensitive data to disk. Provide configuration toggles `cacheEnabled` and `cacheTtlSeconds` (in a future version).
 
