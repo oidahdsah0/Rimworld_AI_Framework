@@ -51,6 +51,9 @@ namespace RimAI.Framework.UI
 
         private Vector2 _scrollPosition = Vector2.zero;
         private float _viewHeight = 1200f;
+        // Cache UI buffers
+        private bool _cacheEnabledBuffer = true;
+        private int _cacheTtlBuffer = 120;
 
         public RimAIFrameworkMod(ModContentPack content) : base(content)
         {
@@ -95,6 +98,8 @@ namespace RimAI.Framework.UI
 
             // 记录内容高度并限制滚动范围
             // ----- Bottom 操作按钮 -----
+            listing.GapLine(24f);
+            DrawCacheSection(listing);
             listing.GapLine(24f);
             Rect btnRect = listing.GetRect(30f);
             float btnW = btnRect.width / 3f - 6f;
@@ -326,6 +331,24 @@ namespace RimAI.Framework.UI
             _embeddingStaticParamsBuffer = userConfig?.StaticParametersOverride != null ? userConfig.StaticParametersOverride.ToString(Formatting.None) : "";
             _embeddingConcurrencyLimitBuffer = userConfig?.ConcurrencyLimit ?? 4;
             _embeddingTestStatusMessage = "RimAI.EmbedTestHint".Translate();
+        }
+
+        // --- Cache Section ---
+        private void DrawCacheSection(Listing_Standard listing)
+        {
+            // load buffers if first time
+            _cacheEnabledBuffer = settings.CacheEnabled;
+            _cacheTtlBuffer = settings.CacheTtlSeconds;
+
+            listing.Label("RimAI.CacheSettings".Translate());
+            listing.Gap(4f);
+            // enable toggle
+            var row = listing.GetRect(24f);
+            Widgets.CheckboxLabeled(row, "RimAI.CacheEnabled".Translate(), ref _cacheEnabledBuffer);
+            listing.Gap(6f);
+            // TTL slider
+            listing.Label("RimAI.CacheTtl".Translate(_cacheTtlBuffer.ToString()));
+            _cacheTtlBuffer = (int)listing.Slider(_cacheTtlBuffer, 10, 3600);
         }
         
         private void HandleEmbeddingSave() {
@@ -586,6 +609,12 @@ namespace RimAI.Framework.UI
             }
             // 保存 Embedding 设置
             HandleEmbeddingSave();
+
+            // 保存 Cache 设置
+            settings.CacheEnabled = _cacheEnabledBuffer;
+            settings.CacheTtlSeconds = _cacheTtlBuffer;
+            settings.Write();
+            Messages.Message("RimAI.CacheSaved".Translate(), MessageTypeDefOf.PositiveEvent);
         }
 
         private void HandleCombinedReset()

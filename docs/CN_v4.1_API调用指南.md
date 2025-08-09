@@ -157,6 +157,17 @@ public static Task<Result<UnifiedEmbeddingResponse>> GetEmbeddingsAsync(
 );
 ```
 
+### 缓存与伪流式行为说明
+
+- 统一缓存（Framework 层）：
+  - Chat 与 Embedding 默认启用短 TTL 缓存（默认 120 秒），失败不缓存。
+  - Chat 的 Key 由 provider/model/endpoint 与规范化后的请求摘要组成（忽略 `Stream` 标记），确保同一语义请求（流式/非流式）命中相同条目。
+  - Embedding 按“单输入文本”粒度缓存（Key = provider + model + sha256(text)）。
+- 命中伪流式：
+  - 若流式请求命中缓存，Framework 会将缓存中的完整回复切片为 `UnifiedChatChunk` 并“伪流式”立刻吐出，末块包含 `FinishReason` 和可能的 `ToolCalls`。
+  - 未命中则执行真实流式；流式过程中不缓存中间块，结束聚合成功后写入整段缓存。
+- 配置项：TTL 与开关后续版本将暴露为可配置；当前版本默认启用短 TTL。
+
 ### 关键数据模型 (Request Models)
 
 （此部分与之前版本相同，此处省略以保持简洁）

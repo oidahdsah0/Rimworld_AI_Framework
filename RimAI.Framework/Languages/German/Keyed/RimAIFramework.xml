@@ -42,4 +42,9 @@
   <RimAI.ChatStaticParamsInvalid>Ungültiges JSON für Überschreiben statischer Parameter: {0}</RimAI.ChatStaticParamsInvalid>
   <RimAI.EmbedHeadersInvalid>Ungültiges JSON für benutzerdefinierte Einbettungs-Header: {0}</RimAI.EmbedHeadersInvalid>
   <RimAI.EmbedStaticParamsInvalid>Ungültiges JSON für Überschreiben statischer Einbettungs-Parameter: {0}</RimAI.EmbedStaticParamsInvalid>
+  <!-- Cache -->
+  <RimAI.CacheSettings>Cache-Einstellungen</RimAI.CacheSettings>
+  <RimAI.CacheEnabled>Cache aktivieren</RimAI.CacheEnabled>
+  <RimAI.CacheTtl>Cache-Dauer (Sekunden): {0}</RimAI.CacheTtl>
+  <RimAI.CacheSaved>Cache-Einstellungen gespeichert.</RimAI.CacheSaved>
 </LanguageData>

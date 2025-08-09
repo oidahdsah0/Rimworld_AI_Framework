@@ -42,4 +42,9 @@
   <RimAI.ChatStaticParamsInvalid>静的パラメータ上書きの JSON が無効です: {0}</RimAI.ChatStaticParamsInvalid>
   <RimAI.EmbedHeadersInvalid>埋め込みのカスタムヘッダーの JSON が無効です: {0}</RimAI.EmbedHeadersInvalid>
   <RimAI.EmbedStaticParamsInvalid>埋め込みの静的パラメータ上書きの JSON が無効です: {0}</RimAI.EmbedStaticParamsInvalid>
+  <!-- Cache -->
+  <RimAI.CacheSettings>キャッシュ設定</RimAI.CacheSettings>
+  <RimAI.CacheEnabled>キャッシュを有効にする</RimAI.CacheEnabled>
+  <RimAI.CacheTtl>キャッシュ時間（秒）：{0}</RimAI.CacheTtl>
+  <RimAI.CacheSaved>キャッシュ設定を保存しました。</RimAI.CacheSaved>
 </LanguageData>

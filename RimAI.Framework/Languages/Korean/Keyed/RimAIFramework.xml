@@ -42,4 +42,9 @@
   <RimAI.ChatStaticParamsInvalid>정적 파라미터 재정의 JSON이 유효하지 않습니다: {0}</RimAI.ChatStaticParamsInvalid>
   <RimAI.EmbedHeadersInvalid>임베딩 커스텀 헤더 JSON이 유효하지 않습니다: {0}</RimAI.EmbedHeadersInvalid>
   <RimAI.EmbedStaticParamsInvalid>임베딩 정적 파라미터 재정의 JSON이 유효하지 않습니다: {0}</RimAI.EmbedStaticParamsInvalid>
+  <!-- Cache -->
+  <RimAI.CacheSettings>캐시 설정</RimAI.CacheSettings>
+  <RimAI.CacheEnabled>캐시 사용</RimAI.CacheEnabled>
+  <RimAI.CacheTtl>캐시 시간(초): {0}</RimAI.CacheTtl>
+  <RimAI.CacheSaved>캐시 설정이 저장되었습니다.</RimAI.CacheSaved>
 </LanguageData>

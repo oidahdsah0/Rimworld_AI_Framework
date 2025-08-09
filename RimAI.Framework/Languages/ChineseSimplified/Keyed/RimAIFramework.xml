@@ -42,4 +42,9 @@
   <RimAI.ChatStaticParamsInvalid>静态参数覆盖 JSON 无效：{0}</RimAI.ChatStaticParamsInvalid>
   <RimAI.EmbedHeadersInvalid>向量嵌入自定义请求头 JSON 无效：{0}</RimAI.EmbedHeadersInvalid>
   <RimAI.EmbedStaticParamsInvalid>向量嵌入静态参数覆盖 JSON 无效：{0}</RimAI.EmbedStaticParamsInvalid>
+  <!-- Cache -->
+  <RimAI.CacheSettings>缓存设置</RimAI.CacheSettings>
+  <RimAI.CacheEnabled>启用缓存</RimAI.CacheEnabled>
+  <RimAI.CacheTtl>缓存时间（秒）：{0}</RimAI.CacheTtl>
+  <RimAI.CacheSaved>缓存设置已保存。</RimAI.CacheSaved>
 </LanguageData>

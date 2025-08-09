@@ -2,6 +2,7 @@ using RimAI.Framework.Configuration;
 using RimAI.Framework.Execution;
 using RimAI.Framework.Translation;
 using RimAI.Framework.Core;
+using RimAI.Framework.Execution.Cache;
 
 namespace RimAI.Framework.Core.Lifecycle
 {
@@ -35,9 +36,13 @@ namespace RimAI.Framework.Core.Lifecycle
             var embeddingRequestTranslator = new EmbeddingRequestTranslator();
             var embeddingResponseTranslator = new EmbeddingResponseTranslator();
 
-            // 4. 核心协调器 (Core Managers)
-            var chatManager = new ChatManager(settingsManager, chatRequestTranslator, httpExecutor, chatResponseTranslator);
-            var embeddingManager = new EmbeddingManager(settingsManager, embeddingRequestTranslator, httpExecutor, embeddingResponseTranslator);
+            // 4. 缓存与合流 (Execution/Cache)
+            var cache = new MemoryCacheService();
+            var inFlight = new InFlightCoordinator();
+
+            // 5. 核心协调器 (Core Managers)
+            var chatManager = new ChatManager(settingsManager, chatRequestTranslator, httpExecutor, chatResponseTranslator, cache, inFlight);
+            var embeddingManager = new EmbeddingManager(settingsManager, embeddingRequestTranslator, httpExecutor, embeddingResponseTranslator, cache, inFlight);
 
             // --- 赋值给公共静态属性 ---
             SettingsManager = settingsManager;

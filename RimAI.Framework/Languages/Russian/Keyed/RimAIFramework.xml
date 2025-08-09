@@ -42,4 +42,9 @@
   <RimAI.ChatStaticParamsInvalid>Недопустимый JSON переопределения статических параметров: {0}</RimAI.ChatStaticParamsInvalid>
   <RimAI.EmbedHeadersInvalid>Недопустимый JSON пользовательских заголовков для эмбеддингов: {0}</RimAI.EmbedHeadersInvalid>
   <RimAI.EmbedStaticParamsInvalid>Недопустимый JSON переопределения статических параметров для эмбеддингов: {0}</RimAI.EmbedStaticParamsInvalid>
+  <!-- Cache -->
+  <RimAI.CacheSettings>Настройки кэша</RimAI.CacheSettings>
+  <RimAI.CacheEnabled>Включить кэш</RimAI.CacheEnabled>
+  <RimAI.CacheTtl>Время кэша (сек.): {0}</RimAI.CacheTtl>
+  <RimAI.CacheSaved>Настройки кэша сохранены.</RimAI.CacheSaved>
 </LanguageData>

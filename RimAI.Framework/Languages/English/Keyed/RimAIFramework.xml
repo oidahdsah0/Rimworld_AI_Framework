@@ -42,4 +42,9 @@
   <RimAI.ChatStaticParamsInvalid>Invalid static parameter override JSON: {0}</RimAI.ChatStaticParamsInvalid>
   <RimAI.EmbedHeadersInvalid>Invalid embedding custom headers JSON: {0}</RimAI.EmbedHeadersInvalid>
   <RimAI.EmbedStaticParamsInvalid>Invalid embedding static parameter override JSON: {0}</RimAI.EmbedStaticParamsInvalid>
+  <!-- Cache -->
+  <RimAI.CacheSettings>Cache Settings</RimAI.CacheSettings>
+  <RimAI.CacheEnabled>Enable Cache</RimAI.CacheEnabled>
+  <RimAI.CacheTtl>Cache Time (seconds): {0}</RimAI.CacheTtl>
+  <RimAI.CacheSaved>Cache settings saved.</RimAI.CacheSaved>
 </LanguageData>

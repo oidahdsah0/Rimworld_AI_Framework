@@ -17,6 +17,10 @@ namespace RimAI.Framework.UI
         /// </summary>
         public string ActiveEmbeddingProviderId = "";
 
+        // --- Cache Settings ---
+        public bool CacheEnabled = true;
+        public int CacheTtlSeconds = 120;
+
 
         /// <summary>
         /// 这是 RimWorld Mod 开发中的核心方法，用于实现数据的保存和加载。
@@ -35,7 +39,9 @@ namespace RimAI.Framework.UI
 
             // 保存/加载当前选中的Embedding提供商ID
             Scribe_Values.Look(ref ActiveEmbeddingProviderId, "ActiveEmbeddingProviderId", "");
-
+            // 缓存开关与 TTL
+            Scribe_Values.Look(ref CacheEnabled, "CacheEnabled", true);
+            Scribe_Values.Look(ref CacheTtlSeconds, "CacheTtlSeconds", 120);
         }
     }
 }

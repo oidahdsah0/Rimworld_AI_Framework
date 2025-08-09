@@ -42,4 +42,9 @@
   <RimAI.ChatStaticParamsInvalid>JSON de surcharge des paramètres statiques invalide : {0}</RimAI.ChatStaticParamsInvalid>
   <RimAI.EmbedHeadersInvalid>JSON des en-têtes personnalisés d'intégration invalide : {0}</RimAI.EmbedHeadersInvalid>
   <RimAI.EmbedStaticParamsInvalid>JSON de surcharge des paramètres statiques d'intégration invalide : {0}</RimAI.EmbedStaticParamsInvalid>
+  <!-- Cache -->
+  <RimAI.CacheSettings>Paramètres du cache</RimAI.CacheSettings>
+  <RimAI.CacheEnabled>Activer le cache</RimAI.CacheEnabled>
+  <RimAI.CacheTtl>Durée du cache (secondes) : {0}</RimAI.CacheTtl>
+  <RimAI.CacheSaved>Paramètres du cache enregistrés.</RimAI.CacheSaved>
 </LanguageData>

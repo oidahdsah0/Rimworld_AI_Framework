@@ -8,22 +8,36 @@ using RimAI.Framework.Execution;
 using RimAI.Framework.Contracts;
 using RimAI.Framework.Translation;
 using RimAI.Framework.Configuration.Models;
+using RimAI.Framework.Execution.Cache;
+using System.Text;
 
 namespace RimAI.Framework.Core
 {
-    public class ChatManager
+    public partial class ChatManager
     {
         private readonly SettingsManager _settingsManager;
         private readonly ChatRequestTranslator _requestTranslator;
         private readonly HttpExecutor _httpExecutor;
         private readonly ChatResponseTranslator _responseTranslator;
+        private readonly ICacheService _cache;
+        private readonly IInFlightCoordinator _inFlight;
+        private static System.TimeSpan GetCacheTtl()
+        {
+            var s = Verse.LoadedModManager.GetMod<RimAI.Framework.UI.RimAIFrameworkMod>()?.GetSettings<RimAI.Framework.UI.RimAIFrameworkSettings>();
+            var secs = s?.CacheTtlSeconds ?? 120;
+            if (secs < 10) secs = 10;
+            if (secs > 3600) secs = 3600;
+            return System.TimeSpan.FromSeconds(secs);
+        }
 
-        public ChatManager(SettingsManager settingsManager, ChatRequestTranslator requestTranslator, HttpExecutor httpExecutor, ChatResponseTranslator responseTranslator)
+        public ChatManager(SettingsManager settingsManager, ChatRequestTranslator requestTranslator, HttpExecutor httpExecutor, ChatResponseTranslator responseTranslator, ICacheService cache, IInFlightCoordinator inFlight)
         {
             _settingsManager = settingsManager;
             _requestTranslator = requestTranslator;
             _httpExecutor = httpExecutor;
             _responseTranslator = responseTranslator;
+            _cache = cache;
+            _inFlight = inFlight;
         }
 
         public async Task<Result<UnifiedChatResponse>> ProcessRequestAsync(UnifiedChatRequest request, string providerId, CancellationToken cancellationToken)
@@ -34,25 +48,44 @@ namespace RimAI.Framework.Core
             
             var config = configResult.Value;
             cancellationToken.ThrowIfCancellationRequested();
-            
-            var httpRequest = _requestTranslator.Translate(request, config);
-            var httpResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken, isStreaming: false);
-            if (httpResult.IsFailure)
-                return Result<UnifiedChatResponse>.Failure(httpResult.Error);
 
-            var httpResponse = httpResult.Value;
-            try
-            {
-                var finalResponse = await _responseTranslator.TranslateAsync(httpResponse, config, cancellationToken);
-                if (!httpResponse.IsSuccessStatusCode)
-                    return Result<UnifiedChatResponse>.Failure(finalResponse?.Message?.Content ?? $"Request failed: {httpResponse.StatusCode}", finalResponse);
+            // Cache lookup (non-streaming)
+            var cacheKey = CacheKeyBuilder.BuildChatKey(request, config);
+            var settings = Verse.LoadedModManager.GetMod<RimAI.Framework.UI.RimAIFrameworkMod>()?.GetSettings<RimAI.Framework.UI.RimAIFrameworkSettings>();
+            bool cacheEnabled = settings?.CacheEnabled ?? true;
+            var cached = cacheEnabled ? await _cache.TryGetAsync<UnifiedChatResponse>(cacheKey, cancellationToken) : (false, null);
+            if (cached.hit && cacheEnabled)
+                return Result<UnifiedChatResponse>.Success(cached.value);
 
-                return Result<UnifiedChatResponse>.Success(finalResponse);
-            }
-            finally
+            // In-flight de-duplication for identical requests
+            var result = await _inFlight.GetOrJoinAsync(cacheKey, async () =>
             {
-                httpResponse.Dispose();
+                var httpRequest = _requestTranslator.Translate(request, config);
+                var httpResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken, isStreaming: false);
+                if (httpResult.IsFailure)
+                    return Result<UnifiedChatResponse>.Failure(httpResult.Error);
+
+                var httpResponse = httpResult.Value;
+                try
+                {
+                    var finalResponse = await _responseTranslator.TranslateAsync(httpResponse, config, cancellationToken);
+                    if (!httpResponse.IsSuccessStatusCode)
+                        return Result<UnifiedChatResponse>.Failure(finalResponse?.Message?.Content ?? $"Request failed: {httpResponse.StatusCode}", finalResponse);
+
+                    return Result<UnifiedChatResponse>.Success(finalResponse);
+                }
+                finally
+                {
+                    httpResponse.Dispose();
+                }
+            });
+
+            if (result.IsSuccess && cacheEnabled)
+            {
+                await _cache.SetAsync(cacheKey, result.Value, GetCacheTtl(), cancellationToken);
             }
+
+            return result;
         }
 
         public async IAsyncEnumerable<Result<UnifiedChatChunk>> ProcessStreamRequestAsync(UnifiedChatRequest request, string providerId, [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -66,6 +99,20 @@ namespace RimAI.Framework.Core
 
             var config = configResult.Value;
             cancellationToken.ThrowIfCancellationRequested();
+
+            // Cache check: if hit, emit pseudo-stream
+            var cacheKey = CacheKeyBuilder.BuildChatKey(request, config);
+            var settings2 = Verse.LoadedModManager.GetMod<RimAI.Framework.UI.RimAIFrameworkMod>()?.GetSettings<RimAI.Framework.UI.RimAIFrameworkSettings>();
+            bool cacheEnabled2 = settings2?.CacheEnabled ?? true;
+            var cached = cacheEnabled2 ? await _cache.TryGetAsync<UnifiedChatResponse>(cacheKey, cancellationToken) : (false, null);
+            if (cacheEnabled2 && cached.hit && cached.value?.Message != null)
+            {
+                foreach (var chunk in SliceIntoChunks(cached.value))
+                {
+                    yield return Result<UnifiedChatChunk>.Success(chunk);
+                }
+                yield break;
+            }
 
             var httpRequest = _requestTranslator.Translate(request, config);
             var httpResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken, isStreaming: true);
@@ -90,16 +137,41 @@ namespace RimAI.Framework.Core
                 yield break;
             }
 
+            var builder = new StringBuilder();
+            List<ToolCall> lastToolCalls = null;
+            string finalFinishReason = null;
             try
             {
                 await foreach (var chunk in _responseTranslator.TranslateStreamAsync(httpResponse, config, cancellationToken))
                 {
+                    if (chunk.ContentDelta != null)
+                        builder.Append(chunk.ContentDelta);
+                    if (chunk.ToolCalls != null)
+                        lastToolCalls = chunk.ToolCalls;
+                    if (!string.IsNullOrEmpty(chunk.FinishReason))
+                        finalFinishReason = chunk.FinishReason;
                     yield return Result<UnifiedChatChunk>.Success(chunk);
                 }
             }
             finally
             {
                 httpResponse.Dispose();
+            }
+
+            // After streaming, write to cache only if it appears complete
+            bool shouldCache = !string.IsNullOrEmpty(finalFinishReason)
+                               && (finalFinishReason == "stop" || finalFinishReason == "tool_calls")
+                               && (builder.Length > 0 || (lastToolCalls != null && lastToolCalls.Count > 0));
+            var settings3 = Verse.LoadedModManager.GetMod<RimAI.Framework.UI.RimAIFrameworkMod>()?.GetSettings<RimAI.Framework.UI.RimAIFrameworkSettings>();
+            bool cacheEnabled3 = settings3?.CacheEnabled ?? true;
+            if (shouldCache && cacheEnabled3)
+            {
+                var cachedResponse = new UnifiedChatResponse
+                {
+                    FinishReason = finalFinishReason,
+                    Message = new ChatMessage { Role = "assistant", Content = builder.ToString(), ToolCalls = lastToolCalls }
+                };
+                await _cache.SetAsync(cacheKey, cachedResponse, GetCacheTtl(), cancellationToken);
             }
         }
 
@@ -118,6 +190,29 @@ namespace RimAI.Framework.Core
             });
 
             return (await Task.WhenAll(tasks)).ToList();
+        }
+    }
+
+    // --- Private helpers ---
+    partial class ChatManager
+    {
+        private static IEnumerable<UnifiedChatChunk> SliceIntoChunks(UnifiedChatResponse response)
+        {
+            if (response?.Message?.Content == null)
+            {
+                yield return new UnifiedChatChunk { FinishReason = response?.FinishReason ?? "stop", ToolCalls = response?.Message?.ToolCalls };
+                yield break;
+            }
+
+            var text = response.Message.Content;
+            const int chunkSize = 48; // small slices for pseudo-stream
+            for (int i = 0; i < text.Length; i += chunkSize)
+            {
+                var len = System.Math.Min(chunkSize, text.Length - i);
+                var piece = text.Substring(i, len);
+                yield return new UnifiedChatChunk { ContentDelta = piece };
+            }
+            yield return new UnifiedChatChunk { FinishReason = response.FinishReason ?? "stop", ToolCalls = response.Message.ToolCalls };
         }
     }
 }

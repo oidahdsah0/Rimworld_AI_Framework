@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using RimAI.Framework.Configuration.Models;
+using RimAI.Framework.Execution.Cache;
 
 namespace RimAI.Framework.Core
 {
@@ -16,13 +17,25 @@ namespace RimAI.Framework.Core
         private readonly EmbeddingRequestTranslator _requestTranslator;
         private readonly HttpExecutor _httpExecutor;
         private readonly EmbeddingResponseTranslator _responseTranslator;
+        private readonly ICacheService _cache;
+        private readonly IInFlightCoordinator _inFlight;
+        private static System.TimeSpan GetCacheTtl()
+        {
+            var s = Verse.LoadedModManager.GetMod<RimAI.Framework.UI.RimAIFrameworkMod>()?.GetSettings<RimAI.Framework.UI.RimAIFrameworkSettings>();
+            var secs = s?.CacheTtlSeconds ?? 120;
+            if (secs < 10) secs = 10;
+            if (secs > 3600) secs = 3600;
+            return System.TimeSpan.FromSeconds(secs);
+        }
 
-        public EmbeddingManager(SettingsManager settingsManager, EmbeddingRequestTranslator requestTranslator, HttpExecutor httpExecutor, EmbeddingResponseTranslator responseTranslator)
+        public EmbeddingManager(SettingsManager settingsManager, EmbeddingRequestTranslator requestTranslator, HttpExecutor httpExecutor, EmbeddingResponseTranslator responseTranslator, ICacheService cache, IInFlightCoordinator inFlight)
         {
             _settingsManager = settingsManager;
             _requestTranslator = requestTranslator;
             _httpExecutor = httpExecutor;
             _responseTranslator = responseTranslator;
+            _cache = cache;
+            _inFlight = inFlight;
         }
 
         public async Task<Result<UnifiedEmbeddingResponse>> ProcessRequestAsync(UnifiedEmbeddingRequest request, string providerId, CancellationToken cancellationToken)
@@ -34,56 +47,106 @@ namespace RimAI.Framework.Core
             var config = configResult.Value;
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (request.Inputs.Count <= config.MaxBatchSize)
-                return await ProcessSingleBatchAsync(request, config, cancellationToken);
-            else
-                return await ProcessBatchesConcurrentlyAsync(request, config, cancellationToken);
-        }
-        
-        private async Task<Result<UnifiedEmbeddingResponse>> ProcessSingleBatchAsync(UnifiedEmbeddingRequest request, MergedEmbeddingConfig config, CancellationToken cancellationToken)
-        {
-            var httpRequest = _requestTranslator.Translate(request, config);
-            var httpResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken);
-            if (httpResult.IsFailure)
-                return Result<UnifiedEmbeddingResponse>.Failure(httpResult.Error);
+            // Embedding cache: per-input granularity
+            var inputs = request.Inputs ?? new List<string>();
+            var uiSettings = Verse.LoadedModManager.GetMod<RimAI.Framework.UI.RimAIFrameworkMod>()?.GetSettings<RimAI.Framework.UI.RimAIFrameworkSettings>();
+            bool cacheEnabled = uiSettings?.CacheEnabled ?? true;
+            var uniqueInputs = inputs.Distinct().ToList();
 
-            var httpResponse = httpResult.Value;
-            try
+            // Lookup cache for each input
+            var indexMap = new Dictionary<string, List<int>>();
+            for (int i = 0; i < inputs.Count; i++)
             {
-                if (!httpResponse.IsSuccessStatusCode) {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    return Result<UnifiedEmbeddingResponse>.Failure($"Request failed: {httpResponse.StatusCode}: {errorContent}");
+                var s = inputs[i] ?? string.Empty;
+                if (!indexMap.TryGetValue(s, out var list)) { list = new List<int>(); indexMap[s] = list; }
+                list.Add(i);
+            }
+
+            var cacheHits = new Dictionary<string, EmbeddingResult>();
+            var misses = new List<string>();
+            foreach (var s in uniqueInputs)
+            {
+                var key = CacheKeyBuilder.BuildEmbeddingKey(s ?? string.Empty, config);
+                var (hit, value) = cacheEnabled ? await _cache.TryGetAsync<UnifiedEmbeddingResponse>(key, cancellationToken) : (false, null);
+                if (cacheEnabled && hit && value?.Data != null && value.Data.Count > 0)
+                {
+                    // We store per-input as a single-entry response; take index 0
+                    cacheHits[s] = new EmbeddingResult { Index = 0, Embedding = value.Data[0].Embedding };
                 }
-
-                return await _responseTranslator.TranslateAsync(httpResponse, config, cancellationToken);
+                else
+                {
+                    misses.Add(s);
+                }
             }
-            finally
+
+            var newResults = new Dictionary<string, EmbeddingResult>();
+            if (misses.Count > 0)
             {
-                httpResponse.Dispose();
+                // Batch the misses using provider max batch size, with in-flight de-dup per batch key
+                var batches = new List<List<string>>();
+                for (int i = 0; i < misses.Count; i += config.MaxBatchSize)
+                    batches.Add(misses.GetRange(i, System.Math.Min(config.MaxBatchSize, misses.Count - i)));
+
+                foreach (var batch in batches)
+                {
+                    // Build a synthetic key for the batch by joining individual keys
+                    var batchKey = string.Join("|", batch.Select(s => CacheKeyBuilder.BuildEmbeddingKey(s, config)));
+                    var batchResult = await _inFlight.GetOrJoinAsync(batchKey, async () =>
+                    {
+                        var httpReq = _requestTranslator.Translate(new UnifiedEmbeddingRequest { Inputs = batch }, config);
+                        var httpRes = await _httpExecutor.ExecuteAsync(httpReq, cancellationToken);
+                        if (httpRes.IsFailure)
+                            return Result<UnifiedEmbeddingResponse>.Failure(httpRes.Error);
+
+                        var httpResponse = httpRes.Value;
+                        try
+                        {
+                            if (!httpResponse.IsSuccessStatusCode)
+                            {
+                                var errorContent = await httpResponse.Content.ReadAsStringAsync();
+                                return Result<UnifiedEmbeddingResponse>.Failure($"Request failed: {httpResponse.StatusCode}: {errorContent}");
+                            }
+                            return await _responseTranslator.TranslateAsync(httpResponse, config, cancellationToken);
+                        }
+                        finally { httpResponse.Dispose(); }
+                    });
+
+                    if (batchResult.IsFailure)
+                        return batchResult; // propagate error
+
+                    // Map results to inputs (provider should return embeddings aligned to input order)
+                    var data = batchResult.Value.Data;
+                    for (int i = 0; i < batch.Count; i++)
+                    {
+                        var s = batch[i];
+                        var e = data.ElementAtOrDefault(i);
+                        if (e != null)
+                        {
+                            var perInput = new EmbeddingResult { Index = 0, Embedding = e.Embedding };
+                            newResults[s] = perInput;
+                            // write per-input cache as single-entry response
+                            var singleResponse = new UnifiedEmbeddingResponse { Data = new List<EmbeddingResult> { new EmbeddingResult { Index = 0, Embedding = e.Embedding } } };
+                            var key = CacheKeyBuilder.BuildEmbeddingKey(s, config);
+                            if (cacheEnabled)
+                                await _cache.SetAsync(key, singleResponse, GetCacheTtl(), cancellationToken);
+                        }
+                    }
+                }
             }
-        }
 
-        private async Task<Result<UnifiedEmbeddingResponse>> ProcessBatchesConcurrentlyAsync(UnifiedEmbeddingRequest request, MergedEmbeddingConfig config, CancellationToken cancellationToken)
-        {
-            // Limit embedding concurrency to avoid provider overload.
-            using var semaphore = new SemaphoreSlim(config.ConcurrencyLimit);
-
-            var tasks = new List<Task<Result<UnifiedEmbeddingResponse>>>();
-            for (int i = 0; i < request.Inputs.Count; i += config.MaxBatchSize) {
-                var batchInputs = request.Inputs.GetRange(i, System.Math.Min(config.MaxBatchSize, request.Inputs.Count - i));
-                await semaphore.WaitAsync(cancellationToken);
-                tasks.Add(Task.Run(async () => {
-                    try { return await ProcessSingleBatchAsync(new UnifiedEmbeddingRequest { Inputs = batchInputs }, config, cancellationToken); }
-                    finally { semaphore.Release(); }
-                }, cancellationToken));
+            // Merge cache hits and new results, then rebuild final response in original order
+            var finalData = new List<EmbeddingResult>(inputs.Count);
+            for (int idx = 0; idx < inputs.Count; idx++)
+            {
+                var s = inputs[idx];
+                EmbeddingResult r = null;
+                if (cacheHits.TryGetValue(s, out var hit)) r = hit;
+                else if (newResults.TryGetValue(s, out var nr)) r = nr;
+                if (r == null) return Result<UnifiedEmbeddingResponse>.Failure("Embedding cache coordination failed for one or more inputs.");
+                finalData.Add(new EmbeddingResult { Index = idx, Embedding = r.Embedding });
             }
 
-            var taskResults = await Task.WhenAll(tasks);
-            if (taskResults.Any(r => r.IsFailure))
-                return taskResults.First(r => r.IsFailure);
-
-            var allEmbeddings = taskResults.SelectMany(r => r.Value.Data).OrderBy(e => e.Index).ToList();
-            return Result<UnifiedEmbeddingResponse>.Success(new UnifiedEmbeddingResponse { Data = allEmbeddings });
+            return Result<UnifiedEmbeddingResponse>.Success(new UnifiedEmbeddingResponse { Data = finalData });
         }
     }
 }

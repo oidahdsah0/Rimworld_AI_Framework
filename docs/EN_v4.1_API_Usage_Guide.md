@@ -158,6 +158,17 @@ public static Task<Result<UnifiedEmbeddingResponse>> GetEmbeddingsAsync(
 );
 ```
 
+### Caching and Pseudo-Streaming Behavior
+
+- Unified cache (Framework layer):
+  - Chat and Embedding use a short default TTL (120s by default); failures are not cached.
+  - Chat key = provider/model/endpoint + canonical request summary (ignores the `Stream` flag), ensuring streaming and non-streaming variants of the same semantic request share the same entry.
+  - Embedding caches per input text (key = provider + model + sha256(text)).
+- Cache-hit pseudo-stream:
+  - If a streaming request hits the cache, the Framework slices the cached full reply into `UnifiedChatChunk`s and immediately emits them as a pseudo-stream. The last chunk carries `FinishReason` and possibly `ToolCalls`.
+  - On miss, true streaming occurs; mid-stream chunks are not cached. After successful final aggregation, the full response is cached.
+- Configuration: TTL and a cache toggle will be exposed in a future version; the current version enables a short TTL by default.
+
 ### Key Request Models
 
 (This section is unchanged from previous versions and is omitted for brevity)
