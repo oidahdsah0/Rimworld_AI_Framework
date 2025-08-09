@@ -82,7 +82,13 @@ namespace RimAI.Framework.Translation
             }
             
             // 【修复】使用 MergedChatConfig 的便捷属性
-            var finalEndpoint = config.Endpoint.Replace("{apiKey}", config.ApiKey);
+            // Build endpoint safely even if ApiKey is null or provider doesn't use placeholder
+            var finalEndpoint = config.Endpoint ?? string.Empty;
+            if (finalEndpoint.Contains("{apiKey}"))
+            {
+                var replacement = config.ApiKey ?? string.Empty;
+                finalEndpoint = finalEndpoint.Replace("{apiKey}", replacement);
+            }
             var request = new HttpRequestMessage(HttpMethod.Post, finalEndpoint)
             {
                 Content = new StringContent(requestBody.ToString(Formatting.None), Encoding.UTF8, "application/json")
@@ -110,6 +116,12 @@ namespace RimAI.Framework.Translation
             {
                 string authValue = $"{config.Template.Http.AuthScheme} {config.ApiKey}".Trim();
                 request.Headers.TryAddWithoutValidation(config.Template.Http.AuthHeader, authValue);
+            }
+
+            // Streaming compatibility: many providers require this Accept header for SSE
+            if (unifiedRequest.Stream)
+            {
+                request.Headers.TryAddWithoutValidation("Accept", "text/event-stream");
             }
 
             return request;

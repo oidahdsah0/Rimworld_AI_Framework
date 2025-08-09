@@ -47,4 +47,11 @@
   <RimAI.CacheEnabled>Включить кэш</RimAI.CacheEnabled>
   <RimAI.CacheTtl>Время кэша (сек.): {0}</RimAI.CacheTtl>
   <RimAI.CacheSaved>Настройки кэша сохранены.</RimAI.CacheSaved>
+  <!-- HTTP -->
+  <RimAI.HttpSettings>Настройки HTTP</RimAI.HttpSettings>
+  <RimAI.HttpTimeout>Таймаут HTTP (сек): {0}</RimAI.HttpTimeout>
+  <RimAI.NetworkCacheSaveBtn>Сохранить настройки сети и кэша</RimAI.NetworkCacheSaveBtn>
+  <RimAI.NetworkCacheResetBtn>Сбросить настройки сети и кэша</RimAI.NetworkCacheResetBtn>
+  <RimAI.NetworkCacheSaved>Настройки сети и кэша сохранены.</RimAI.NetworkCacheSaved>
+  <RimAI.NetworkCacheReset>Настройки сети и кэша сброшены к значениям по умолчанию.</RimAI.NetworkCacheReset>
 </LanguageData>

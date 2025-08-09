@@ -1,4 +1,7 @@
+using System;
 using System.Net.Http;
+using RimAI.Framework.UI;
+using Verse;
 
 namespace RimAI.Framework.Execution
 {
@@ -26,6 +29,7 @@ namespace RimAI.Framework.Execution
             // 未来如果需要对客户端进行全局配置（比如设置默认的超时时间），
             // 就可以在这里进行。
             _client = new HttpClient();
+            ApplyConfiguredTimeout();
         }
 
         // --- 公共静态方法 ---
@@ -38,6 +42,26 @@ namespace RimAI.Framework.Execution
         public static HttpClient GetClient()
         {
             return _client;
+        }
+
+        /// <summary>
+        /// 根据 Mod 设置应用全局 HttpClient 超时时间。默认 100 秒，范围 [5, 3600] 秒。
+        /// 可在设置保存后调用以立即生效。
+        /// </summary>
+        public static void ApplyConfiguredTimeout()
+        {
+            try
+            {
+                var settings = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
+                int seconds = settings?.HttpTimeoutSeconds ?? 100;
+                if (seconds < 5) seconds = 5;
+                if (seconds > 3600) seconds = 3600;
+                _client.Timeout = TimeSpan.FromSeconds(seconds);
+            }
+            catch
+            {
+                _client.Timeout = TimeSpan.FromSeconds(100);
+            }
         }
     }
 }

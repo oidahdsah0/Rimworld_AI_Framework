@@ -50,10 +50,14 @@ namespace RimAI.Framework.UI
         private int _embeddingConcurrencyLimitBuffer = 4;
 
         private Vector2 _scrollPosition = Vector2.zero;
-        private float _viewHeight = 1200f;
+        private float _viewHeight = 1500f;
         // Cache UI buffers
         private bool _cacheEnabledBuffer = true;
         private int _cacheTtlBuffer = 120;
+        // HTTP timeout UI buffer
+        private int _httpTimeoutBuffer = 100;
+        // One-time init guard for Network & Cache UI buffers
+        private bool _netCacheUIInited = false;
 
         public RimAIFrameworkMod(ModContentPack content) : base(content)
         {
@@ -77,6 +81,21 @@ namespace RimAI.Framework.UI
 
             listing.Begin(viewRect);
 
+            // 第一排：保存/重置/测试（显示在“聊天服务”标题的上一行）
+            Rect topBtnRect = listing.GetRect(30f);
+            float topBtnW = topBtnRect.width / 3f - 6f;
+            if (Widgets.ButtonText(new Rect(topBtnRect.x, topBtnRect.y, topBtnW, 30f), "RimAI.Save".Translate()))
+                HandleCombinedSave();
+            if (Widgets.ButtonText(new Rect(topBtnRect.x + topBtnW + 4f, topBtnRect.y, topBtnW, 30f), "RimAI.Reset".Translate()))
+                HandleCombinedReset();
+            if (Widgets.ButtonText(new Rect(topBtnRect.x + 2 * (topBtnW + 4f), topBtnRect.y, topBtnW, 30f), "RimAI.Test".Translate(), active: !_isChatTesting && !_isEmbeddingTesting))
+                HandleCombinedTest();
+            listing.Gap(6f);
+            // 顶部按钮下方显示 Chat/Embedding 的返回信息
+            listing.Label(_chatTestStatusMessage);
+            listing.Label(_embeddingTestStatusMessage);
+            listing.Gap(8f);
+
             // ----- Chat 区域 -----
             DrawSection(listing, "RimAI.ChatService".Translate(), settings.ActiveChatProviderId, ref _lastChatProviderId,
                 (newId) => {
@@ -97,22 +116,27 @@ namespace RimAI.Framework.UI
 
 
             // 记录内容高度并限制滚动范围
-            // ----- Bottom 操作按钮 -----
+            // ----- Network & Cache 区域与操作按钮 -----
             listing.GapLine(24f);
+            // Initialize network/cache buffers once per window open
+            if (!_netCacheUIInited)
+            {
+                _cacheEnabledBuffer = settings.CacheEnabled;
+                _cacheTtlBuffer = settings.CacheTtlSeconds;
+                _httpTimeoutBuffer = settings.HttpTimeoutSeconds;
+                _netCacheUIInited = true;
+            }
             DrawCacheSection(listing);
+            listing.Gap(8f);
+            DrawHttpSection(listing);
             listing.GapLine(24f);
             Rect btnRect = listing.GetRect(30f);
-            float btnW = btnRect.width / 3f - 6f;
-            if (Widgets.ButtonText(new Rect(btnRect.x, btnRect.y, btnW, 30f), "RimAI.Save".Translate()))
-                HandleCombinedSave();
-            if (Widgets.ButtonText(new Rect(btnRect.x + btnW + 4f, btnRect.y, btnW, 30f), "RimAI.Reset".Translate()))
-                HandleCombinedReset();
-            if (Widgets.ButtonText(new Rect(btnRect.x + 2 * (btnW + 4f), btnRect.y, btnW, 30f), "RimAI.Test".Translate(), active: !_isChatTesting && !_isEmbeddingTesting))
-                HandleCombinedTest();
-            listing.Gap(4f);
-            // 状态信息
-            listing.Label(_chatTestStatusMessage);
-            listing.Label(_embeddingTestStatusMessage);
+            float btnW = btnRect.width / 2f - 4f;
+            if (Widgets.ButtonText(new Rect(btnRect.x, btnRect.y, btnW, 30f), "RimAI.NetworkCacheSaveBtn".Translate()))
+                HandleNetworkCacheSave();
+            if (Widgets.ButtonText(new Rect(btnRect.x + btnW + 4f, btnRect.y, btnW, 30f), "RimAI.NetworkCacheResetBtn".Translate()))
+                HandleNetworkCacheReset();
+            listing.Gap(8f);
 
             if (Event.current.type == EventType.Layout)
             {
@@ -336,10 +360,6 @@ namespace RimAI.Framework.UI
         // --- Cache Section ---
         private void DrawCacheSection(Listing_Standard listing)
         {
-            // load buffers if first time
-            _cacheEnabledBuffer = settings.CacheEnabled;
-            _cacheTtlBuffer = settings.CacheTtlSeconds;
-
             listing.Label("RimAI.CacheSettings".Translate());
             listing.Gap(4f);
             // enable toggle
@@ -349,6 +369,15 @@ namespace RimAI.Framework.UI
             // TTL slider
             listing.Label("RimAI.CacheTtl".Translate(_cacheTtlBuffer.ToString()));
             _cacheTtlBuffer = (int)listing.Slider(_cacheTtlBuffer, 10, 3600);
+        }
+
+        // --- HTTP Settings Section ---
+        private void DrawHttpSection(Listing_Standard listing)
+        {
+            listing.Label("RimAI.HttpSettings".Translate());
+            listing.Gap(4f);
+            listing.Label("RimAI.HttpTimeout".Translate(_httpTimeoutBuffer.ToString()));
+            _httpTimeoutBuffer = (int)listing.Slider(_httpTimeoutBuffer, 5, 3600);
         }
         
         private void HandleEmbeddingSave() {
@@ -493,17 +522,24 @@ namespace RimAI.Framework.UI
                 }
 
                 var responseTranslator = new ChatResponseTranslator();
-                var unifiedResponse = await responseTranslator.TranslateAsync(httpResult.Value, mergedConfig, cts.Token);
+                try
+                {
+                    var unifiedResponse = await responseTranslator.TranslateAsync(httpResult.Value, mergedConfig, cts.Token);
 
-                if (!string.IsNullOrEmpty(unifiedResponse?.Message?.Content))
-                {
-                    _chatTestStatusMessage = $"Success! Response: {unifiedResponse.Message.Content.Truncate(50)}";
-                    Messages.Message("RimAI.ChatSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
+                    if (!string.IsNullOrEmpty(unifiedResponse?.Message?.Content))
+                    {
+                        _chatTestStatusMessage = $"Success! Response: {unifiedResponse.Message.Content.Truncate(50)}";
+                        Messages.Message("RimAI.ChatSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
+                    }
+                    else
+                    {
+                        _chatTestStatusMessage = "Failed: Empty response";
+                        Messages.Message("RimAI.ChatFailed".Translate("Empty response"), MessageTypeDefOf.NegativeEvent);
+                    }
                 }
-                else
+                finally
                 {
-                    _chatTestStatusMessage = "Failed: Empty response";
-                    Messages.Message("RimAI.ChatFailed".Translate("Empty response"), MessageTypeDefOf.NegativeEvent);
+                    httpResult.Value?.Dispose();
                 }
             }
             catch (Exception ex)
@@ -570,17 +606,24 @@ namespace RimAI.Framework.UI
                 }
 
                 var responseTranslator = new EmbeddingResponseTranslator();
-                var parseResult = await responseTranslator.TranslateAsync(httpResult.Value, mergedConfig, cts.Token);
+                try
+                {
+                    var parseResult = await responseTranslator.TranslateAsync(httpResult.Value, mergedConfig, cts.Token);
 
-                if (parseResult.IsSuccess)
-                {
-                    _embeddingTestStatusMessage = $"Success! Received {parseResult.Value.Data.Count} embedding vector(s).";
-                    Messages.Message("RimAI.EmbedSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
+                    if (parseResult.IsSuccess)
+                    {
+                        _embeddingTestStatusMessage = $"Success! Received {parseResult.Value.Data.Count} embedding vector(s).";
+                        Messages.Message("RimAI.EmbedSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
+                    }
+                    else
+                    {
+                        _embeddingTestStatusMessage = $"Failed: {parseResult.Error}";
+                        Messages.Message("RimAI.EmbedFailed".Translate(parseResult.Error), MessageTypeDefOf.NegativeEvent);
+                    }
                 }
-                else
+                finally
                 {
-                    _embeddingTestStatusMessage = $"Failed: {parseResult.Error}";
-                    Messages.Message("RimAI.EmbedFailed".Translate(parseResult.Error), MessageTypeDefOf.NegativeEvent);
+                    httpResult.Value?.Dispose();
                 }
             }
             catch (Exception ex)
@@ -609,12 +652,29 @@ namespace RimAI.Framework.UI
             }
             // 保存 Embedding 设置
             HandleEmbeddingSave();
+        }
 
-            // 保存 Cache 设置
+        private void HandleNetworkCacheSave()
+        {
             settings.CacheEnabled = _cacheEnabledBuffer;
             settings.CacheTtlSeconds = _cacheTtlBuffer;
+            settings.HttpTimeoutSeconds = _httpTimeoutBuffer;
             settings.Write();
-            Messages.Message("RimAI.CacheSaved".Translate(), MessageTypeDefOf.PositiveEvent);
+            HttpClientFactory.ApplyConfiguredTimeout();
+            Messages.Message("RimAI.NetworkCacheSaved".Translate(), MessageTypeDefOf.PositiveEvent);
+        }
+
+        private void HandleNetworkCacheReset()
+        {
+            _cacheEnabledBuffer = true;
+            _cacheTtlBuffer = 120;
+            _httpTimeoutBuffer = 100;
+            settings.CacheEnabled = _cacheEnabledBuffer;
+            settings.CacheTtlSeconds = _cacheTtlBuffer;
+            settings.HttpTimeoutSeconds = _httpTimeoutBuffer;
+            settings.Write();
+            HttpClientFactory.ApplyConfiguredTimeout();
+            Messages.Message("RimAI.NetworkCacheReset".Translate(), MessageTypeDefOf.PositiveEvent);
         }
 
         private void HandleCombinedReset()

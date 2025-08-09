@@ -47,4 +47,11 @@
   <RimAI.CacheEnabled>Enable Cache</RimAI.CacheEnabled>
   <RimAI.CacheTtl>Cache Time (seconds): {0}</RimAI.CacheTtl>
   <RimAI.CacheSaved>Cache settings saved.</RimAI.CacheSaved>
+  <!-- HTTP -->
+  <RimAI.HttpSettings>HTTP</RimAI.HttpSettings>
+  <RimAI.HttpTimeout>HTTP Timeout (seconds): {0}</RimAI.HttpTimeout>
+  <RimAI.NetworkCacheSaveBtn>Save Network & Cache Settings</RimAI.NetworkCacheSaveBtn>
+  <RimAI.NetworkCacheResetBtn>Reset Network & Cache Settings</RimAI.NetworkCacheResetBtn>
+  <RimAI.NetworkCacheSaved>Network & cache settings saved.</RimAI.NetworkCacheSaved>
+  <RimAI.NetworkCacheReset>Network & cache settings reset to defaults.</RimAI.NetworkCacheReset>
 </LanguageData>

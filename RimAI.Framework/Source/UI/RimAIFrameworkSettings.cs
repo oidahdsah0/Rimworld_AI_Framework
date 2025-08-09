@@ -21,6 +21,10 @@ namespace RimAI.Framework.UI
         public bool CacheEnabled = true;
         public int CacheTtlSeconds = 120;
 
+        // --- HTTP Timeout Settings ---
+        // 默认 100 秒，可通过设置界面修改
+        public int HttpTimeoutSeconds = 100;
+
 
         /// <summary>
         /// 这是 RimWorld Mod 开发中的核心方法，用于实现数据的保存和加载。
@@ -42,6 +46,9 @@ namespace RimAI.Framework.UI
             // 缓存开关与 TTL
             Scribe_Values.Look(ref CacheEnabled, "CacheEnabled", true);
             Scribe_Values.Look(ref CacheTtlSeconds, "CacheTtlSeconds", 120);
+
+            // Http 超时（秒）
+            Scribe_Values.Look(ref HttpTimeoutSeconds, "HttpTimeoutSeconds", 100);
         }
     }
 }

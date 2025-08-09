@@ -47,4 +47,11 @@
   <RimAI.CacheEnabled>캐시 사용</RimAI.CacheEnabled>
   <RimAI.CacheTtl>캐시 시간(초): {0}</RimAI.CacheTtl>
   <RimAI.CacheSaved>캐시 설정이 저장되었습니다.</RimAI.CacheSaved>
+  <!-- HTTP -->
+  <RimAI.HttpSettings>HTTP 설정</RimAI.HttpSettings>
+  <RimAI.HttpTimeout>HTTP 타임아웃(초): {0}</RimAI.HttpTimeout>
+  <RimAI.NetworkCacheSaveBtn>네트워크 및 캐시 설정 저장</RimAI.NetworkCacheSaveBtn>
+  <RimAI.NetworkCacheResetBtn>네트워크 및 캐시 설정 초기화</RimAI.NetworkCacheResetBtn>
+  <RimAI.NetworkCacheSaved>네트워크 및 캐시 설정이 저장되었습니다.</RimAI.NetworkCacheSaved>
+  <RimAI.NetworkCacheReset>네트워크 및 캐시 설정이 기본값으로 초기화되었습니다.</RimAI.NetworkCacheReset>
 </LanguageData>

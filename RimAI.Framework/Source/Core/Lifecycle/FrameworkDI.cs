@@ -15,6 +15,7 @@ namespace RimAI.Framework.Core.Lifecycle
         public static SettingsManager SettingsManager { get; private set; }
         public static ChatManager ChatManager { get; private set; }
         public static EmbeddingManager EmbeddingManager { get; private set; }
+        public static RimAI.Framework.Execution.Cache.ICacheService CacheService { get; private set; }
 
         private static bool _isAssembled = false;
 
@@ -48,6 +49,7 @@ namespace RimAI.Framework.Core.Lifecycle
             SettingsManager = settingsManager;
             ChatManager = chatManager;
             EmbeddingManager = embeddingManager;
+            CacheService = cache;
 
             _isAssembled = true;
         }

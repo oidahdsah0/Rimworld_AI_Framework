@@ -50,9 +50,8 @@ namespace RimAI.Framework.Translation
                 
                 if (!string.IsNullOrEmpty(finishReason))
                 {
-                    var finalChunk = ParseJObjectToChunk(jObject, config) ?? new UnifiedChatChunk();
-                    finalChunk.FinishReason = finishReason;
-                    yield return finalChunk;
+                    // Emit a pure final chunk with only FinishReason to avoid duplicating last delta
+                    yield return new UnifiedChatChunk { FinishReason = finishReason };
                 }
             }
         }
