@@ -19,7 +19,7 @@
 **📅 Created**: 15 July 2025  
 **🚀 Updated**: 06 Aug 2025  
 **🔄 Latest**: v4.2.1 - Unified Architecture (Conversation-Scoped Cache)
-**🧠 Build with**: This project was built entirely using prompts.
+**🧠 Build with**: Built with AI (prompt engineering), human‑reviewed.
 
 ---
 
