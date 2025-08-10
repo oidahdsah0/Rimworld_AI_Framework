@@ -150,6 +150,7 @@ namespace RimAI.Framework.Translation
         {
             using var stream = await httpResponse.Content.ReadAsStreamAsync();
             using var reader = new StreamReader(stream);
+            // 禁用流读取的缓冲合并，尽量低延迟（默认 ReadLineAsync 已逐行，但明确注释意图）
 
             string pendingData = null;
             while (!reader.EndOfStream)

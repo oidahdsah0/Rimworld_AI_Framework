@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Net.Http;
 using RimAI.Framework.UI;
 using Verse;
@@ -29,6 +30,12 @@ namespace RimAI.Framework.Execution
             // 未来如果需要对客户端进行全局配置（比如设置默认的超时时间），
             // 就可以在这里进行。
             _client = new HttpClient();
+            // 提升并发连接上限，避免 .NET Framework 默认每主机仅 2 个连接导致的 SSE 并发阻塞
+            try { ServicePointManager.DefaultConnectionLimit = Math.Max(ServicePointManager.DefaultConnectionLimit, 64); } catch { }
+            // 关闭 Expect: 100-continue，减少握手等待问题
+            try { ServicePointManager.Expect100Continue = false; } catch { }
+            // 显式启用 TLS 1.2（在 4.7.2 上通常由系统默认，此处兜底）
+            try { ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12; } catch { }
             ApplyConfiguredTimeout();
         }
 

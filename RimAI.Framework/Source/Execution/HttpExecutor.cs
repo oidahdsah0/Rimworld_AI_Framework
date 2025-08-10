@@ -57,7 +57,8 @@ namespace RimAI.Framework.Execution
                 }
                 catch (Exception ex)
                 {
-                    RimAILogger.Error($"HttpExecutor: Request failed. Retrying... (Attempt {i + 1}/{policy.MaxRetries + 1}). Error: {ex.Message}");
+                    var inner = ex.InnerException != null ? $" | Inner: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}" : string.Empty;
+                    RimAILogger.Error($"HttpExecutor: Request failed. Retrying... (Attempt {i + 1}/{policy.MaxRetries + 1}). Error: {ex.GetType().Name}: {ex.Message}{inner}");
                     
                     if (i >= policy.MaxRetries)
                     {

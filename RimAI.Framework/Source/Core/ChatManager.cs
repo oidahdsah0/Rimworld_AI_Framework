@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +17,7 @@ namespace RimAI.Framework.Core
 {
     public partial class ChatManager
     {
+        private static readonly ConcurrentDictionary<string, SemaphoreSlim> _streamGates = new ConcurrentDictionary<string, SemaphoreSlim>(StringComparer.Ordinal);
         private readonly SettingsManager _settingsManager;
         private readonly ChatRequestTranslator _requestTranslator;
         private readonly HttpExecutor _httpExecutor;
@@ -121,11 +124,20 @@ namespace RimAI.Framework.Core
                 yield break;
             }
 
+            // Concurrency gate for real streaming to avoid exhausting underlying connection limits
+            var limit = config.ConcurrencyLimit;
+            // 流式并发限制为 3：即使配置更大也按 3 封顶；未配置或非法时使用 3
+            if (limit <= 0) limit = 3;
+            if (limit > 3) limit = 3;
+            var gate = _streamGates.GetOrAdd(providerId, _ => new SemaphoreSlim(limit));
+            await gate.WaitAsync(cancellationToken);
+
             var httpRequest = _requestTranslator.Translate(request, config);
             var httpResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken, isStreaming: true);
             if (httpResult.IsFailure)
             {
                 yield return Result<UnifiedChatChunk>.Failure(httpResult.Error);
+                gate.Release();
                 yield break;
             }
 
@@ -140,6 +152,7 @@ namespace RimAI.Framework.Core
                 finally
                 {
                     httpResponse.Dispose();
+                    gate.Release();
                 }
                 yield break;
             }
@@ -163,6 +176,7 @@ namespace RimAI.Framework.Core
             finally
             {
                 httpResponse.Dispose();
+                gate.Release();
             }
 
             // After streaming, write to cache only if it appears complete
