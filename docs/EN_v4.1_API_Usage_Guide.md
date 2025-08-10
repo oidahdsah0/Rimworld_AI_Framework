@@ -1,6 +1,6 @@
-# RimAI.Framework v4.1 - API Usage Guide
+# RimAI.Framework v4.2.1 - API Usage Guide
 
-Welcome to the RimAI.Framework v4.1 API! This version introduces a powerful, end-to-end streaming chat API. This guide will get you up and running quickly, allowing you to integrate the framework's advanced AI capabilities into your own mods.
+Welcome to the RimAI.Framework v4.2.1 API! This version introduces a powerful, end-to-end streaming chat API. This guide will get you up and running quickly, allowing you to integrate the framework's advanced AI capabilities into your own mods.
 
 ## 1. Quick Start Guide
 
@@ -11,7 +11,7 @@ This section will walk you through a **streaming chat request**, demonstrating t
 1.  **Add Reference**: In your C# project, add a reference to `RimAI.Framework.dll`.
 2.  **Framework Configuration**: Ensure the end-user has configured at least one chat service provider (e.g., OpenAI) with a valid API Key in the RimWorld Mod Settings menu.
 
-### Example: Get a Real-Time AI Response
+### Example: Get a Real-Time AI Response (Conversation ID required)
 
 ```csharp
 using RimAI.Framework.API;
@@ -32,8 +32,11 @@ public class MyModFeature
             new ChatMessage { Role = "user", Content = question }
         };
 
-        // 2. Construct the unified request object
-        var request = new UnifiedChatRequest { Messages = messages };
+        // 2. Construct the unified request object with a unique conversation ID
+        var request = new UnifiedChatRequest {
+            ConversationId = "my-mod-conv-12345-unique", // upstream must provide a stable unique ID
+            Messages = messages
+        };
 
         // 3. [New] Consume the streaming API with await foreach
         var responseBuilder = new StringBuilder();
@@ -106,7 +109,7 @@ using RimAI.Framework.Contracts;
 
 #### Chat Completions
 
-**1. [New] Core Streaming Method: `StreamCompletionAsync`**
+**1. [New/Required] Core Streaming Method: `StreamCompletionAsync` (requires `ConversationId`)**
 This is the recommended way to get real-time, token-by-token responses.
 
 ```csharp
@@ -117,7 +120,7 @@ public static IAsyncEnumerable<Result<UnifiedChatChunk>> StreamCompletionAsync(
 ```
 *   **Returns**: An asynchronous stream of `UnifiedChatChunk`. You must consume it using `await foreach`. Each element in the stream is a `Result` object, and you need to check its `IsSuccess` status.
 
-**2. Core Non-Streaming Method: `GetCompletionAsync`**
+**2. Core Non-Streaming Method: `GetCompletionAsync` (requires `ConversationId`)**
 Use this to get the complete AI response in a single call.
 
 ```csharp
@@ -127,13 +130,14 @@ public static Task<Result<UnifiedChatResponse>> GetCompletionAsync(
 );
 ```
 
-**3. Tool-Calling Helper Method: `GetCompletionWithToolsAsync`**
-A convenience method designed to simplify non-streaming tool calls.
+**3. Tool-Calling Helper Method: `GetCompletionWithToolsAsync` (requires `ConversationId`)**
+A convenience method designed to simplify non-streaming tool calls. A new `conversationId` parameter is introduced.
 
 ```csharp
 public static Task<Result<UnifiedChatResponse>> GetCompletionWithToolsAsync(
     List<ChatMessage> messages,
     List<ToolDefinition> tools,
+    string conversationId,
     CancellationToken cancellationToken = default
 );
 ```
@@ -158,11 +162,11 @@ public static Task<Result<UnifiedEmbeddingResponse>> GetEmbeddingsAsync(
 );
 ```
 
-### Caching and Pseudo-Streaming Behavior
+### Caching and Pseudo-Streaming Behavior (Conversation-scoped)
 
 - Unified cache (Framework layer):
   - Chat and Embedding use a short default TTL (120s by default); failures are not cached.
-  - Chat key = provider/model/endpoint + canonical request summary (ignores the `Stream` flag), ensuring streaming and non-streaming variants of the same semantic request share the same entry.
+  - Chat key adds a “conversation scope”: `chat:{provider}:{model}:conv:{sha256(conversationId)[0..15]}:{payloadHash}`. The `payloadHash` is based on the canonical request summary (ignores the `Stream` flag).
   - Embedding caches per input text (key = provider + model + sha256(text)).
 - Cache-hit pseudo-stream:
   - If a streaming request hits the cache, the Framework slices the cached full reply into `UnifiedChatChunk`s and immediately emits them as a pseudo-stream. The last chunk carries `FinishReason` and possibly `ToolCalls`.
@@ -172,7 +176,18 @@ public static Task<Result<UnifiedEmbeddingResponse>> GetEmbeddingsAsync(
 ### Key Request Models
 
 (This section is unchanged from previous versions and is omitted for brevity)
-*   `UnifiedChatRequest`
+*   `UnifiedChatRequest` (new required field: `ConversationId`)
+
+### Cache Invalidation
+
+To clear cache entries for a single dialogue under the current active Provider/Model:
+
+```csharp
+public static Task<Result<bool>> InvalidateConversationCacheAsync(
+    string conversationId,
+    CancellationToken cancellationToken = default
+);
+```
 *   `ChatMessage`
 *   `ToolDefinition` & `ToolCall`
 *   ...
@@ -225,5 +240,5 @@ public class UnifiedEmbeddingResponse
 (`EmbeddingResult` structure omitted)
 
 ---
-This updated guide now fully covers the capabilities of the v4.1 API. Happy coding!
+This updated guide now fully covers the capabilities of the v4.2.1 API. Happy coding!
 

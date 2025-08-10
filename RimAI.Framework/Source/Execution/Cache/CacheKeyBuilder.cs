@@ -22,6 +22,11 @@ namespace RimAI.Framework.Execution.Cache
 
         public static string BuildChatKey(UnifiedChatRequest request, MergedChatConfig cfg)
         {
+            if (request == null) throw new System.ArgumentNullException(nameof(request));
+            if (cfg == null) throw new System.ArgumentNullException(nameof(cfg));
+            if (string.IsNullOrEmpty(request.ConversationId))
+                throw new System.ArgumentException("ConversationId is required for chat caching.", nameof(request.ConversationId));
+
             var fingerprint = new JObject
             {
                 ["ns"] = "chat",
@@ -97,8 +102,20 @@ namespace RimAI.Framework.Execution.Cache
             // IMPORTANT: ignore request.Stream in key to unify stream/non-stream
 
             var canonical = Canonicalize(body);
-            var hash = Sha256Hex(canonical);
-            return $"chat:{cfg.ProviderName}:{cfg.Model}:{hash}";
+            var payloadHash = Sha256Hex(canonical);
+            var convSha = Sha256Hex(request.ConversationId);
+            var convShort = convSha.Substring(0, 16);
+            return $"chat:{cfg.ProviderName}:{cfg.Model}:conv:{convShort}:{payloadHash}";
+        }
+
+        public static string BuildChatConversationPrefix(MergedChatConfig cfg, string conversationId)
+        {
+            if (cfg == null) throw new System.ArgumentNullException(nameof(cfg));
+            if (string.IsNullOrEmpty(conversationId))
+                throw new System.ArgumentException("ConversationId is required for chat cache invalidation.", nameof(conversationId));
+            var convSha = Sha256Hex(conversationId);
+            var convShort = convSha.Substring(0, 16);
+            return $"chat:{cfg.ProviderName}:{cfg.Model}:conv:{convShort}:";
         }
 
         public static string BuildEmbeddingKey(string input, MergedEmbeddingConfig cfg)

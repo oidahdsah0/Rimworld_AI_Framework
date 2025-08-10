@@ -6,7 +6,7 @@ namespace RimAI.Framework.Configuration
 {
     /// <summary>
     /// 包含所有内置的、硬编码的 AI 服务模板。
-    /// V4.2 重构: 已将统一的 ProviderTemplate 拆分为独立的 ChatTemplate 和 EmbeddingTemplate。
+    /// v4.2.1: 模板保持兼容，补充Embedding/Chat键策略说明。
     /// </summary>
     public static class BuiltInTemplates
     {

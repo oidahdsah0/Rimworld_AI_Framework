@@ -8,7 +8,7 @@
 [![RimWorld](https://img.shields.io/badge/RimWorld-1.5%20%7C%201.6-brightgreen.svg)](https://rimworldgame.com/)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.7.2-blue.svg)](https://dotnet.microsoft.com/download/dotnet-framework)
 [![Steam Workshop](https://img.shields.io/badge/Steam-Workshop-blue.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)
-[![Status](https://img.shields.io/badge/Status-v4.1.2-orange.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
+[![Status](https://img.shields.io/badge/Status-v4.2.1-orange.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
 
 > **🚀 A revolutionary AI-powered framework for RimWorld that brings Large Language Models directly into your colony management experience, enabling intelligent, context-aware administrative decisions! 🎮✨**
 
@@ -18,7 +18,8 @@
 **👨‍💻 Author**: [@oidahdsah0](https://github.com/oidahdsah0)  
 **📅 Created**: 15 July 2025  
 **🚀 Updated**: 06 Aug 2025  
-**🔄 Latest**: v4.1.2 Beta - Unified Architecture
+**🔄 Latest**: v4.2.1 - Unified Architecture (Conversation-Scoped Cache)
+**🧠 Build with**: This project was built entirely using prompts.
 
 ---
 
@@ -32,9 +33,9 @@
 *   **Comprehensive Feature Support**: Native support for streaming/non-streaming chat, JSON mode, function calling, and text embedding.
 *   **Intelligent Batching**: Automatic, provider-aware batching for embeddings and concurrency-limited batching for chat to maximize throughput.
 
-## ⚡ **v4 Key Features** 🌟
+## ⚡ **v4.2.1 Key Features** 🌟
 - **🔌 Data-Driven**: Connect to any API via JSON templates.
-- **🔄 End-to-End Streaming**: **New in v4.1.2!** A fully-featured streaming API for real-time, word-by-word responses.
+- **🔄 End-to-End Streaming**: **Enhanced in v4.2.1!** A fully-featured streaming API for real-time, word-by-word responses.
 - **✨ Embedding API**: First-class support for text embeddings.
 - **📊 Advanced Batching**: Optimized for chat and embeddings.
 - **🛡️ Robust & Safe**: Type-safe results with the `Result<T>` pattern.
@@ -65,7 +66,7 @@
    - **Model**: The specific model to use (e.g., `gpt-4o-mini`, `llama3`).
 4. **✅ Test & Save**: Use the "Test" button to verify your connection, then click "Save".
 
-## 📚 **v4.1.2 API Usage Guide** 💻
+## 📚 **v4.2.1 API Usage Guide** 💻
 
 The v4.1.2 API is streamlined, powerful, and introduces a first-class streaming experience.
 
@@ -185,8 +186,8 @@ The framework includes full localization support for:
 This is an open-source project and contributions are welcome! 🎉 Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ### 📚 Architecture Documentation
-- 🏛️ **[V4 Architecture Design](docs/ARCHITECTURE_V4.md)**: A deep dive into the data-driven architecture.
-- 🇨🇳 **[v4.1.2 API Guide (Chinese)](docs/CN_v4.0_API调用指南.md)**: Detailed guide for the latest API.
+- 🏛️ **[V4.2.1 Architecture Design](docs/EN_ARCHITECTURE_V4.md)**: A deep dive into the data-driven architecture.
+- 🇨🇳 **[v4.2.1 API Guide (Chinese)](docs/CN_v4.1_API调用指南.md)**: Detailed guide for the latest API.
 
 ## 📄 **License** ⚖️
 

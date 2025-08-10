@@ -11,7 +11,7 @@ using Verse;
 namespace RimAI.Framework.Configuration
 {
     /// <summary>
-    /// V4.2: 彻底重构为管理独立的 Chat 和 Embedding 配置。
+    /// v4.2.1: 继续完善，确保与会话级缓存与键策略兼容。
     /// </summary>
     public class SettingsManager
     {

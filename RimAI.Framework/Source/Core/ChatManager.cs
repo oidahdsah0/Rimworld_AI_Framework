@@ -42,6 +42,8 @@ namespace RimAI.Framework.Core
 
         public async Task<Result<UnifiedChatResponse>> ProcessRequestAsync(UnifiedChatRequest request, string providerId, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrEmpty(request?.ConversationId))
+                return Result<UnifiedChatResponse>.Failure("ConversationId is required for chat requests.");
             var configResult = _settingsManager.GetMergedChatConfig(providerId);
             if (!configResult.IsSuccess)
                 return Result<UnifiedChatResponse>.Failure(configResult.Error);
@@ -90,6 +92,11 @@ namespace RimAI.Framework.Core
 
         public async IAsyncEnumerable<Result<UnifiedChatChunk>> ProcessStreamRequestAsync(UnifiedChatRequest request, string providerId, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
+            if (string.IsNullOrEmpty(request?.ConversationId))
+            {
+                yield return Result<UnifiedChatChunk>.Failure("ConversationId is required for chat requests.");
+                yield break;
+            }
             var configResult = _settingsManager.GetMergedChatConfig(providerId);
             if (!configResult.IsSuccess)
             {
@@ -184,12 +191,30 @@ namespace RimAI.Framework.Core
             var config = configResult.Value;
             var semaphore = new SemaphoreSlim(config.ConcurrencyLimit);
             var tasks = requests.Select(async req => {
+                if (string.IsNullOrEmpty(req?.ConversationId))
+                {
+                    return Result<UnifiedChatResponse>.Failure("ConversationId is required for chat requests.");
+                }
                 await semaphore.WaitAsync(cancellationToken);
                 try { return await ProcessRequestAsync(req, providerId, cancellationToken); }
                 finally { semaphore.Release(); }
             });
 
             return (await Task.WhenAll(tasks)).ToList();
+        }
+
+        public async Task<Result<bool>> InvalidateConversationCacheAsync(string providerId, string conversationId, CancellationToken cancellationToken)
+        {
+            var configResult = _settingsManager.GetMergedChatConfig(providerId);
+            if (!configResult.IsSuccess)
+                return Result<bool>.Failure(configResult.Error);
+            if (string.IsNullOrEmpty(conversationId))
+                return Result<bool>.Failure("ConversationId is required for cache invalidation.");
+
+            var cfg = configResult.Value;
+            var prefix = CacheKeyBuilder.BuildChatConversationPrefix(cfg, conversationId);
+            await _cache.InvalidateByPrefixAsync(prefix, cancellationToken);
+            return Result<bool>.Success(true);
         }
     }
 

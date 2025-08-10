@@ -10,6 +10,12 @@ namespace RimAI.Framework.Contracts
     public class UnifiedChatRequest
     {
         /// <summary>
+        /// 对话唯一标识。用于将缓存作用域限定在某个会话内，防止跨会话命中。
+        /// 强制要求：调用方必须提供一个稳定且唯一的字符串。
+        /// </summary>
+        public string ConversationId { get; set; }
+
+        /// <summary>
         /// 对话上下文消息列表。
         /// </summary>
         public List<ChatMessage> Messages { get; set; } = new List<ChatMessage>();

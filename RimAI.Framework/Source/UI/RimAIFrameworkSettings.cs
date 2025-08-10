@@ -3,7 +3,7 @@ using Verse;
 namespace RimAI.Framework.UI
 {
     /// <summary>
-    /// V4.2: 重构为存储独立的 Chat 和 Embedding 服务提供商，并增加一个控制开关。
+    /// v4.2.1: 设置项保持不变，兼容会话级缓存策略。
     /// </summary>
     public class RimAIFrameworkSettings : ModSettings
     {

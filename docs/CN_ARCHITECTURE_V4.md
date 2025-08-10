@@ -1,4 +1,4 @@
-# RimAI.Framework V4 架构设计
+# RimAI.Framework V4.2.1 架构设计
 
 ## 1. 核心思想 - 这是一个 RimWorld 游戏的 AI API 对接框架Mod
 
@@ -13,7 +13,7 @@
 7.  提供自定义模板填写；
 8.  严格考虑异步、HttpClient生命周期；
 
-Framework V4 旨在构建一个高度灵活、可扩展、数据驱动的底层基础设施，用于与各类大语言模型（LLM）及 Embedding API 进行交互。其核心特性包括：
+Framework V4.2.1 旨在构建一个高度灵活、可扩展、数据驱动的底层基础设施，用于与各类大语言模型（LLM）及 Embedding API 进行交互。其核心特性包括：
 
 *   **【更新】提供商模板系统**: 通过外部化的 `provider_template_*.json` 文件，不仅定义与特定AI服务的交互方式，更定义了**API的完整契约**。这包括端点、认证方法、以及**请求/响应的结构映射**，从而实现对新提供商的零代码适配。
 *   **统一的内部模型**: 所有外部请求都被转换为统一的内部请求对象 (`UnifiedChatRequest`, `UnifiedEmbeddingRequest`)，所有来自 AI 的响应也都被翻译回统一的内部响应对象 (`UnifiedChatResponse`, `UnifiedEmbeddingResponse`)，从而解耦上层业务与底层 API 的实现细节。
@@ -24,7 +24,7 @@ Framework V4 旨在构建一个高度灵活、可扩展、数据驱动的底层�
 
 ## 2. 目录结构与组件职责
 
-基于上述思想和具体功能需求，V4 的目录结构设计如下。这个结构旨在实现关注点分离，并明确每个组件的单一职责。
+基于上述思想和具体功能需求，V4.2.1 的目录结构设计如下。这个结构旨在实现关注点分离，并明确每个组件的单一职责。
 
 ```
 RimAI.Framework/
@@ -308,13 +308,17 @@ graph TD
 ### 7.2 能力清单
 
 * **键设计（Key Strategy）**：
-  - Chat Key = 指纹(providerName, endpoint（去除 apiKey 占位）, model) + 归一化请求摘要（messages[role, content, tool_call_id, tool_calls]、tools 定义、JSON 模式、温度/采样/长度等参数、模板 `StaticParameters` 及用户覆盖）。
-  - 忽略 `stream` 标记（同一语义请求，流式/非流式命中同一条目）。
+  - Chat Key = 指纹(providerName, endpoint（去除 apiKey 占位）, model) + 会话维度 + 归一化请求摘要。
+    - 会话维度：`conv:{sha256(conversationId).Substring(0,16)}`，以 `UnifiedChatRequest.ConversationId` 为强制唯一标识。
+    - 归一化请求摘要包含：`messages[role, content, tool_call_id, tool_calls]`、`tools` 定义、JSON 模式、温度/采样/长度等参数、模板 `StaticParameters` 与用户覆盖。
+    - 忽略 `stream` 标记（同一语义请求，流式/非流式命中同一条目）。
   - Embedding Key（逐条输入粒度）= providerName + model + sha256(normalize(text))。
   - 键永不包含 `apiKey` 或敏感 Header 值。
 * **存储策略（TTL/L1/L2）**：默认短 TTL（60–300 秒，可配），失败不入缓存；提供内存 L1 实现，磁盘 L2 作为可选增强。
 * **同请求合流（In‑Flight De‑Dup）**：对非流式请求，以 Key 聚合并发，落一份真实调用，其他并发等待复用结果。
-* **失效策略**：当 Provider/Model 变更或设置保存时，按命名空间批量失效（如 `chat:{provider}:{model}:*`、`embed:{provider}:{model}:*`）。
+* **失效策略**：
+  - Provider/Model 变更或设置保存：按命名空间批量失效（如 `chat:{provider}:{model}:*`、`embed:{provider}:{model}:*`）。
+  - 会话级失效：按前缀 `chat:{provider}:{model}:conv:{convShort}:*` 精确失效单一对话缓存。
 * **观测指标**：命中率、合流次数、节省请求/时延，便于后续在 UI 暴露与调优。
 
 ### 7.3 流式兼容策略

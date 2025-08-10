@@ -3,7 +3,7 @@
 [h1]🔧 Core Framework Module[/h1]
 The RimAI Framework is the foundational core of the entire RimAI ecosystem. It is a dependency that handles all communication with Large Language Models (LLMs) and provides a comprehensive API for other content mods.
 
-[h1]⚡ V4.1 Key Features[/h1]
+[h1]⚡ V4.2.1 Key Features[/h1]
 [list]
 [*]🔌 [b]Data-Driven:[/b] Connect to any AI provider (OpenAI, Ollama, Groq, etc.) via simple JSON templates.
 [*]🔄 [b]End-to-End Streaming:[/b] A fully-featured streaming API for real-time, word-by-word responses.

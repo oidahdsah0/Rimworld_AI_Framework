@@ -296,7 +296,7 @@ namespace RimAI.Framework.UI
 
             try
             {
-                var request = new UnifiedChatRequest { Messages = new List<ChatMessage> { new ChatMessage { Role = "user", Content = "Hi" } } };
+                var request = new UnifiedChatRequest { ConversationId = "__preview__", Messages = new List<ChatMessage> { new ChatMessage { Role = "user", Content = "Hi" } } };
                 using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)))
                 {
                     var result = await RimAIApi.GetCompletionAsync(request, cts.Token);
@@ -506,6 +506,7 @@ namespace RimAI.Framework.UI
                 var translator = new ChatRequestTranslator();
                 var unifiedRequest = new UnifiedChatRequest
                 {
+                    ConversationId = "__preview__",
                     Messages = new List<ChatMessage> { new ChatMessage { Role = "user", Content = "Hi" } }
                 };
                 var httpRequest = translator.Translate(unifiedRequest, mergedConfig);

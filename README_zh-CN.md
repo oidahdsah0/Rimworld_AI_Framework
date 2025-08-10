@@ -8,7 +8,7 @@
 [![RimWorld](https://img.shields.io/badge/RimWorld-1.5%20%7C%201.6-brightgreen.svg)](https://rimworldgame.com/)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.7.2-blue.svg)](https://dotnet.microsoft.com/download/dotnet-framework)
 [![Steam Workshop](https://img.shields.io/badge/Steam-创意工坊-blue.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)
-[![Status](https://img.shields.io/badge/状态-v4.1.2-orange.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
+[![Status](https://img.shields.io/badge/状态-v4.2.1-orange.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3529186453)
 
 > **🚀 一个革命性的、由 AI 驱动的 RimWorld 框架，它将大语言模型（LLM）的强大能力直接集成到您的殖民地管理体验中，实现智能化、高情境感知的行政决策！🎮✨**
 
@@ -16,9 +16,10 @@
 **[📥 下载 RimAI 框架](https://steamcommunity.com/sharedfiles/filedetails/?id=3529263357)**
 
 **👨‍💻 Author**: [@oidahdsah0](https://github.com/oidahdsah0)  
-**📅 Created**: 15 July 2025  
-**🚀 Updated**: 06 Aug 2025  
-**🔄 Latest**: v4.1.2 Beta - Unified Architecture
+**📅 Created**: 2025 年 7 月 15 日
+**🚀 Updated**: 2025 年 8 月 10 日 
+**🔄 Latest**: v4.2.1 - 统一架构（会话作用域缓存）
+**🧠 Build with**: 本项目仅由提示词完成。
 
 ---
 
@@ -32,9 +33,9 @@
 *   **全面的功能支持**: 原生支持流式/非流式聊天、JSON 模式、函数调用（Function Calling）以及文本嵌入（Text Embedding）。
 *   **智能批量处理**: 为 Embedding 提供基于服务商限制的自动分块处理，为聊天提供基于并发限制的批量处理，以最大化吞吐量。
 
-## ⚡ **v4 核心特性** 🌟
+## ⚡ **v4.2.1 核心特性** 🌟
 - **🔌 数据驱动**：通过 JSON 模板连接到任何 API。
-- **🔄 端到端流式传输**：**v4.0 新增！** 功能完备的流式 API，用于实现实时的、逐字响应的交互体验。
+- **🔄 端到端流式传输**：**v4.2.1 增强！** 功能完备的流式 API，用于实现实时的、逐字响应的交互体验。
 - **✨ 嵌入 API**：对文本嵌入提供一流的支持。
 - **📊 高级批量处理**：为聊天和嵌入进行优化。
 - **🛡️ 健壮与安全**：使用 `Result<T>` 模式确保类型安全的结果处理。
@@ -65,7 +66,7 @@
    - **模型**：您希望使用的具体模型（如 `gpt-4o-mini`, `llama3`）。
 4. **✅ 测试并保存**：使用“测试”按钮验证您的连接，然后点击“保存”。
 
-## 📚 **v4.0 API 使用指南** 💻
+## 📚 **v4.2.1 API 使用指南** 💻
 
 v4.0 API 经过精简，功能强大，并引入了一流的流式编程体验。
 
@@ -174,8 +175,8 @@ if (embeddingsResult.IsSuccess)
 这是一个开源项目，我们欢迎各种形式的贡献！🎉 请查看我们的[贡献指南](CONTRIBUTING.md)以获取详细信息。
 
 ### 📚 架构文档
-- 🏛️ **[V4 架构设计 (英文)](docs/ARCHITECTURE_V4.md)**: 深入了解数据驱动架构。
-- 🇨🇳 **[v4.1.2 API 调用指南 (中文)](docs/CN_v4.0_API调用指南.md)**: 最新 API 的详细指南。
+- 🏛️ **[V4.2.1 架构设计 (英文)](docs/EN_ARCHITECTURE_V4.md)**: 深入了解数据驱动架构。
+- 🇨🇳 **[v4.2.1 API 调用指南 (中文)](docs/CN_v4.1_API调用指南.md)**: 最新 API 的详细指南。
 
 ## 📄 **许可证** ⚖️
 

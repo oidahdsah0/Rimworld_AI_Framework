@@ -13,7 +13,7 @@ namespace RimAI.Framework.API
 {
     /// <summary>
     /// RimAI Framework 的主要公共 API 静态类。
-    /// V4.4: 为所有公共异步方法添加了取消异常的捕获，使其更加健壮。
+    /// v4.2.1: 会话ID强制化、会话级缓存失效与键策略更新。
     /// </summary>
     public static class RimAIApi
     {
@@ -22,6 +22,7 @@ namespace RimAI.Framework.API
         private const string ChatProviderNotSetError = "No default chat provider is set. Please select and save one in Mod settings.";
         private const string EmbeddingProviderNotSetError = "No default embedding provider is set. Please select and save one in Mod settings.";
         private const string CancellationError = "Request was cancelled by the user.";
+        private const string ConversationIdRequiredError = "ConversationId is required. Provide a unique and stable ID per dialogue.";
 
         static RimAIApi()
         {
@@ -43,6 +44,12 @@ namespace RimAI.Framework.API
             if (string.IsNullOrEmpty(settings?.ActiveChatProviderId))
             {
                 yield return Result<UnifiedChatChunk>.Failure(ChatProviderNotSetError);
+                yield break;
+            }
+
+            if (string.IsNullOrEmpty(request?.ConversationId))
+            {
+                yield return Result<UnifiedChatChunk>.Failure(ConversationIdRequiredError);
                 yield break;
             }
 
@@ -91,6 +98,9 @@ namespace RimAI.Framework.API
             var settings = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
             if (string.IsNullOrEmpty(settings?.ActiveChatProviderId))
                 return Result<UnifiedChatResponse>.Failure(ChatProviderNotSetError);
+
+            if (string.IsNullOrEmpty(request?.ConversationId))
+                return Result<UnifiedChatResponse>.Failure(ConversationIdRequiredError);
 
             request.Stream = false;
 
@@ -162,15 +172,46 @@ namespace RimAI.Framework.API
         public static Task<Result<UnifiedChatResponse>> GetCompletionWithToolsAsync(
             List<ChatMessage> messages,
             List<ToolDefinition> tools,
+            string conversationId,
             CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrEmpty(conversationId))
+            {
+                return Task.FromResult(Result<UnifiedChatResponse>.Failure(ConversationIdRequiredError));
+            }
             var request = new UnifiedChatRequest
             {
+                ConversationId = conversationId,
                 Messages = messages,
                 Tools = tools,
                 Stream = false
             };
             return GetCompletionAsync(request, cancellationToken);
+        }
+
+        /// <summary>
+        /// 使指定会话ID下（当前活动 Provider/Model）的缓存失效。
+        /// </summary>
+        public static async Task<Result<bool>> InvalidateConversationCacheAsync(string conversationId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(conversationId))
+                return Result<bool>.Failure(ConversationIdRequiredError);
+
+            if (!FrameworkDI.SettingsManager.IsChatActive)
+                return Result<bool>.Failure(ChatNotActiveError);
+
+            var settings = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
+            if (string.IsNullOrEmpty(settings?.ActiveChatProviderId))
+                return Result<bool>.Failure(ChatProviderNotSetError);
+
+            try
+            {
+                return await FrameworkDI.ChatManager.InvalidateConversationCacheAsync(settings.ActiveChatProviderId, conversationId, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return Result<bool>.Failure(CancellationError);
+            }
         }
     }
 }

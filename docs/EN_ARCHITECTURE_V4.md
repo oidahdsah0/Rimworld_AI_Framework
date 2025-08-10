@@ -1,8 +1,8 @@
-# RimAI.Framework V4 Architecture Design
+# RimAI.Framework V4.2.1 Architecture Design
 
 ## 1. Core Philosophy: An AI API Integration Framework for RimWorld
 
-The RimAI.Framework V4 is engineered to be a highly flexible, extensible, and data-driven infrastructure for interacting with a wide array of Large Language Model (LLM) and Embedding APIs. Its design is guided by the following core principles:
+The RimAI.Framework V4.2.1 is engineered to be a highly flexible, extensible, and data-driven infrastructure for interacting with a wide array of Large Language Model (LLM) and Embedding APIs. Its design is guided by the following core principles:
 
 *   **Provider Template System**: By externalizing API contracts into `provider_template_*.json` files, the framework can adapt to new AI service providers with zero code changes. These templates define not just endpoints and authentication, but also the complete structural mapping of requests and responses.
 *   **Unified Internal Models**: All external API calls are translated into standardized internal objects (`UnifiedChatRequest`, `UnifiedEmbeddingRequest`), and all provider responses are translated back into unified internal responses (`UnifiedChatResponse`, `UnifiedEmbeddingResponse`). This decouples the high-level business logic from the low-level implementation details of any specific API.
@@ -13,7 +13,7 @@ The RimAI.Framework V4 is engineered to be a highly flexible, extensible, and da
 
 ## 2. Directory Structure and Component Responsibilities
 
-The V4 directory structure is designed to enforce separation of concerns and clarify the single responsibility of each component.
+The V4.2.1 directory structure is designed to enforce separation of concerns and clarify the single responsibility of each component.
 
 ```
 RimAI.Framework/
@@ -282,13 +282,17 @@ This model establishes a clear boundary:
 ### 7.2 Capabilities
 
 * **Key Strategy**:
-  - Chat Key = Fingerprint(providerName, endpoint with apiKey placeholder removed, model) + Canonicalized request summary (messages[role, content, tool_call_id, tool_calls], tool definitions, JSON mode, temperature/sampling/length parameters, template `StaticParameters` and user overrides).
-  - Ignore the `stream` flag so streaming and non-streaming versions of the same semantic request hit the same cache item.
+  - Chat Key = Fingerprint(providerName, endpoint with apiKey placeholder removed, model) + Conversation scope + Canonicalized request summary.
+    - Conversation scope: `conv:{sha256(conversationId)[0..15]}`. `UnifiedChatRequest.ConversationId` is mandatory and scopes cache hits to a single dialogue.
+    - Canonicalized request summary includes: `messages[role, content, tool_call_id, tool_calls]`, tool definitions, JSON mode, temperature/sampling/length parameters, template `StaticParameters` and user overrides.
+    - Ignore the `stream` flag so streaming and non-streaming versions of the same semantic request hit the same cache item.
   - Embedding Key (per input) = providerName + model + sha256(normalize(text)).
   - Keys never contain `apiKey` or sensitive header values.
 * **Storage Policy (TTL/L1/L2)**: Short default TTL (60–300 seconds, configurable), failures are not cached. Provide an in-memory L1 implementation; an optional disk-based L2 can be added later.
 * **In‑Flight De‑Duplication**: For non-streaming requests, concurrent calls with the same key are coalesced into a single upstream call; all await and reuse its result.
-* **Invalidation**: When Provider/Model changes or settings are saved, invalidate by namespace (e.g., `chat:{provider}:{model}:*`, `embed:{provider}:{model}:*`).
+* **Invalidation**:
+  - On Provider/Model changes or settings saved: invalidate by namespace (e.g., `chat:{provider}:{model}:*`, `embed:{provider}:{model}:*`).
+  - Conversation-level invalidation: invalidate by prefix `chat:{provider}:{model}:conv:{convShort}:*` to clear cache for a single dialogue only.
 * **Observability**: Track hit rate, coalesced request counts, and saved requests/latency for future UI surfacing and tuning.
 
 ### 7.3 Streaming Compatibility
