@@ -199,3 +199,9 @@ if (embeddingsResult.IsSuccess)
 ## 📄 **许可证** ⚖️
 
 此项目采用 MIT 许可证 - 详细信息请参阅 [LICENSE](LICENSE) 文件。
+
+---
+
+> "This structure is not sound... It will be made so, by my skill."
+>
+> — Techpriest Enginseer, *Warhammer 40,000: Dawn of War*

@@ -210,3 +210,9 @@ This is an open-source project and contributions are welcome! 🎉 Please see ou
 ## 📄 **License** ⚖️
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+> "This structure is not sound... It will be made so, by my skill."
+>
+> — Techpriest Enginseer, *Warhammer 40,000: Dawn of War*
