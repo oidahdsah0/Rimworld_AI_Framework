@@ -237,3 +237,174 @@ public class UnifiedEmbeddingResponse
 
 ---
 这份经过升级的指南现在完整地展示了 v4.2.1 API 的全部功能。祝您开发愉快！
+ 
+---
+
+## 3. 对话历史 Payload 规范（强烈建议阅读）
+
+本节详细说明“上游 Mod 如何携带用户与 AI 的历史对话”才算规范，确保跨供应商一致行为、正确的缓存命中与工具调用链路。
+
+### 3.1 必填项与基本约定
+
+- **ConversationId（必填）**
+  - 对话唯一标识，必须是稳定且唯一的字符串；同一轮/同一窗口/同一会话内的所有请求均应复用同一个 `ConversationId`。
+  - 缓存按会话维度隔离：缓存键包含 `conv:{sha256(conversationId)[0..15]}`，可避免不同会话间误命中。
+  - 建议命名：`<存档或世界ID>:<会话主题或双方ID>:<时间片或序号>`，例如 `save42:player-123-npc-456:2025-08-17`。
+
+- **Messages（必填）**
+  - 类型：`List<ChatMessage>`。
+  - 顺序：必须按时间顺序从旧到新排列（system → 历史 user/assistant 交替 → 最新 user）。
+  - 允许角色：`"system" | "user" | "assistant" | "tool"`。
+  - 文本：`Content` 为字符串；当 `assistant` 触发工具调用时，`Content` 可为 `null`（或空字符串）。
+
+> 注意：`Stream` 仅影响是否流式返回，不影响缓存键；同一语义请求的流式/非流式会命中相同缓存条目。
+
+### 3.2 ChatMessage 字段要求
+
+- **通用字段**
+  - `Role`：上述四种之一。
+  - `Content`：消息文本内容（`assistant` 发起工具调用时可留空）。
+
+- **工具相关字段**
+  - `ToolCalls`（仅当 `Role == "assistant"` 且模型要发起工具调用时使用）：
+    - 列表元素为 `ToolCall`，其中包含 `Id`、`Type`（通常为 `function`）与 `Function`（含 `name` 与 `arguments` JSON 字符串）。
+  - `ToolCallId`（仅当 `Role == "tool"` 回传工具执行结果时使用）：
+    - 必须与上一条 `assistant.tool_calls[*].id` 对应，以完成**调用-回传**配对。
+
+### 3.3 工具定义（可选）
+
+- 若要启用 Function Calling，请在请求体的 `Tools` 中提供可被调用的函数定义：
+  - 类型为 `List<ToolDefinition>`；通常 `Type = "function"`。
+  - `Function` 字段使用 JSON 对象，包含 `name`、`description`、`parameters`（JSON Schema）。
+  - 框架会根据模板自动映射到供应商侧的 `tools` 字段，并在可用时默认设置 `tool_choice = "auto"`。
+
+### 3.4 端到端生成的 Provider Payload 摘要
+
+上游仅需构造 `UnifiedChatRequest` 与 `ChatMessage`。框架会自动翻译为供应商请求 JSON：
+
+- 每条消息至少包含 `role` 与 `content`。
+- 当 `assistant` 携带工具调用：生成 `tool_calls` 数组。
+- 当 `tool` 回传结果：生成 `tool_call_id` 字段。
+- 其他动态参数（model、temperature、top_p、max_tokens 等）由配置系统合并注入。
+
+### 3.5 C# 示例：普通历史对话
+
+```csharp
+using RimAI.Framework.Contracts;
+
+var conversationId = "save42:player-123-npc-456:2025-08-17"; // 稳定且唯一
+
+var messages = new List<ChatMessage>
+{
+    new ChatMessage { Role = "system", Content = "You are a helpful assistant for RimWorld." },
+    new ChatMessage { Role = "user", Content = "你好，今天有什么建议？" },
+    new ChatMessage { Role = "assistant", Content = "建议先检查粮食和医疗物资储备。" },
+    new ChatMessage { Role = "user", Content = "库存够吗？顺便看看电力负载。" } // 最新用户消息
+};
+
+var request = new UnifiedChatRequest {
+    ConversationId = conversationId,
+    Messages = messages,
+    // 可选：Stream = true, ForceJsonOutput = false
+};
+```
+
+### 3.6 C# 示例：带工具调用的历史
+
+```csharp
+using Newtonsoft.Json.Linq;
+using RimAI.Framework.Contracts;
+
+var tools = new List<ToolDefinition>
+{
+    new ToolDefinition {
+        Type = "function",
+        Function = JObject.FromObject(new {
+            name = "check_stock",
+            description = "检查指定物资的库存数量",
+            parameters = new {
+                type = "object",
+                properties = new {
+                    item = new { type = "string" }
+                },
+                required = new [] { "item" }
+            }
+        })
+    }
+};
+
+var messages = new List<ChatMessage>
+{
+    new ChatMessage { Role = "user", Content = "请检查药草库存" },
+    new ChatMessage {
+        Role = "assistant",
+        Content = null,
+        ToolCalls = new List<ToolCall> {
+            new ToolCall {
+                Id = "call_1",
+                Type = "function",
+                Function = new ToolFunction {
+                    Name = "check_stock",
+                    Arguments = "{\"item\":\"herbal_medicine\"}"
+                }
+            }
+        }
+    },
+    new ChatMessage {
+        Role = "tool",
+        ToolCallId = "call_1",
+        Content = "{\"item\":\"herbal_medicine\",\"count\":87}"
+    },
+    new ChatMessage { Role = "user", Content = "那食物和钢铁呢？" }
+};
+
+var request = new UnifiedChatRequest {
+    ConversationId = "colony-A:thread-42",
+    Messages = messages,
+    Tools = tools
+};
+```
+
+### 3.7 最小 JSON 形态（由框架自动生成并发送）
+
+> 以下仅用于理解框架在供应商侧构造的近似 JSON 形态；上游无需手工拼 JSON。
+
+```json
+{
+  "messages": [
+    { "role": "system", "content": "..." },
+    { "role": "user", "content": "..." },
+    { "role": "assistant", "content": "..." }
+    // 如有工具：可出现 "tool_calls" 或 "tool_call_id"
+  ],
+  "stream": true/false,
+  "tools": [ /* 可选：function 定义 */ ]
+}
+```
+
+### 3.8 常见错误与修正
+
+- **缺少 ConversationId** → 请求将被拒绝。修正：提供稳定且唯一的 `ConversationId`。
+- **消息顺序倒置** → 模型上下文错乱。修正：按时间从旧到新排列。
+- **工具结果缺少 `tool_call_id`** → 无法与调用配对。修正：`tool` 消息设置正确的 `ToolCallId`。
+- **在非 `assistant` 消息中放置 `tool_calls`** → 无效结构。修正：仅在 `assistant` 发起工具调用时设置 `ToolCalls`。
+- **多会话混用同一 `ConversationId`** → 缓存/上下文相互污染。修正：为不同会话生成不同 ID。
+
+### 3.9 与缓存和流式的关系
+
+- 缓存键包含会话维度与规范化消息摘要：`messages[role, content, tool_call_id, tool_calls]`、`tools`、JSON 模式标记及温度/采样/长度参数等。
+- 忽略 `Stream` 标记（同一语义请求，流式/非流式命中同一条目）。
+- 命中缓存时，流式请求将进行“伪流式”切片并秒回；未命中则走真实流式，聚合完成后整体写入缓存。
+
+---
+
+## 4. 推荐实践与注意事项
+
+- **控制上下文长度**：长历史会消耗大量 Token。建议仅保留必要上下文，或在上游自行做裁剪。
+- **工具调用回传为字符串**：`tool` 消息的 `Content` 建议回传 JSON 字符串，便于后续解析与追踪。
+- **一致的 system 提示词**：在同一会话内保持 `system` 一致，有助于模型风格稳定。
+- **错误处理**：所有公共方法返回 `Result<T>` 或 `IAsyncEnumerable<Result<T>>`，请务必检查 `IsSuccess` 并处理 `Error` 信息。
+
+---
+
+以上规范与示例与框架源码保持一致，可作为上游 Mod 构造携带历史的标准做法。
