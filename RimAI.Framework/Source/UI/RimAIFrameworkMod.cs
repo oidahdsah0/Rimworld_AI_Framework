@@ -81,15 +81,27 @@ namespace RimAI.Framework.UI
 
             listing.Begin(viewRect);
 
-            // 第一排：保存/重置/测试（显示在“聊天服务”标题的上一行）
+            // 第一排：保存/重置/测试/Embedding开关（显示在“聊天服务”标题的上一行）
             Rect topBtnRect = listing.GetRect(30f);
-            float topBtnW = topBtnRect.width / 3f - 6f;
+            float topBtnW = topBtnRect.width / 4f - 6f;
             if (Widgets.ButtonText(new Rect(topBtnRect.x, topBtnRect.y, topBtnW, 30f), "RimAI.Save".Translate()))
                 HandleCombinedSave();
             if (Widgets.ButtonText(new Rect(topBtnRect.x + topBtnW + 4f, topBtnRect.y, topBtnW, 30f), "RimAI.Reset".Translate()))
                 HandleCombinedReset();
             if (Widgets.ButtonText(new Rect(topBtnRect.x + 2 * (topBtnW + 4f), topBtnRect.y, topBtnW, 30f), "RimAI.Test".Translate(), active: !_isChatTesting && !_isEmbeddingTesting))
                 HandleCombinedTest();
+            // Embedding 开关按钮：Embed:OFF(红)/Embed:ON(绿)
+            var prevColor = GUI.color;
+            bool embedOn = settings.EmbeddingEnabled;
+            GUI.color = embedOn ? Color.green : Color.red;
+            if (Widgets.ButtonText(new Rect(topBtnRect.x + 3 * (topBtnW + 4f), topBtnRect.y, topBtnW, 30f), embedOn ? "Embed:ON" : "Embed:OFF"))
+            {
+                settings.EmbeddingEnabled = !settings.EmbeddingEnabled;
+                settings.Write();
+                // 切换时清空一次测试提示，避免误导
+                _embeddingTestStatusMessage = settings.EmbeddingEnabled ? "RimAI.EmbedTestHint".Translate() : "Embedding disabled";
+            }
+            GUI.color = prevColor;
             listing.Gap(6f);
             // 顶部按钮下方显示 Chat/Embedding 的返回信息
             listing.Label(_chatTestStatusMessage);
@@ -687,7 +699,10 @@ namespace RimAI.Framework.UI
         private void HandleCombinedTest()
         {
             HandleChatTest();
-            HandleEmbeddingTest();
+            if (settings.EmbeddingEnabled)
+                HandleEmbeddingTest();
+            else
+                _embeddingTestStatusMessage = "Embedding disabled";
         }
     }
 }

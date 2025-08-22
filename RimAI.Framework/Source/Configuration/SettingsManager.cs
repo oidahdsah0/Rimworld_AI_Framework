@@ -28,6 +28,14 @@ namespace RimAI.Framework.Configuration
         public bool IsChatActive { get; private set; } = false;
         public bool IsEmbeddingActive { get; private set; } = false;
 
+        // --- Embedding 总开关状态读取 ---
+        public bool IsEmbeddingEnabled()
+        {
+            var mod = Verse.LoadedModManager.GetMod<RimAI.Framework.UI.RimAIFrameworkMod>();
+            var s = mod?.GetSettings<RimAI.Framework.UI.RimAIFrameworkSettings>();
+            return s?.EmbeddingEnabled ?? false;
+        }
+
         public SettingsManager()
         {
             _configDirectory = Path.Combine(GenFilePaths.ConfigFolderPath, ConfigFolderName);

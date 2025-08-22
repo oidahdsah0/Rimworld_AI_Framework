@@ -19,6 +19,7 @@ namespace RimAI.Framework.API
     {
         private const string ChatNotActiveError = "Chat service is not active. Please configure a chat provider with a valid API Key in Mod settings.";
         private const string EmbeddingNotActiveError = "Embedding service is not active. Please configure an embedding provider with a valid API Key in Mod settings.";
+        private const string EmbeddingDisabledError = "Embedding is disabled by settings. Enable it in Mod settings first.";
         private const string ChatProviderNotSetError = "No default chat provider is set. Please select and save one in Mod settings.";
         private const string EmbeddingProviderNotSetError = "No default embedding provider is set. Please select and save one in Mod settings.";
         private const string CancellationError = "Request was cancelled by the user.";
@@ -123,6 +124,10 @@ namespace RimAI.Framework.API
             if (settings == null)
                 return Result<UnifiedEmbeddingResponse>.Failure("Could not load RimAI Framework settings.");
 
+            // 总开关：关闭则直接拦截
+            if (!FrameworkDI.SettingsManager.IsEmbeddingEnabled())
+                return Result<UnifiedEmbeddingResponse>.Failure(EmbeddingDisabledError);
+
             // 从设置获取有效的 Embedding 提供商，若为空则回退到 Chat 提供商（理论上不应为空，设置界面已做同步）。
             string providerIdToUse = string.IsNullOrEmpty(settings.ActiveEmbeddingProviderId)
                 ? settings.ActiveChatProviderId
@@ -142,6 +147,14 @@ namespace RimAI.Framework.API
             {
                 return Result<UnifiedEmbeddingResponse>.Failure(CancellationError);
             }
+        }
+
+        /// <summary>
+        /// 上游可查询的 Embedding 开关状态。
+        /// </summary>
+        public static bool IsEmbeddingEnabled()
+        {
+            return FrameworkDI.SettingsManager.IsEmbeddingEnabled();
         }
         
         /// <summary>

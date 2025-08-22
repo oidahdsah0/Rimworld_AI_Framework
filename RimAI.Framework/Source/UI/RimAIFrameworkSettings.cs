@@ -17,6 +17,11 @@ namespace RimAI.Framework.UI
         /// </summary>
         public string ActiveEmbeddingProviderId = "";
 
+        /// <summary>
+        /// 是否启用 Embedding 功能的总开关。默认关闭以降低使用门槛。
+        /// </summary>
+        public bool EmbeddingEnabled = false;
+
         // --- Cache Settings ---
         public bool CacheEnabled = true;
         public int CacheTtlSeconds = 120;
@@ -43,6 +48,8 @@ namespace RimAI.Framework.UI
 
             // 保存/加载当前选中的Embedding提供商ID
             Scribe_Values.Look(ref ActiveEmbeddingProviderId, "ActiveEmbeddingProviderId", "");
+            // Embedding 总开关（默认关闭）
+            Scribe_Values.Look(ref EmbeddingEnabled, "EmbeddingEnabled", false);
             // 缓存开关与 TTL
             Scribe_Values.Look(ref CacheEnabled, "CacheEnabled", true);
             Scribe_Values.Look(ref CacheTtlSeconds, "CacheTtlSeconds", 120);

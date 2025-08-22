@@ -10,6 +10,7 @@
 
 1.  **添加引用**: 在您的 C# 项目中，添加对 `RimAI.Framework.dll` 的引用。
 2.  **框架配置**: 确保最终用户已经在 RimWorld 的 Mod 设置菜单中，至少配置好了一个聊天服务提供商（例如 OpenAI），并填入了有效的 API Key。
+3.  **Embedding 总开关**: 设置页面第一排提供“Embed:OFF/ON”按钮（红/绿）。默认 OFF；OFF 时不会发出任何 Embedding 请求，也不会触发任何 Embedding 测试发送，但仍可编辑并保存所有 Embedding 相关配置。
 
 ### 示例：实时获取 AI 回复（需提供会话ID）
 
@@ -170,6 +171,10 @@ public static Task<Result<UnifiedEmbeddingResponse>> GetEmbeddingsAsync(
     CancellationToken cancellationToken = default
 );
 ```
+
+开关与语义：
+- 当设置中的 Embedding 总开关为 OFF 时，本方法直接返回 `Result.Failure("Embedding is disabled by settings.")`，不会触发缓存、翻译或 HTTP。
+- 上游可通过 `RimAIApi.IsEmbeddingEnabled()` 读取当前开关状态，以决定是否展示或启用相关功能。
 
 ### 缓存与伪流式行为说明（会话隔离）
 
@@ -404,6 +409,9 @@ var request = new UnifiedChatRequest {
 - **工具调用回传为字符串**：`tool` 消息的 `Content` 建议回传 JSON 字符串，便于后续解析与追踪。
 - **一致的 system 提示词**：在同一会话内保持 `system` 一致，有助于模型风格稳定。
 - **错误处理**：所有公共方法返回 `Result<T>` 或 `IAsyncEnumerable<Result<T>>`，请务必检查 `IsSuccess` 并处理 `Error` 信息。
+- **Embedding 开关建议**：
+  - UI 默认 OFF，面向非向量用户降低复杂度；仅当用户显式开启且配置可用时，上游再启用 Embedding 相关路径。
+  - 上游在入口处优先检查 `RimAIApi.IsEmbeddingEnabled()`，OFF 时可直接短路或隐藏入口。
 
 ---
 

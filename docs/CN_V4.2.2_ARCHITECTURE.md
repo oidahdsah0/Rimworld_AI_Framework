@@ -10,8 +10,9 @@
 4.  提供非流式的Function Call接口（加载各模板）；
 5.  **[新增]** 提供非流式的 Embedding 接口；
 6.  **[新增]** 对普通对话和 Embedding 接口提供批量处理能力；
-7.  提供自定义模板填写；
-8.  严格考虑异步、HttpClient生命周期；
+7.  **[新增]** Embedding 总开关（默认 OFF）：UI 第一排按钮“Embed:OFF/ON”（红/绿），关闭时框架全链路不产生任何 Embedding 请求与测试发送；
+8.  提供自定义模板填写；
+9.  严格考虑异步、HttpClient生命周期；
 
 Framework V4.2.1 旨在构建一个高度灵活、可扩展、数据驱动的底层基础设施，用于与各类大语言模型（LLM）及 Embedding API 进行交互。其核心特性包括：
 
@@ -21,6 +22,13 @@ Framework V4.2.1 旨在构建一个高度灵活、可扩展、数据驱动的底
 *   **全面的功能支持**: 原生支持聊天（流式/非流式）、JSON 模式、工具调用（Function Calling）以及文本嵌入（Text Embedding）。
 *   **智能批量处理**: 为 Embedding 提供基于 API 限制的自动分块批量处理，为聊天提供基于用户配置的并发处理。
 *   **内部依赖注入**: 使用一个轻量级的、纯代码的“一次性装配线” (`FrameworkDI`) 来创建和组装其所有内部组件，实现高内聚、低耦合。
+
+**Embedding 总开关与拦截（新增）**：
+- UI 顶部提供“Embed:OFF/ON”（红/绿）按钮，默认 OFF；
+- 门面 `RimAIApi.GetEmbeddingsAsync` 在 OFF 时直接返回失败；
+- 协调器 `EmbeddingManager.ProcessRequestAsync` 再加一道 OFF 检查；
+- 上游可通过 `RimAIApi.IsEmbeddingEnabled()` 查询开关状态；
+- OFF 时允许编辑/保存配置但不发任何 Embedding 请求，也不进行测试发送。
 
 ## 2. 目录结构与组件职责
 

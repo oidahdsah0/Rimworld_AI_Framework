@@ -40,6 +40,10 @@ namespace RimAI.Framework.Core
 
         public async Task<Result<UnifiedEmbeddingResponse>> ProcessRequestAsync(UnifiedEmbeddingRequest request, string providerId, CancellationToken cancellationToken)
         {
+            // 二次闸门：Embedding 总开关关闭则立即失败，避免绕过门面时触发网络
+            if (!_settingsManager.IsEmbeddingEnabled())
+                return Result<UnifiedEmbeddingResponse>.Failure("Embedding is disabled by settings.");
+
             var configResult = _settingsManager.GetMergedEmbeddingConfig(providerId);
             if (!configResult.IsSuccess)
                 return Result<UnifiedEmbeddingResponse>.Failure(configResult.Error);
