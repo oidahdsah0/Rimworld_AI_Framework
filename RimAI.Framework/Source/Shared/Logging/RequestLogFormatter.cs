@@ -62,11 +62,17 @@ namespace RimAI.Framework.Shared.Logging
 			return FormatPayloadJson(json, maxChars);
 		}
 
-		public static string FormatProviderDispatch(string apiName, string providerId, HttpRequestMessage httpRequest, string requestBodyJson, int maxChars = DefaultMaxChars)
+		public static string FormatProviderDispatch(string apiName, string providerId, HttpRequestMessage httpRequest, string requestBodyJson, string conversationId = null, bool? stream = null, int? messagesCount = null, int? toolsCount = null, int? batchCount = null, int? inputsCount = null, int maxChars = DefaultMaxChars)
 		{
 			var sb = new StringBuilder();
 			sb.Append("[Dispatch] API=").Append(apiName);
 			if (!string.IsNullOrEmpty(providerId)) sb.Append(" Provider=").Append(providerId);
+			if (!string.IsNullOrEmpty(conversationId)) sb.Append(" ConversationId=").Append(conversationId);
+			if (stream.HasValue) sb.Append(" Stream=").Append(stream.Value ? "true" : "false");
+			if (messagesCount.HasValue) sb.Append(" Messages=").Append(messagesCount.Value);
+			if (toolsCount.HasValue) sb.Append(" Tools=").Append(toolsCount.Value);
+			if (batchCount.HasValue) sb.Append(" BatchCount=").Append(batchCount.Value);
+			if (inputsCount.HasValue) sb.Append(" Inputs=").Append(inputsCount.Value);
 			sb.Append(" Method=").Append(httpRequest.Method.Method);
 			sb.Append(" Endpoint=").Append(SanitizeEndpoint(httpRequest.RequestUri));
 			sb.AppendLine();

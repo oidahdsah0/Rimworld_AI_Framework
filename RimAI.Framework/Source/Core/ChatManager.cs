@@ -74,7 +74,11 @@ namespace RimAI.Framework.Core
                         apiName: "Chat:NonStream",
                         providerId: providerId,
                         httpRequest: httpRequest,
-                        requestBodyJson: body
+                        requestBodyJson: body,
+                        conversationId: request.ConversationId,
+                        stream: false,
+                        messagesCount: request.Messages?.Count,
+                        toolsCount: request.Tools?.Count
                     ));
                 }
                 catch { }
@@ -152,7 +156,11 @@ namespace RimAI.Framework.Core
                     apiName: "Chat:Stream",
                     providerId: providerId,
                     httpRequest: httpRequest,
-                    requestBodyJson: body
+                    requestBodyJson: body,
+                    conversationId: request.ConversationId,
+                    stream: true,
+                    messagesCount: request.Messages?.Count,
+                    toolsCount: request.Tools?.Count
                 ));
             }
             catch { }

@@ -106,7 +106,8 @@ namespace RimAI.Framework.Core
                                 apiName: "Embedding",
                                 providerId: providerId,
                                 httpRequest: httpReq,
-                                requestBodyJson: body
+                                requestBodyJson: body,
+                                inputsCount: batch?.Count
                             ));
                         }
                         catch { }

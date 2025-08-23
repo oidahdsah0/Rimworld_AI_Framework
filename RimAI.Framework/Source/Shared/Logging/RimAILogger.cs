@@ -12,21 +12,33 @@ namespace RimAI.Framework.Shared.Logging
         // 创建一个公共的、静态的方法，用于记录普通信息
         public static void Log(string message)
         {
-            // 使用Rimworld的Log方法记录日志, 使用LogPrefix作为前缀
+            if (RimAI.Framework.Shared.Logging.RimAIFrameworkDispatcher.IsAvailable && !UnityData.IsInMainThread)
+            {
+                RimAI.Framework.Shared.Logging.RimAIFrameworkDispatcher.Post(() => Verse.Log.Message(LogPrefix + message));
+                return;
+            }
             Verse.Log.Message(LogPrefix + message);
         }
 
         // 创建一个公共的、静态的方法，用于记录警告信息
         public static void Warning(string message)
         {
-            // 使用Rimworld的Log方法记录日志, 使用LogPrefix作为前缀
+            if (RimAI.Framework.Shared.Logging.RimAIFrameworkDispatcher.IsAvailable && !UnityData.IsInMainThread)
+            {
+                RimAI.Framework.Shared.Logging.RimAIFrameworkDispatcher.Post(() => Verse.Log.Warning(LogPrefix + message));
+                return;
+            }
             Verse.Log.Warning(LogPrefix + message);
         }
 
         // 创建一个公共的、静态的方法，用于记录错误信息
         public static void Error(string message)
         {
-            // 使用Rimworld的Log方法记录日志, 使用LogPrefix作为前缀
+            if (RimAI.Framework.Shared.Logging.RimAIFrameworkDispatcher.IsAvailable && !UnityData.IsInMainThread)
+            {
+                RimAI.Framework.Shared.Logging.RimAIFrameworkDispatcher.Post(() => Verse.Log.Error(LogPrefix + message));
+                return;
+            }
             Verse.Log.Error(LogPrefix + message);
         }
     }

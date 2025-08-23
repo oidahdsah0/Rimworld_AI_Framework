@@ -36,21 +36,7 @@ namespace RimAI.Framework.API
         /// </summary>
         public static async IAsyncEnumerable<Result<UnifiedChatChunk>> StreamCompletionAsync(UnifiedChatRequest request, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            // 入口日志：记录上游流式聊天请求
-            try
-            {
-                var settingsLog = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
-                RimAILogger.Log(RequestLogFormatter.FormatApiCallHeader(
-                    apiName: "RimAIApi.StreamCompletionAsync",
-                    providerId: settingsLog?.ActiveChatProviderId,
-                    conversationId: request?.ConversationId,
-                    stream: true,
-                    messagesCount: request?.Messages?.Count,
-                    toolsCount: request?.Tools?.Count
-                ));
-                RimAILogger.Log(RequestLogFormatter.FormatUnifiedChatRequest(request));
-            }
-            catch { }
+            // 精简日志：入口不打印独立Payload，信息合并至派发日志
 
             if (!FrameworkDI.SettingsManager.IsChatActive)
             {
@@ -110,21 +96,7 @@ namespace RimAI.Framework.API
         /// </summary>
         public static async Task<Result<UnifiedChatResponse>> GetCompletionAsync(UnifiedChatRequest request, CancellationToken cancellationToken = default)
         {
-            // 入口日志：记录上游非流式聊天请求
-            try
-            {
-                var settingsLog = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
-                RimAILogger.Log(RequestLogFormatter.FormatApiCallHeader(
-                    apiName: "RimAIApi.GetCompletionAsync",
-                    providerId: settingsLog?.ActiveChatProviderId,
-                    conversationId: request?.ConversationId,
-                    stream: false,
-                    messagesCount: request?.Messages?.Count,
-                    toolsCount: request?.Tools?.Count
-                ));
-                RimAILogger.Log(RequestLogFormatter.FormatUnifiedChatRequest(request));
-            }
-            catch { }
+            // 精简日志：入口不打印独立Payload，信息合并至派发日志
 
             if (!FrameworkDI.SettingsManager.IsChatActive)
                 return Result<UnifiedChatResponse>.Failure(ChatNotActiveError);
@@ -153,21 +125,7 @@ namespace RimAI.Framework.API
         /// </summary>
         public static async Task<Result<UnifiedEmbeddingResponse>> GetEmbeddingsAsync(UnifiedEmbeddingRequest request, CancellationToken cancellationToken = default)
         {
-            // 入口日志：记录上游 Embedding 请求
-            try
-            {
-                var settingsLog = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
-                string providerIdPreview = string.IsNullOrEmpty(settingsLog?.ActiveEmbeddingProviderId)
-                    ? settingsLog?.ActiveChatProviderId
-                    : settingsLog?.ActiveEmbeddingProviderId;
-                RimAILogger.Log(RequestLogFormatter.FormatApiCallHeader(
-                    apiName: "RimAIApi.GetEmbeddingsAsync",
-                    providerId: providerIdPreview,
-                    inputsCount: request?.Inputs?.Count
-                ));
-                RimAILogger.Log(RequestLogFormatter.FormatUnifiedEmbeddingRequest(request));
-            }
-            catch { }
+            // 精简日志：入口不打印独立Payload，信息合并至派发日志
 
             var settings = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
             if (settings == null)
@@ -211,18 +169,7 @@ namespace RimAI.Framework.API
         /// </summary>
         public static async Task<List<Result<UnifiedChatResponse>>> GetCompletionsAsync(List<UnifiedChatRequest> requests, CancellationToken cancellationToken = default)
         {
-            // 入口日志：记录上游批量聊天请求
-            try
-            {
-                var settingsLog = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
-                RimAILogger.Log(RequestLogFormatter.FormatApiCallHeader(
-                    apiName: "RimAIApi.GetCompletionsAsync",
-                    providerId: settingsLog?.ActiveChatProviderId,
-                    batchCount: requests?.Count
-                ));
-                RimAILogger.Log(RequestLogFormatter.FormatChatBatch(requests));
-            }
-            catch { }
+            // 精简日志：入口不打印独立Payload，信息合并至派发日志
 
             if (!FrameworkDI.SettingsManager.IsChatActive)
                 return requests.Select(_ => Result<UnifiedChatResponse>.Failure(ChatNotActiveError)).ToList();
@@ -250,20 +197,7 @@ namespace RimAI.Framework.API
             string conversationId,
             CancellationToken cancellationToken = default)
         {
-            // 入口日志：简化工具调用的非流式聊天请求
-            try
-            {
-                var settingsLog = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
-                RimAILogger.Log(RequestLogFormatter.FormatApiCallHeader(
-                    apiName: "RimAIApi.GetCompletionWithToolsAsync",
-                    providerId: settingsLog?.ActiveChatProviderId,
-                    conversationId: conversationId,
-                    stream: false,
-                    messagesCount: messages?.Count,
-                    toolsCount: tools?.Count
-                ));
-            }
-            catch { }
+            // 精简日志：入口不打印独立Payload，信息合并至派发日志
 
             if (string.IsNullOrEmpty(conversationId))
             {
@@ -284,17 +218,7 @@ namespace RimAI.Framework.API
         /// </summary>
         public static async Task<Result<bool>> InvalidateConversationCacheAsync(string conversationId, CancellationToken cancellationToken = default)
         {
-            // 入口日志：记录会话缓存失效请求
-            try
-            {
-                var settingsLog = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
-                RimAILogger.Log(RequestLogFormatter.FormatApiCallHeader(
-                    apiName: "RimAIApi.InvalidateConversationCacheAsync",
-                    providerId: settingsLog?.ActiveChatProviderId,
-                    conversationId: conversationId
-                ));
-            }
-            catch { }
+            // 精简日志：入口不打印
 
             if (string.IsNullOrEmpty(conversationId))
                 return Result<bool>.Failure(ConversationIdRequiredError);
