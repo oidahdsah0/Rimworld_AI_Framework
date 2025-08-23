@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RimAI.Framework.Configuration.Models;
 using RimAI.Framework.Execution.Cache;
+using RimAI.Framework.Shared.Logging;
 
 namespace RimAI.Framework.Core
 {
@@ -98,6 +99,17 @@ namespace RimAI.Framework.Core
                     var batchResult = await _inFlight.GetOrJoinAsync(batchKey, async () =>
                     {
                         var httpReq = _requestTranslator.Translate(new UnifiedEmbeddingRequest { Inputs = batch }, config);
+                        try
+                        {
+                            var body = await (httpReq.Content?.ReadAsStringAsync() ?? System.Threading.Tasks.Task.FromResult<string>(null));
+                            RimAILogger.Log(RequestLogFormatter.FormatProviderDispatch(
+                                apiName: "Embedding",
+                                providerId: providerId,
+                                httpRequest: httpReq,
+                                requestBodyJson: body
+                            ));
+                        }
+                        catch { }
                         var httpRes = await _httpExecutor.ExecuteAsync(httpReq, cancellationToken);
                         if (httpRes.IsFailure)
                             return Result<UnifiedEmbeddingResponse>.Failure(httpRes.Error);

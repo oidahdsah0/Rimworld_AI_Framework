@@ -1,6 +1,7 @@
 using RimAI.Framework.Core.Lifecycle;
 using RimAI.Framework.Contracts;
 using RimAI.Framework.UI;
+using RimAI.Framework.Shared.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +36,22 @@ namespace RimAI.Framework.API
         /// </summary>
         public static async IAsyncEnumerable<Result<UnifiedChatChunk>> StreamCompletionAsync(UnifiedChatRequest request, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            // 入口日志：记录上游流式聊天请求
+            try
+            {
+                var settingsLog = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
+                RimAILogger.Log(RequestLogFormatter.FormatApiCallHeader(
+                    apiName: "RimAIApi.StreamCompletionAsync",
+                    providerId: settingsLog?.ActiveChatProviderId,
+                    conversationId: request?.ConversationId,
+                    stream: true,
+                    messagesCount: request?.Messages?.Count,
+                    toolsCount: request?.Tools?.Count
+                ));
+                RimAILogger.Log(RequestLogFormatter.FormatUnifiedChatRequest(request));
+            }
+            catch { }
+
             if (!FrameworkDI.SettingsManager.IsChatActive)
             {
                 yield return Result<UnifiedChatChunk>.Failure(ChatNotActiveError);
@@ -93,6 +110,22 @@ namespace RimAI.Framework.API
         /// </summary>
         public static async Task<Result<UnifiedChatResponse>> GetCompletionAsync(UnifiedChatRequest request, CancellationToken cancellationToken = default)
         {
+            // 入口日志：记录上游非流式聊天请求
+            try
+            {
+                var settingsLog = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
+                RimAILogger.Log(RequestLogFormatter.FormatApiCallHeader(
+                    apiName: "RimAIApi.GetCompletionAsync",
+                    providerId: settingsLog?.ActiveChatProviderId,
+                    conversationId: request?.ConversationId,
+                    stream: false,
+                    messagesCount: request?.Messages?.Count,
+                    toolsCount: request?.Tools?.Count
+                ));
+                RimAILogger.Log(RequestLogFormatter.FormatUnifiedChatRequest(request));
+            }
+            catch { }
+
             if (!FrameworkDI.SettingsManager.IsChatActive)
                 return Result<UnifiedChatResponse>.Failure(ChatNotActiveError);
 
@@ -120,6 +153,22 @@ namespace RimAI.Framework.API
         /// </summary>
         public static async Task<Result<UnifiedEmbeddingResponse>> GetEmbeddingsAsync(UnifiedEmbeddingRequest request, CancellationToken cancellationToken = default)
         {
+            // 入口日志：记录上游 Embedding 请求
+            try
+            {
+                var settingsLog = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
+                string providerIdPreview = string.IsNullOrEmpty(settingsLog?.ActiveEmbeddingProviderId)
+                    ? settingsLog?.ActiveChatProviderId
+                    : settingsLog?.ActiveEmbeddingProviderId;
+                RimAILogger.Log(RequestLogFormatter.FormatApiCallHeader(
+                    apiName: "RimAIApi.GetEmbeddingsAsync",
+                    providerId: providerIdPreview,
+                    inputsCount: request?.Inputs?.Count
+                ));
+                RimAILogger.Log(RequestLogFormatter.FormatUnifiedEmbeddingRequest(request));
+            }
+            catch { }
+
             var settings = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
             if (settings == null)
                 return Result<UnifiedEmbeddingResponse>.Failure("Could not load RimAI Framework settings.");
@@ -162,6 +211,19 @@ namespace RimAI.Framework.API
         /// </summary>
         public static async Task<List<Result<UnifiedChatResponse>>> GetCompletionsAsync(List<UnifiedChatRequest> requests, CancellationToken cancellationToken = default)
         {
+            // 入口日志：记录上游批量聊天请求
+            try
+            {
+                var settingsLog = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
+                RimAILogger.Log(RequestLogFormatter.FormatApiCallHeader(
+                    apiName: "RimAIApi.GetCompletionsAsync",
+                    providerId: settingsLog?.ActiveChatProviderId,
+                    batchCount: requests?.Count
+                ));
+                RimAILogger.Log(RequestLogFormatter.FormatChatBatch(requests));
+            }
+            catch { }
+
             if (!FrameworkDI.SettingsManager.IsChatActive)
                 return requests.Select(_ => Result<UnifiedChatResponse>.Failure(ChatNotActiveError)).ToList();
 
@@ -188,6 +250,21 @@ namespace RimAI.Framework.API
             string conversationId,
             CancellationToken cancellationToken = default)
         {
+            // 入口日志：简化工具调用的非流式聊天请求
+            try
+            {
+                var settingsLog = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
+                RimAILogger.Log(RequestLogFormatter.FormatApiCallHeader(
+                    apiName: "RimAIApi.GetCompletionWithToolsAsync",
+                    providerId: settingsLog?.ActiveChatProviderId,
+                    conversationId: conversationId,
+                    stream: false,
+                    messagesCount: messages?.Count,
+                    toolsCount: tools?.Count
+                ));
+            }
+            catch { }
+
             if (string.IsNullOrEmpty(conversationId))
             {
                 return Task.FromResult(Result<UnifiedChatResponse>.Failure(ConversationIdRequiredError));
@@ -207,6 +284,18 @@ namespace RimAI.Framework.API
         /// </summary>
         public static async Task<Result<bool>> InvalidateConversationCacheAsync(string conversationId, CancellationToken cancellationToken = default)
         {
+            // 入口日志：记录会话缓存失效请求
+            try
+            {
+                var settingsLog = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
+                RimAILogger.Log(RequestLogFormatter.FormatApiCallHeader(
+                    apiName: "RimAIApi.InvalidateConversationCacheAsync",
+                    providerId: settingsLog?.ActiveChatProviderId,
+                    conversationId: conversationId
+                ));
+            }
+            catch { }
+
             if (string.IsNullOrEmpty(conversationId))
                 return Result<bool>.Failure(ConversationIdRequiredError);
 

@@ -12,6 +12,7 @@ using RimAI.Framework.Translation;
 using RimAI.Framework.Configuration.Models;
 using RimAI.Framework.Execution.Cache;
 using System.Text;
+using RimAI.Framework.Shared.Logging;
 
 namespace RimAI.Framework.Core
 {
@@ -66,6 +67,17 @@ namespace RimAI.Framework.Core
             var result = await _inFlight.GetOrJoinAsync(cacheKey, async () =>
             {
                 var httpRequest = _requestTranslator.Translate(request, config);
+                try
+                {
+                    var body = await (httpRequest.Content?.ReadAsStringAsync() ?? System.Threading.Tasks.Task.FromResult<string>(null));
+                    RimAILogger.Log(RequestLogFormatter.FormatProviderDispatch(
+                        apiName: "Chat:NonStream",
+                        providerId: providerId,
+                        httpRequest: httpRequest,
+                        requestBodyJson: body
+                    ));
+                }
+                catch { }
                 var httpResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken, isStreaming: false);
                 if (httpResult.IsFailure)
                     return Result<UnifiedChatResponse>.Failure(httpResult.Error);
@@ -133,6 +145,17 @@ namespace RimAI.Framework.Core
             await gate.WaitAsync(cancellationToken);
 
             var httpRequest = _requestTranslator.Translate(request, config);
+            try
+            {
+                var body = await (httpRequest.Content?.ReadAsStringAsync() ?? System.Threading.Tasks.Task.FromResult<string>(null));
+                RimAILogger.Log(RequestLogFormatter.FormatProviderDispatch(
+                    apiName: "Chat:Stream",
+                    providerId: providerId,
+                    httpRequest: httpRequest,
+                    requestBodyJson: body
+                ));
+            }
+            catch { }
             var httpResult = await _httpExecutor.ExecuteAsync(httpRequest, cancellationToken, isStreaming: true);
             if (httpResult.IsFailure)
             {
