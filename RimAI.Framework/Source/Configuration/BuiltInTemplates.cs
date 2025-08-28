@@ -137,6 +137,39 @@ namespace RimAI.Framework.Configuration
             };
             yield return new ChatTemplate
             {
+                ProviderName = "Anthropic (OpenAI-compatible)",
+                ProviderUrl = "https://docs.anthropic.com/en/api/openai-sdk",
+                Http = OpenAiHttpConfig,
+                ChatApi = new ChatApiConfig
+                {
+                    Endpoint = "https://api.anthropic.com/v1/chat/completions",
+                    DefaultModel = "claude-3-5-sonnet-latest",
+                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 300 }),
+                    RequestPaths = OpenAiChatRequestPaths,
+                    ResponsePaths = OpenAiChatResponsePaths,
+                    ToolPaths = OpenAiToolPaths,
+                    JsonMode = OpenAiJsonMode
+                }
+            };
+            yield return new ChatTemplate
+            {
+                ProviderName = "Google Gemini (OpenAI-compatible)",
+                ProviderUrl = "https://ai.google.dev/",
+                Http = OpenAiHttpConfig,
+                ChatApi = new ChatApiConfig
+                {
+                    Endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                    DefaultModel = "gemini-2.5-flash",
+                    DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 300 }),
+                    RequestPaths = OpenAiChatRequestPaths,
+                    ResponsePaths = OpenAiChatResponsePaths,
+                    ToolPaths = OpenAiToolPaths,
+                    JsonMode = OpenAiJsonMode
+                },
+                StaticParameters = JObject.FromObject(new { reasoning_effort = "none" })
+            };
+            yield return new ChatTemplate
+            {
                 ProviderName = "DeepSeek",
                 ProviderUrl = "https://platform.deepseek.com/",
                 Http = OpenAiHttpConfig,
@@ -265,6 +298,20 @@ namespace RimAI.Framework.Configuration
             // --- Cloud Providers ---
             yield return new EmbeddingTemplate
             {
+                ProviderName = "Anthropic (OpenAI-compatible)",
+                ProviderUrl = "",
+                Http = OpenAiHttpConfig,
+                EmbeddingApi = new EmbeddingApiConfig
+                {
+                    Endpoint = "",
+                    DefaultModel = "",
+                    MaxBatchSize = 2048,
+                    RequestPaths = OpenAiEmbeddingRequestPaths,
+                    ResponsePaths = OpenAiEmbeddingResponsePaths
+                }
+            };
+            yield return new EmbeddingTemplate
+            {
                 ProviderName = "Groq",
                 ProviderUrl = "https://groq.com/",
                 Http = OpenAiHttpConfig,
@@ -272,6 +319,20 @@ namespace RimAI.Framework.Configuration
                 {
                     Endpoint = "https://api.groq.com/openai/v1/embeddings",
                     DefaultModel = "nomic-embed-text", // Groq does not have its own, uses others
+                    MaxBatchSize = 2048,
+                    RequestPaths = OpenAiEmbeddingRequestPaths,
+                    ResponsePaths = OpenAiEmbeddingResponsePaths
+                }
+            };
+            yield return new EmbeddingTemplate
+            {
+                ProviderName = "Google Gemini (OpenAI-compatible)",
+                ProviderUrl = "https://ai.google.dev/",
+                Http = OpenAiHttpConfig,
+                EmbeddingApi = new EmbeddingApiConfig
+                {
+                    Endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/embeddings",
+                    DefaultModel = "gemini-embedding-001",
                     MaxBatchSize = 2048,
                     RequestPaths = OpenAiEmbeddingRequestPaths,
                     ResponsePaths = OpenAiEmbeddingResponsePaths
