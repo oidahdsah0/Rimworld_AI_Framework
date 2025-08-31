@@ -24,11 +24,11 @@ namespace RimAI.Framework.UI
 
         // --- Cache Settings ---
         public bool CacheEnabled = true;
-        public int CacheTtlSeconds = 120;
+    public int CacheTtlSeconds = 5;
 
         // --- HTTP Timeout Settings ---
         // 默认 100 秒，可通过设置界面修改
-        public int HttpTimeoutSeconds = 100;
+    public int HttpTimeoutSeconds = 30;
 
 
         /// <summary>
@@ -52,10 +52,10 @@ namespace RimAI.Framework.UI
             Scribe_Values.Look(ref EmbeddingEnabled, "EmbeddingEnabled", false);
             // 缓存开关与 TTL
             Scribe_Values.Look(ref CacheEnabled, "CacheEnabled", true);
-            Scribe_Values.Look(ref CacheTtlSeconds, "CacheTtlSeconds", 120);
+            Scribe_Values.Look(ref CacheTtlSeconds, "CacheTtlSeconds", 5);
 
             // Http 超时（秒）
-            Scribe_Values.Look(ref HttpTimeoutSeconds, "HttpTimeoutSeconds", 100);
+            Scribe_Values.Look(ref HttpTimeoutSeconds, "HttpTimeoutSeconds", 30);
         }
     }
 }

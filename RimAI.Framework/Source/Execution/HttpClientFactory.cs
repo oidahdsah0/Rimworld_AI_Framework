@@ -52,7 +52,7 @@ namespace RimAI.Framework.Execution
         }
 
         /// <summary>
-        /// 根据 Mod 设置应用全局 HttpClient 超时时间。默认 100 秒，范围 [5, 3600] 秒。
+    /// 根据 Mod 设置应用全局 HttpClient 超时时间。默认 30 秒，范围 [5, 3600] 秒。
         /// 可在设置保存后调用以立即生效。
         /// </summary>
         public static void ApplyConfiguredTimeout()
@@ -60,14 +60,14 @@ namespace RimAI.Framework.Execution
             try
             {
                 var settings = LoadedModManager.GetMod<RimAIFrameworkMod>()?.GetSettings<RimAIFrameworkSettings>();
-                int seconds = settings?.HttpTimeoutSeconds ?? 100;
+                int seconds = settings?.HttpTimeoutSeconds ?? 30;
                 if (seconds < 5) seconds = 5;
                 if (seconds > 3600) seconds = 3600;
                 _client.Timeout = TimeSpan.FromSeconds(seconds);
             }
             catch
             {
-                _client.Timeout = TimeSpan.FromSeconds(100);
+                _client.Timeout = TimeSpan.FromSeconds(30);
             }
         }
     }

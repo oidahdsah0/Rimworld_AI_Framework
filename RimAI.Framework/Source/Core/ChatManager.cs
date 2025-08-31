@@ -28,7 +28,7 @@ namespace RimAI.Framework.Core
         private static System.TimeSpan GetCacheTtl()
         {
             var s = Verse.LoadedModManager.GetMod<RimAI.Framework.UI.RimAIFrameworkMod>()?.GetSettings<RimAI.Framework.UI.RimAIFrameworkSettings>();
-            var secs = s?.CacheTtlSeconds ?? 120;
+            var secs = s?.CacheTtlSeconds ?? 5;
             if (secs < 10) secs = 10;
             if (secs > 3600) secs = 3600;
             return System.TimeSpan.FromSeconds(secs);

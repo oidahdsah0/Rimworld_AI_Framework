@@ -53,9 +53,9 @@ namespace RimAI.Framework.UI
         private float _viewHeight = 1500f;
         // Cache UI buffers
         private bool _cacheEnabledBuffer = true;
-        private int _cacheTtlBuffer = 120;
+    private int _cacheTtlBuffer = 5;
         // HTTP timeout UI buffer
-        private int _httpTimeoutBuffer = 100;
+    private int _httpTimeoutBuffer = 30;
         // One-time init guard for Network & Cache UI buffers
         private bool _netCacheUIInited = false;
 
@@ -380,7 +380,7 @@ namespace RimAI.Framework.UI
             listing.Gap(6f);
             // TTL slider
             listing.Label("RimAI.CacheTtl".Translate(_cacheTtlBuffer.ToString()));
-            _cacheTtlBuffer = (int)listing.Slider(_cacheTtlBuffer, 10, 3600);
+            _cacheTtlBuffer = (int)listing.Slider(_cacheTtlBuffer, 5, 3600);
         }
 
         // --- HTTP Settings Section ---
