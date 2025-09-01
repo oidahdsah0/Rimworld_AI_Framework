@@ -53,5 +53,6 @@
   <RimAI.NetworkCacheSaveBtn>네트워크 및 캐시 설정 저장</RimAI.NetworkCacheSaveBtn>
   <RimAI.NetworkCacheResetBtn>네트워크 및 캐시 설정 초기화</RimAI.NetworkCacheResetBtn>
   <RimAI.NetworkCacheSaved>네트워크 및 캐시 설정이 저장되었습니다.</RimAI.NetworkCacheSaved>
+    <RimAI.EmbedDisabled>임베딩이 비활성화되었습니다</RimAI.EmbedDisabled>
   <RimAI.NetworkCacheReset>네트워크 및 캐시 설정이 기본값으로 초기화되었습니다.</RimAI.NetworkCacheReset>
 </LanguageData>

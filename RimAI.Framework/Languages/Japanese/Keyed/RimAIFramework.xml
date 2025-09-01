@@ -54,4 +54,5 @@
   <RimAI.NetworkCacheResetBtn>ネットワークとキャッシュ設定をリセット</RimAI.NetworkCacheResetBtn>
   <RimAI.NetworkCacheSaved>ネットワークとキャッシュ設定を保存しました。</RimAI.NetworkCacheSaved>
   <RimAI.NetworkCacheReset>ネットワークとキャッシュ設定を既定値にリセットしました。</RimAI.NetworkCacheReset>
+  <RimAI.EmbedDisabled>埋め込みは無効です</RimAI.EmbedDisabled>
 </LanguageData>

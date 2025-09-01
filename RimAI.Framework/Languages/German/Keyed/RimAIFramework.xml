@@ -50,8 +50,9 @@
   <!-- HTTP -->
   <RimAI.HttpSettings>HTTP-Einstellungen</RimAI.HttpSettings>
   <RimAI.HttpTimeout>HTTP-Timeout (Sekunden): {0}</RimAI.HttpTimeout>
-  <RimAI.NetworkCacheSaveBtn>Netzwerk- & Cache-Einstellungen speichern</RimAI.NetworkCacheSaveBtn>
-  <RimAI.NetworkCacheResetBtn>Netzwerk- & Cache-Einstellungen zurücksetzen</RimAI.NetworkCacheResetBtn>
-  <RimAI.NetworkCacheSaved>Netzwerk- & Cache-Einstellungen gespeichert.</RimAI.NetworkCacheSaved>
-  <RimAI.NetworkCacheReset>Netzwerk- & Cache-Einstellungen auf Standard zurückgesetzt.</RimAI.NetworkCacheReset>
+  <RimAI.NetworkCacheSaveBtn>Netzwerk- &amp; Cache-Einstellungen speichern</RimAI.NetworkCacheSaveBtn>
+  <RimAI.NetworkCacheResetBtn>Netzwerk- &amp; Cache-Einstellungen zurücksetzen</RimAI.NetworkCacheResetBtn>
+  <RimAI.NetworkCacheSaved>Netzwerk- &amp; Cache-Einstellungen gespeichert.</RimAI.NetworkCacheSaved>
+  <RimAI.NetworkCacheReset>Netzwerk- &amp; Cache-Einstellungen auf Standard zurückgesetzt.</RimAI.NetworkCacheReset>
+  <RimAI.EmbedDisabled>Einbettung deaktiviert</RimAI.EmbedDisabled>
 </LanguageData>

@@ -54,4 +54,5 @@
   <RimAI.NetworkCacheResetBtn>Réinitialiser les paramètres réseau et cache</RimAI.NetworkCacheResetBtn>
   <RimAI.NetworkCacheSaved>Paramètres réseau et cache enregistrés.</RimAI.NetworkCacheSaved>
   <RimAI.NetworkCacheReset>Paramètres réseau et cache réinitialisés par défaut.</RimAI.NetworkCacheReset>
+  <RimAI.EmbedDisabled>Intégration désactivée</RimAI.EmbedDisabled>
 </LanguageData>

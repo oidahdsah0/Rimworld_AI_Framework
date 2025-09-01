@@ -19,7 +19,7 @@ using RimWorld;
 
 namespace RimAI.Framework.UI
 {
-    public class RimAIFrameworkMod : Mod
+    public partial class RimAIFrameworkMod : Mod
     {
         private readonly RimAIFrameworkSettings settings;
 
@@ -69,13 +69,11 @@ namespace RimAI.Framework.UI
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
-            // 确保语言系统已就绪后再翻译状态提示
-            if (_chatTestStatusMessage == "RimAI.ChatTestHint") _chatTestStatusMessage = "RimAI.ChatTestHint".Translate();
-            if (_embeddingTestStatusMessage == "RimAI.EmbedTestHint") _embeddingTestStatusMessage = "RimAI.EmbedTestHint".Translate();
+            // 状态提示：保持键本身，渲染时再 Translate，以避免语言切换后仍显示旧语言
 
             var listing = new Listing_Standard();
-
-            // 定义可滚动内容区域，宽度减 16f 预留滚动条
+            if (_chatTestStatusMessage == "RimAI.ChatTestHint") _chatTestStatusMessage = "RimAI.ChatTestHint";
+            if (_embeddingTestStatusMessage == "RimAI.EmbedTestHint") _embeddingTestStatusMessage = "RimAI.EmbedTestHint";
             Rect viewRect = new Rect(0f, 0f, inRect.width - 16f, _viewHeight);
             Widgets.BeginScrollView(inRect, ref _scrollPosition, viewRect);
 
@@ -99,13 +97,17 @@ namespace RimAI.Framework.UI
                 settings.EmbeddingEnabled = !settings.EmbeddingEnabled;
                 settings.Write();
                 // 切换时清空一次测试提示，避免误导
-                _embeddingTestStatusMessage = settings.EmbeddingEnabled ? "RimAI.EmbedTestHint".Translate() : "Embedding disabled";
+                _embeddingTestStatusMessage = settings.EmbeddingEnabled ? "RimAI.EmbedTestHint" : "RimAI.EmbedDisabled";
             }
             GUI.color = prevColor;
             listing.Gap(6f);
-            // 顶部按钮下方显示 Chat/Embedding 的返回信息
-            listing.Label(_chatTestStatusMessage);
-            listing.Label(_embeddingTestStatusMessage);
+            // 顶部按钮下方显示 Chat/Embedding 的返回信息（若是键则翻译）
+            var chatMsg = _chatTestStatusMessage;
+            if (!string.IsNullOrEmpty(chatMsg) && chatMsg.StartsWith("RimAI.")) chatMsg = chatMsg.Translate();
+            var embedMsg = _embeddingTestStatusMessage;
+            if (!string.IsNullOrEmpty(embedMsg) && embedMsg.StartsWith("RimAI.")) embedMsg = embedMsg.Translate();
+            listing.Label(chatMsg);
+            listing.Label(embedMsg);
             listing.Gap(8f);
 
             // ----- Chat 区域 -----
@@ -161,495 +163,42 @@ namespace RimAI.Framework.UI
             Widgets.EndScrollView();
         }
 
-        private void DrawSection(
-            Listing_Standard listing,
-            string title,
-            string activeProviderId,
-            ref string lastProviderId,
-            Action<string> setActiveProviderId,
-            IEnumerable<string> providerIds,
-            Action<string> loadAction,
-            Action<Listing_Standard> drawFieldsAction)
-        {
-            listing.Label(title);
-            listing.Gap(4f);
-            
-            var providerIdList = providerIds.ToList();
-            if (!providerIdList.Any()) { listing.Label("RimAI.NoProviders".Translate()); return; }
-            string currentLabel = string.IsNullOrEmpty(activeProviderId) ? "RimAI.SelectProvider".Translate() : activeProviderId.CapitalizeFirst();
-            if (Widgets.ButtonText(listing.GetRect(30f), currentLabel))
-            {
-                var options = new List<FloatMenuOption>();
-                foreach (var id in providerIdList)
-                {
-                    // 【修复】将 id 赋值给一个局部变量，以解决 lambda 捕获 ref 参数的问题
-                    string newId = id;
-                    options.Add(new FloatMenuOption(id.CapitalizeFirst(), () => setActiveProviderId(newId)));
-                }
-                Find.WindowStack.Add(new FloatMenu(options));
-            }
-            if (activeProviderId != lastProviderId) { loadAction(activeProviderId); lastProviderId = activeProviderId; }
-            if (string.IsNullOrEmpty(activeProviderId)) { listing.Label("RimAI.PlsSelectProvider".Translate()); return; }
-            listing.Gap(12f);
-            drawFieldsAction(listing);
-        }
+    // DrawSection 已移动到 Parts/CommonSection.cs
 
         // --- Chat Specific Logic ---
-        private void DrawChatFields(Listing_Standard listing) {
-            listing.Label("RimAI.ApiKey".Translate());
-            _chatApiKeyBuffer = Widgets.TextField(listing.GetRect(30f), _chatApiKeyBuffer);
-            listing.Gap(5f);
-            listing.Label("RimAI.Endpoint".Translate());
-            _chatEndpointBuffer = Widgets.TextField(listing.GetRect(30f), _chatEndpointBuffer);
-            listing.Gap(5f);
-            listing.Label("RimAI.Model".Translate());
-            _chatModelBuffer = Widgets.TextField(listing.GetRect(30f), _chatModelBuffer);
-            listing.Gap(5f);
-            listing.Label("RimAI.Temperature".Translate(_chatTemperatureBuffer.ToString("F2")));
-            _chatTemperatureBuffer = listing.Slider(_chatTemperatureBuffer, 0f, 2.0f);
-            listing.Gap(5f);
-            listing.Label("RimAI.TopP".Translate(_chatTopPBuffer.ToString("F2")));
-            _chatTopPBuffer = listing.Slider(_chatTopPBuffer, 0f, 1.0f);
-            listing.Gap(5f);
-            listing.Label("RimAI.TypicalP".Translate(_chatTypicalPBuffer.ToString("F2")));
-            _chatTypicalPBuffer = listing.Slider(_chatTypicalPBuffer, 0f, 1.0f);
-            listing.Gap(5f);
-            listing.Label("RimAI.MaxTokens".Translate(_chatMaxTokensBuffer.ToString()));
-            _chatMaxTokensBuffer = (int)listing.Slider(_chatMaxTokensBuffer, 0, 8192);
-            listing.Gap(5f);
-            listing.Label("RimAI.Concurrency".Translate(_chatConcurrencyLimitBuffer.ToString()));
-            _chatConcurrencyLimitBuffer = (int)listing.Slider(_chatConcurrencyLimitBuffer, 1, 20);
-            listing.Gap(5f);
-            listing.Label("RimAI.CustomHeaders".Translate());
-            _chatCustomHeadersBuffer = Widgets.TextField(listing.GetRect(30f), _chatCustomHeadersBuffer);
-            listing.Gap(5f);
-            listing.Label("RimAI.StaticParamsOverride".Translate());
-            _chatStaticParamsBuffer = Widgets.TextField(listing.GetRect(30f), _chatStaticParamsBuffer);
-            listing.Gap(5f);
-        }
+    // Chat 部分已移动到 Parts/ChatPart.cs
         
-        private void LoadChatSettings(string providerId) {
-            var userConfig = FrameworkDI.SettingsManager.GetChatUserConfig(providerId);
-            var templateResult = FrameworkDI.SettingsManager.GetMergedChatConfig(providerId);
-            if (!templateResult.IsSuccess) return;
-            var template = templateResult.Value.Template;
-            _chatApiKeyBuffer = userConfig?.ApiKey ?? "";
-            _chatEndpointBuffer = userConfig?.EndpointOverride ?? template?.ChatApi?.Endpoint ?? "";
-            _chatModelBuffer = userConfig?.ModelOverride ?? template?.ChatApi?.DefaultModel ?? "";
-            _chatTemperatureBuffer = userConfig?.Temperature ?? template?.ChatApi?.DefaultParameters?["temperature"]?.Value<float>() ?? 0.7f;
-            _chatTopPBuffer = userConfig?.TopP ?? template?.ChatApi?.DefaultParameters?["top_p"]?.Value<float>() ?? 1.0f;
-            _chatTypicalPBuffer = userConfig?.TypicalP ?? template?.ChatApi?.DefaultParameters?["typical_p"]?.Value<float>() ?? 1.0f;
-            _chatMaxTokensBuffer = userConfig?.MaxTokens ?? template?.ChatApi?.DefaultParameters?["max_tokens"]?.Value<int>() ?? 300;
-            _chatConcurrencyLimitBuffer = userConfig?.ConcurrencyLimit ?? 5;
-            _chatCustomHeadersBuffer = userConfig?.CustomHeaders != null ? JsonConvert.SerializeObject(userConfig.CustomHeaders, Formatting.None) : "";
-            _chatStaticParamsBuffer = userConfig?.StaticParametersOverride != null ? userConfig.StaticParametersOverride.ToString(Formatting.None) : "";
-            _chatTestStatusMessage = "RimAI.ChatTestHint".Translate();
-        }
+    // LoadChatSettings 已移动到 Parts/ChatPart.cs
         
-        private void HandleChatSave() {
-            Dictionary<string,string> parsedHeaders = null;
-            JObject parsedStaticParams = null;
-            try { parsedHeaders = string.IsNullOrWhiteSpace(_chatCustomHeadersBuffer) ? null : JsonConvert.DeserializeObject<Dictionary<string,string>>(_chatCustomHeadersBuffer); }
-            catch (Exception ex) { Messages.Message("RimAI.ChatHeadersInvalid".Translate(ex.Message), MessageTypeDefOf.NegativeEvent); return; }
-            try { parsedStaticParams = string.IsNullOrWhiteSpace(_chatStaticParamsBuffer) ? null : JObject.Parse(_chatStaticParamsBuffer); }
-            catch (Exception ex) { Messages.Message("RimAI.ChatStaticParamsInvalid".Translate(ex.Message), MessageTypeDefOf.NegativeEvent); return; }
-
-            var config = new ChatUserConfig {
-                ApiKey = _chatApiKeyBuffer,
-                EndpointOverride = _chatEndpointBuffer,
-                ModelOverride = _chatModelBuffer,
-                Temperature = _chatTemperatureBuffer,
-                TopP = _chatTopPBuffer,
-                TypicalP = _chatTypicalPBuffer,
-                MaxTokens = _chatMaxTokensBuffer == 0 ? null : (int?)_chatMaxTokensBuffer,
-                ConcurrencyLimit = _chatConcurrencyLimitBuffer,
-                CustomHeaders = parsedHeaders,
-                StaticParametersOverride = parsedStaticParams
-            };
-            FrameworkDI.SettingsManager.WriteChatUserConfig(settings.ActiveChatProviderId, config);
-            FrameworkDI.SettingsManager.ReloadConfigs();
-            settings.Write();
-            Messages.Message("RimAI.ChatSaved".Translate(), MessageTypeDefOf.PositiveEvent);
-        }
+    // HandleChatSave 已移动到 Parts/ChatPart.cs
 
         // --- 新增 Chat Reset ---
-        private void HandleChatReset()
-        {
-            if (string.IsNullOrEmpty(settings.ActiveChatProviderId)) return;
-            try
-            {
-                var filePath = Path.Combine(GenFilePaths.ConfigFolderPath, "RimAI_Framework", $"chat_config_{settings.ActiveChatProviderId}.json");
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                }
-                FrameworkDI.SettingsManager.ReloadConfigs();
-                LoadChatSettings(settings.ActiveChatProviderId);
-                Messages.Message("RimAI.ChatResetSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
-            }
-            catch (Exception ex)
-            {
-                Messages.Message("RimAI.ChatResetFailed".Translate(ex.Message), MessageTypeDefOf.NegativeEvent);
-            }
-        }
+    // HandleChatReset 已移动到 Parts/ChatPart.cs
 
         // --- 【修复】恢复完整的 Chat 测试方法 ---
-        private async void HandleChatTestLegacy()
-        {
-            if (string.IsNullOrWhiteSpace(_chatApiKeyBuffer))
-            {
-                _chatTestStatusMessage = "RimAI.ApiMissing".Translate();
-                Messages.Message("RimAI.CannotTestEmptyKey".Translate(), MessageTypeDefOf.CautionInput);
-                return;
-            }
-
-            _isChatTesting = true;
-            _chatTestStatusMessage = "RimAI.Testing".Translate();
-
-            try
-            {
-                var request = new UnifiedChatRequest { ConversationId = "__preview__", Messages = new List<ChatMessage> { new ChatMessage { Role = "user", Content = "Hi" } } };
-                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)))
-                {
-                    var result = await RimAIApi.GetCompletionAsync(request, cts.Token);
-                    if (result.IsSuccess) {
-                        _chatTestStatusMessage = $"Success! Response: {result.Value.Message.Content.Truncate(50)}";
-                        Messages.Message("RimAI.ChatSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
-                    } else {
-                        _chatTestStatusMessage = $"Failed: {result.Error}";
-                        Messages.Message("RimAI.ChatFailed".Translate(result.Error), MessageTypeDefOf.NegativeEvent);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _chatTestStatusMessage = $"Error: {ex.Message}";
-                RimAILogger.Error($"Chat test connection failed with exception: {ex}");
-                Messages.Message("RimAI.ChatError".Translate(ex.Message), MessageTypeDefOf.NegativeEvent);
-            }
-            finally
-            {
-                _isChatTesting = false;
-            }
-        }
+    // HandleChatTestLegacy 已移动到 Parts（如需保留）
 
         // --- Embedding Specific Logic ---
-        private void DrawEmbeddingFields(Listing_Standard listing) {
-            listing.Label("RimAI.ApiKey".Translate());
-            _embeddingApiKeyBuffer = Widgets.TextField(listing.GetRect(30f), _embeddingApiKeyBuffer);
-            listing.Gap(5f);
-            listing.Label("RimAI.Endpoint".Translate());
-            _embeddingEndpointBuffer = Widgets.TextField(listing.GetRect(30f), _embeddingEndpointBuffer);
-            listing.Gap(5f);
-            listing.Label("RimAI.Model".Translate());
-            _embeddingModelBuffer = Widgets.TextField(listing.GetRect(30f), _embeddingModelBuffer);
-            listing.Gap(5f);
-            listing.Label("RimAI.CustomHeaders".Translate());
-            _embeddingCustomHeadersBuffer = Widgets.TextField(listing.GetRect(30f), _embeddingCustomHeadersBuffer);
-            listing.Gap(5f);
-            listing.Label("RimAI.StaticParamsOverride".Translate());
-            _embeddingStaticParamsBuffer = Widgets.TextField(listing.GetRect(30f), _embeddingStaticParamsBuffer);
-            listing.Gap(5f);
-            listing.Label("RimAI.EmbedConcurrency".Translate(_embeddingConcurrencyLimitBuffer.ToString()));
-            _embeddingConcurrencyLimitBuffer = (int)listing.Slider(_embeddingConcurrencyLimitBuffer, 1, 20);
-            listing.Gap(5f);
-        }
+    // Embedding 字段绘制已移动到 Parts/EmbeddingPart.cs
         
-        private void LoadEmbeddingSettings(string providerId) {
-            var userConfig = FrameworkDI.SettingsManager.GetEmbeddingUserConfig(providerId);
-            var templateResult = FrameworkDI.SettingsManager.GetMergedEmbeddingConfig(providerId);
-            if (!templateResult.IsSuccess) return;
-            var template = templateResult.Value.Template;
-            _embeddingApiKeyBuffer = userConfig?.ApiKey ?? "";
-            _embeddingEndpointBuffer = userConfig?.EndpointOverride ?? template?.EmbeddingApi?.Endpoint ?? "";
-            _embeddingModelBuffer = userConfig?.ModelOverride ?? template?.EmbeddingApi?.DefaultModel ?? "";
-            _embeddingCustomHeadersBuffer = userConfig?.CustomHeaders != null ? JsonConvert.SerializeObject(userConfig.CustomHeaders, Formatting.None) : "";
-            _embeddingStaticParamsBuffer = userConfig?.StaticParametersOverride != null ? userConfig.StaticParametersOverride.ToString(Formatting.None) : "";
-            _embeddingConcurrencyLimitBuffer = userConfig?.ConcurrencyLimit ?? 4;
-            _embeddingTestStatusMessage = "RimAI.EmbedTestHint".Translate();
-        }
+    // LoadEmbeddingSettings 已移动到 Parts/EmbeddingPart.cs
 
         // --- Cache Section ---
-        private void DrawCacheSection(Listing_Standard listing)
-        {
-            listing.Label("RimAI.CacheSettings".Translate());
-            listing.Gap(4f);
-            // enable toggle
-            var row = listing.GetRect(24f);
-            Widgets.CheckboxLabeled(row, "RimAI.CacheEnabled".Translate(), ref _cacheEnabledBuffer);
-            listing.Gap(6f);
-            // TTL slider
-            listing.Label("RimAI.CacheTtl".Translate(_cacheTtlBuffer.ToString()));
-            _cacheTtlBuffer = (int)listing.Slider(_cacheTtlBuffer, 5, 3600);
-        }
+    // DrawCacheSection 已移动到 Parts/NetworkHttpPart.cs
 
         // --- HTTP Settings Section ---
-        private void DrawHttpSection(Listing_Standard listing)
-        {
-            listing.Label("RimAI.HttpSettings".Translate());
-            listing.Gap(4f);
-            listing.Label("RimAI.HttpTimeout".Translate(_httpTimeoutBuffer.ToString()));
-            _httpTimeoutBuffer = (int)listing.Slider(_httpTimeoutBuffer, 5, 3600);
-        }
+    // DrawHttpSection 已移动到 Parts/NetworkHttpPart.cs
         
-        private void HandleEmbeddingSave() {
-            Dictionary<string,string> parsedHeaders = null;
-            JObject parsedStaticParams = null;
-            try { parsedHeaders = string.IsNullOrWhiteSpace(_embeddingCustomHeadersBuffer) ? null : JsonConvert.DeserializeObject<Dictionary<string,string>>(_embeddingCustomHeadersBuffer); }
-            catch (Exception ex) { Messages.Message("RimAI.EmbedHeadersInvalid".Translate(ex.Message), MessageTypeDefOf.NegativeEvent); return; }
-            try { parsedStaticParams = string.IsNullOrWhiteSpace(_embeddingStaticParamsBuffer) ? null : JObject.Parse(_embeddingStaticParamsBuffer); }
-            catch (Exception ex) { Messages.Message("RimAI.EmbedStaticParamsInvalid".Translate(ex.Message), MessageTypeDefOf.NegativeEvent); return; }
-
-            var config = new EmbeddingUserConfig {
-                ApiKey = _embeddingApiKeyBuffer,
-                EndpointOverride = _embeddingEndpointBuffer,
-                ModelOverride = _embeddingModelBuffer,
-                CustomHeaders = parsedHeaders,
-                StaticParametersOverride = parsedStaticParams,
-                ConcurrencyLimit = _embeddingConcurrencyLimitBuffer
-            };
-            FrameworkDI.SettingsManager.WriteEmbeddingUserConfig(settings.ActiveEmbeddingProviderId, config);
-            FrameworkDI.SettingsManager.ReloadConfigs();
-            settings.Write();
-            Messages.Message("RimAI.EmbedSaved".Translate(), MessageTypeDefOf.PositiveEvent);
-        }
+    // HandleEmbeddingSave 已移动到 Parts/EmbeddingPart.cs
 
         // --- 新增 Embedding Reset ---
-        private void HandleEmbeddingReset()
-        {
-            if (string.IsNullOrEmpty(settings.ActiveEmbeddingProviderId)) return;
-            try
-            {
-                var filePath = Path.Combine(GenFilePaths.ConfigFolderPath, "RimAI_Framework", $"embedding_config_{settings.ActiveEmbeddingProviderId}.json");
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                }
-                FrameworkDI.SettingsManager.ReloadConfigs();
-                LoadEmbeddingSettings(settings.ActiveEmbeddingProviderId);
-                Messages.Message("RimAI.EmbedResetSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
-            }
-            catch (Exception ex)
-            {
-                Messages.Message("RimAI.EmbedResetFailed".Translate(ex.Message), MessageTypeDefOf.NegativeEvent);
-            }
-        }
+    // HandleEmbeddingReset 已移动到 Parts/EmbeddingPart.cs
         
-        private async void HandleEmbeddingTestLegacy()
-        {
-            if (string.IsNullOrWhiteSpace(_embeddingApiKeyBuffer))
-            {
-                _embeddingTestStatusMessage = "RimAI.ApiMissing".Translate();
-                Messages.Message("RimAI.CannotTestEmptyKey".Translate(), MessageTypeDefOf.CautionInput);
-                return;
-            }
+    // HandleEmbeddingTestLegacy 已移动到 Parts（如需保留）
 
-            _isEmbeddingTesting = true;
-            _embeddingTestStatusMessage = "RimAI.Testing".Translate();
+    // HandleChatTest 已移动到 Parts/ChatPart.cs
 
-            try
-            {
-                var request = new UnifiedEmbeddingRequest { Inputs = new List<string> { "Test input" } };
-                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)))
-                {
-                    var result = await RimAIApi.GetEmbeddingsAsync(request, cts.Token);
-                    if (result.IsSuccess) {
-                        _embeddingTestStatusMessage = $"Success! Received {result.Value.Data.Count} embedding vector(s).";
-                        Messages.Message("RimAI.EmbedSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
-                    } else {
-                        _embeddingTestStatusMessage = $"Failed: {result.Error}";
-                        Messages.Message("RimAI.EmbedFailed".Translate(result.Error), MessageTypeDefOf.NegativeEvent);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _embeddingTestStatusMessage = $"Error: {ex.Message}";
-                RimAILogger.Error($"Embedding test connection failed with exception: {ex}");
-                Messages.Message("RimAI.EmbedError".Translate(ex.Message), MessageTypeDefOf.NegativeEvent);
-            }
-            finally
-            {
-                _isEmbeddingTesting = false;
-            }
-        }
-
-        // --- 新版 Chat 测试方法 ---
-        private async void HandleChatTest()
-        {
-            if (string.IsNullOrWhiteSpace(_chatApiKeyBuffer))
-            {
-                _chatTestStatusMessage = "RimAI.ApiMissing".Translate();
-                Messages.Message("RimAI.CannotTestEmptyKey".Translate(), MessageTypeDefOf.CautionInput);
-                return;
-            }
-
-            _isChatTesting = true;
-            _chatTestStatusMessage = "RimAI.Testing".Translate();
-
-            try
-            {
-                var templateResult = FrameworkDI.SettingsManager.GetMergedChatConfig(settings.ActiveChatProviderId);
-                if (!templateResult.IsSuccess)
-                {
-                    _chatTestStatusMessage = templateResult.Error;
-                    Messages.Message(templateResult.Error, MessageTypeDefOf.NegativeEvent);
-                    return;
-                }
-
-                var template = templateResult.Value.Template;
-
-                var tempUserConfig = new ChatUserConfig
-                {
-                    ApiKey = _chatApiKeyBuffer,
-                    EndpointOverride = _chatEndpointBuffer,
-                    ModelOverride = _chatModelBuffer,
-                    Temperature = _chatTemperatureBuffer,
-                    TopP = _chatTopPBuffer,
-                    TypicalP = _chatTypicalPBuffer,
-                    MaxTokens = _chatMaxTokensBuffer == 0 ? null : (int?)_chatMaxTokensBuffer,
-                    ConcurrencyLimit = _chatConcurrencyLimitBuffer,
-                    CustomHeaders = string.IsNullOrWhiteSpace(_chatCustomHeadersBuffer) ? null : JsonConvert.DeserializeObject<Dictionary<string,string>>(_chatCustomHeadersBuffer),
-                    StaticParametersOverride = string.IsNullOrWhiteSpace(_chatStaticParamsBuffer) ? null : JObject.Parse(_chatStaticParamsBuffer)
-                };
-
-                var mergedConfig = new MergedChatConfig { Template = template, User = tempUserConfig };
-
-                var translator = new ChatRequestTranslator();
-                var unifiedRequest = new UnifiedChatRequest
-                {
-                    ConversationId = "__preview__",
-                    Messages = new List<ChatMessage> { new ChatMessage { Role = "user", Content = "Hi" } }
-                };
-                var httpRequest = translator.Translate(unifiedRequest, mergedConfig);
-
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                var executor = new HttpExecutor();
-                var httpResult = await executor.ExecuteAsync(httpRequest, cts.Token);
-
-                if (!httpResult.IsSuccess)
-                {
-                    _chatTestStatusMessage = $"Failed: {httpResult.Error}";
-                    Messages.Message("RimAI.ChatFailed".Translate(httpResult.Error), MessageTypeDefOf.NegativeEvent);
-                    return;
-                }
-
-                var responseTranslator = new ChatResponseTranslator();
-                try
-                {
-                    var unifiedResponse = await responseTranslator.TranslateAsync(httpResult.Value, mergedConfig, cts.Token);
-
-                    if (!string.IsNullOrEmpty(unifiedResponse?.Message?.Content))
-                    {
-                        _chatTestStatusMessage = $"Success! Response: {unifiedResponse.Message.Content.Truncate(50)}";
-                        Messages.Message("RimAI.ChatSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
-                    }
-                    else
-                    {
-                        _chatTestStatusMessage = "Failed: Empty response";
-                        Messages.Message("RimAI.ChatFailed".Translate("Empty response"), MessageTypeDefOf.NegativeEvent);
-                    }
-                }
-                finally
-                {
-                    httpResult.Value?.Dispose();
-                }
-            }
-            catch (Exception ex)
-            {
-                _chatTestStatusMessage = $"Error: {ex.Message}";
-                RimAILogger.Error($"Chat test connection failed with exception: {ex}");
-                Messages.Message("RimAI.ChatError".Translate(ex.Message), MessageTypeDefOf.NegativeEvent);
-            }
-            finally
-            {
-                _isChatTesting = false;
-            }
-        }
-
-        // --- 新版 Embedding 测试方法 ---
-        private async void HandleEmbeddingTest()
-        {
-            if (string.IsNullOrWhiteSpace(_embeddingApiKeyBuffer))
-            {
-                _embeddingTestStatusMessage = "RimAI.ApiMissing".Translate();
-                Messages.Message("RimAI.CannotTestEmptyKey".Translate(), MessageTypeDefOf.CautionInput);
-                return;
-            }
-
-            _isEmbeddingTesting = true;
-            _embeddingTestStatusMessage = "RimAI.Testing".Translate();
-
-            try
-            {
-                var templateResult = FrameworkDI.SettingsManager.GetMergedEmbeddingConfig(settings.ActiveEmbeddingProviderId);
-                if (!templateResult.IsSuccess)
-                {
-                    _embeddingTestStatusMessage = templateResult.Error;
-                    Messages.Message(templateResult.Error, MessageTypeDefOf.NegativeEvent);
-                    return;
-                }
-
-                var template = templateResult.Value.Template;
-
-                var tempUserConfig = new EmbeddingUserConfig
-                {
-                    ApiKey = _embeddingApiKeyBuffer,
-                    EndpointOverride = _embeddingEndpointBuffer,
-                    ModelOverride = _embeddingModelBuffer,
-                    CustomHeaders = string.IsNullOrWhiteSpace(_embeddingCustomHeadersBuffer) ? null : JsonConvert.DeserializeObject<Dictionary<string,string>>(_embeddingCustomHeadersBuffer),
-                    StaticParametersOverride = string.IsNullOrWhiteSpace(_embeddingStaticParamsBuffer) ? null : JObject.Parse(_embeddingStaticParamsBuffer)
-                };
-
-                var mergedConfig = new MergedEmbeddingConfig { Template = template, User = tempUserConfig };
-
-                var translator = new EmbeddingRequestTranslator();
-                var unifiedRequest = new UnifiedEmbeddingRequest { Inputs = new List<string> { "Test input" } };
-                var httpRequest = translator.Translate(unifiedRequest, mergedConfig);
-
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                var executor = new HttpExecutor();
-                var httpResult = await executor.ExecuteAsync(httpRequest, cts.Token);
-
-                if (!httpResult.IsSuccess)
-                {
-                    _embeddingTestStatusMessage = $"Failed: {httpResult.Error}";
-                    Messages.Message("RimAI.EmbedFailed".Translate(httpResult.Error), MessageTypeDefOf.NegativeEvent);
-                    return;
-                }
-
-                var responseTranslator = new EmbeddingResponseTranslator();
-                try
-                {
-                    var parseResult = await responseTranslator.TranslateAsync(httpResult.Value, mergedConfig, cts.Token);
-
-                    if (parseResult.IsSuccess)
-                    {
-                        _embeddingTestStatusMessage = $"Success! Received {parseResult.Value.Data.Count} embedding vector(s).";
-                        Messages.Message("RimAI.EmbedSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
-                    }
-                    else
-                    {
-                        _embeddingTestStatusMessage = $"Failed: {parseResult.Error}";
-                        Messages.Message("RimAI.EmbedFailed".Translate(parseResult.Error), MessageTypeDefOf.NegativeEvent);
-                    }
-                }
-                finally
-                {
-                    httpResult.Value?.Dispose();
-                }
-            }
-            catch (Exception ex)
-            {
-                _embeddingTestStatusMessage = $"Error: {ex.Message}";
-                RimAILogger.Error($"Embedding test connection failed with exception: {ex}");
-                Messages.Message("RimAI.EmbedError".Translate(ex.Message), MessageTypeDefOf.NegativeEvent);
-            }
-            finally
-            {
-                _isEmbeddingTesting = false;
-            }
-        }
+    // HandleEmbeddingTest 已移动到 Parts/EmbeddingPart.cs
 
         // --- Combined Chat + Embedding 操作 ---
         private void HandleCombinedSave()
@@ -702,7 +251,7 @@ namespace RimAI.Framework.UI
             if (settings.EmbeddingEnabled)
                 HandleEmbeddingTest();
             else
-                _embeddingTestStatusMessage = "Embedding disabled";
+                _embeddingTestStatusMessage = "RimAI.EmbedDisabled";
         }
     }
 }

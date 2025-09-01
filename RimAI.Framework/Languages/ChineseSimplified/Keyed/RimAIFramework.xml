@@ -54,4 +54,5 @@
   <RimAI.NetworkCacheResetBtn>重置网络与缓存设置</RimAI.NetworkCacheResetBtn>
   <RimAI.NetworkCacheSaved>网络与缓存设置已保存。</RimAI.NetworkCacheSaved>
   <RimAI.NetworkCacheReset>网络与缓存设置已重置为默认值。</RimAI.NetworkCacheReset>
+  <RimAI.EmbedDisabled>向量嵌入已关闭</RimAI.EmbedDisabled>
 </LanguageData>

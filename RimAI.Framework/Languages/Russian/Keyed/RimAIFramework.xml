@@ -54,4 +54,5 @@
   <RimAI.NetworkCacheResetBtn>Сбросить настройки сети и кэша</RimAI.NetworkCacheResetBtn>
   <RimAI.NetworkCacheSaved>Настройки сети и кэша сохранены.</RimAI.NetworkCacheSaved>
   <RimAI.NetworkCacheReset>Настройки сети и кэша сброшены к значениям по умолчанию.</RimAI.NetworkCacheReset>
+  <RimAI.EmbedDisabled>Встраивание отключено</RimAI.EmbedDisabled>
 </LanguageData>
