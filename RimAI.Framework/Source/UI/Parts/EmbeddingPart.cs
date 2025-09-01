@@ -152,6 +152,8 @@ namespace RimAI.Framework.UI
                     {
                         _embeddingTestStatusMessage = $"Success! Received {parseResult.Value.Data.Count} embedding vector(s).";
                         Messages.Message("RimAI.EmbedSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
+                        // 测试成功后自动保存当前 Embedding 设置，避免用户忘记保存
+                        HandleEmbeddingSave();
                     }
                     else
                     {

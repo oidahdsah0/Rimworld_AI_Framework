@@ -192,7 +192,7 @@ namespace RimAI.Framework.Configuration
                 ChatApi = new ChatApiConfig
                 {
                     Endpoint = "https://api.siliconflow.cn/v1/chat/completions",
-                    DefaultModel = "Qwen/Qwen2.5-72B-Instruct",
+                    DefaultModel = "Qwen/Qwen3-30B-A3B-Instruct-2507",
                     DefaultParameters = JObject.FromObject(new { temperature = 0.7, top_p = 1.0, typical_p = 1.0, max_tokens = 300 }),
                     RequestPaths = OpenAiChatRequestPaths,
                     ResponsePaths = OpenAiChatResponsePaths,

@@ -249,7 +249,16 @@ namespace RimAI.Framework.UI
         {
             HandleChatTest();
             if (settings.EmbeddingEnabled)
+            {
+                // 若 Embedding Key 为空，则在测试前自动从 Chat 复制 Provider 与 Key（不落盘，仅本次测试使用）
+                if (string.IsNullOrWhiteSpace(_embeddingApiKeyBuffer))
+                {
+                    settings.ActiveEmbeddingProviderId = settings.ActiveChatProviderId;
+                    _embeddingApiKeyBuffer = _chatApiKeyBuffer;
+                    Messages.Message("RimAI.EmbeddingAutoSync".Translate(), MessageTypeDefOf.CautionInput);
+                }
                 HandleEmbeddingTest();
+            }
             else
                 _embeddingTestStatusMessage = "RimAI.EmbedDisabled";
         }

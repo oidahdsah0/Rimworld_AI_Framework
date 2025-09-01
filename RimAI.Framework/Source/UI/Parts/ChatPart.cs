@@ -182,6 +182,8 @@ namespace RimAI.Framework.UI
                     {
                         _chatTestStatusMessage = $"Success! Response: {unifiedResponse.Message.Content.Truncate(50)}";
                         Messages.Message("RimAI.ChatSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
+                        // 测试成功后自动保存当前设置，避免用户忘记保存
+                        HandleChatSave();
                     }
                     else
                     {
